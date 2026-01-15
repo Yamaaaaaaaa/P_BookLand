@@ -1,0 +1,99 @@
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '3.5.9'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.example'
+version = '0.0.1-SNAPSHOT'
+description = 'BookLand_BE'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    /* ================= CORE ================= */
+
+    // Web + REST + Tomcat + Spring MVC
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    // Thymeleaf (nếu có render HTML)
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    // Validation (@NotNull, @Email, ...)
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+
+    /* ================= DATABASE ================= */
+
+    // JPA + Hibernate
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    // MySQL Driver
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+
+    /* ================= CACHE ================= */
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+
+    /* ================= SECURITY ================= */
+
+    // OAuth2 Resource Server (JWT, Keycloak, ...)
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+
+
+    /* ================= DEV ================= */
+
+    // Hot reload khi save
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+    // Docker Compose auto-run
+    developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+
+
+    /* ================= UTILS ================= */
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // MapStruct
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+
+    /* ================= API DOC ================= */
+
+    // Swagger / OpenAPI
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
+
+
+    /* ================= TEST ================= */
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // Keycloak Admin Client (CRUD User / Role / Client / Realm)
+    implementation 'org.keycloak:keycloak-admin-client:22.0.5'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}

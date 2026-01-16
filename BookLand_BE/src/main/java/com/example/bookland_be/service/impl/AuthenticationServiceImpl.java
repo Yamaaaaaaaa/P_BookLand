@@ -1,4 +1,169 @@
 package com.example.bookland_be.service.impl;
 
-public class AuthenticationServiceImpl {
+import com.example.bookland_be.dto.request.IntrospectRequest;
+import com.example.bookland_be.dto.request.LoginRequest;
+import com.example.bookland_be.dto.response.IntrospectResponse;
+import com.example.bookland_be.dto.response.LoginResponse;
+import com.example.bookland_be.entity.User;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
+import com.example.bookland_be.mapper.UserMapper;
+import com.example.bookland_be.repository.InvalidatedTokenRepository;
+import com.example.bookland_be.repository.UserRepository;
+import com.example.bookland_be.service.AuthenticationService;
+import com.nimbusds.jose.*;
+import com.nimbusds.jose.crypto.MACSigner;
+import com.nimbusds.jose.crypto.MACVerifier;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
+import lombok.experimental.NonFinal;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.text.ParseException;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.Objects;
+import java.util.StringJoiner;
+import java.util.UUID;
+
+enum TokenType {
+    ACCESS,
+    REFRESH
+}
+
+@Service
+@Slf4j
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+public class AuthenticationServiceImpl implements AuthenticationService {
+    @Autowired
+    UserRepository userRepository;
+
+    @Autowired
+    InvalidatedTokenRepository invalidatedTokenRepository;
+
+    @NonFinal
+    @Value("${jwt.signerKey}")
+    protected String SIGNER_KEY;
+
+    @NonFinal
+    @Value("${jwt.valid-duration}")
+    protected long VALID_DURATION;
+
+    @NonFinal
+    @Value("${jwt.refreshable-duration}")
+    protected long REFRESHABLE_DURATION;
+
+    @Autowired
+    UserMapper userMapper;
+
+    private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+
+    @Override
+    public LoginResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        String accessToken = generateToken(user, TokenType.ACCESS);
+        String refreshToken = generateToken(user, TokenType.REFRESH);
+
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .expiresIn((int) VALID_DURATION)
+                .tokenType("Bearer")
+                .build();
+    }
+
+    public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
+        boolean isValid = true;
+        try {
+            verifyToken(request.getToken(), request.getTokenType());
+        } catch (Exception e) {
+            isValid = false;
+        }
+        return IntrospectResponse.builder()
+                .valid(isValid)
+                .build();
+    }
+    private String generateToken(User user, TokenType tokenType) {
+        long duration = (tokenType == TokenType.ACCESS)
+                ? VALID_DURATION
+                : REFRESHABLE_DURATION;
+
+        JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
+
+        JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
+                .subject(user.getUsername())
+                .issuer("kaita")
+                .issueTime(new Date())
+                .expirationTime(
+                        new Date(Instant.now().plus(duration, ChronoUnit.SECONDS).toEpochMilli())
+                )
+                .jwtID(UUID.randomUUID().toString())
+                .claim("type", tokenType.name())
+                .claim("scope", tokenType == TokenType.ACCESS ? buildScope(user) : null)
+                .build();
+
+        JWSObject jwsObject = new JWSObject(header, new Payload(claimsSet.toJSONObject()));
+
+        try {
+            jwsObject.sign(new MACSigner(SIGNER_KEY.getBytes()));
+            return jwsObject.serialize();
+        } catch (JOSEException e) {
+            throw new RuntimeException("Cannot generate " + tokenType + " token", e);
+        }
+    }
+
+    private SignedJWT verifyToken(String token, String expectedType) throws JOSEException, ParseException {
+        JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
+
+        SignedJWT signedJWT = SignedJWT.parse(token);
+
+        boolean isRefresh = Objects.equals(expectedType, "REFRESH");
+        Date expiryTime = (isRefresh)
+                ? new Date(signedJWT
+                .getJWTClaimsSet()
+                .getIssueTime()
+                .toInstant()
+                .plus(REFRESHABLE_DURATION, ChronoUnit.SECONDS)
+                .toEpochMilli())
+                : signedJWT.getJWTClaimsSet().getExpirationTime();
+
+        var verified = signedJWT.verify(verifier);
+
+        if (!(verified && expiryTime.after(new Date()))) throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        if (invalidatedTokenRepository.existsById(signedJWT.getJWTClaimsSet().getJWTID()))
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        return signedJWT;
+    }
+
+    private String buildScope(User user) {
+        StringJoiner stringJoiner = new StringJoiner(" ");
+
+        if (!CollectionUtils.isEmpty(user.getRoles()))
+            user.getRoles().forEach(role -> {
+                stringJoiner.add("ROLE_" + role.getName());
+                if (!CollectionUtils.isEmpty(role.getPermissions()))
+                    role.getPermissions().forEach(permission -> stringJoiner.add("ROLE_" + permission.getName()));
+            });
+
+        return stringJoiner.toString();
+    }
 }

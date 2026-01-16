@@ -6,6 +6,7 @@ import com.example.bookland_be.dto.request.UserUpdateRequest;
 import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.dto.response.UserResponse;
 import com.example.bookland_be.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.web.bind.annotation.RestController;
 
 import jakarta.validation.Valid;
@@ -22,7 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
 
-
+@SecurityRequirement(name = "BearerAuth")
 @RestController
 public class UserController {
     private final UserService userService;

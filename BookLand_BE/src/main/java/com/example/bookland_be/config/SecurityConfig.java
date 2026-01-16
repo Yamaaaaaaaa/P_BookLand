@@ -1,5 +1,6 @@
 package com.example.bookland_be.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -22,8 +23,8 @@ public class SecurityConfig {
     private final String[] POST_PUBLIC_ENDPOINTS = { "/users", "/auth/token", "/auth/introspect", "/auth/refresh", "/auth/logout-old", "/auth/register", "/auth/login", "/auth/logout-keycloak"};
     private final String[] GET_PUBLIC_ENDPOINTS = {"/home", "/users", "/v3/api-docs"};
 
-//    @Autowired
-//    private CustomJwtDecoder customJwtDecoder;
+    @Autowired
+    private CustomJwtDecoder customJwtDecoder;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
@@ -47,9 +48,9 @@ public class SecurityConfig {
                         .anyRequest().authenticated());
 
 
-//        httpSecurity.oauth2ResourceServer(oauth2 ->
-//                oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJwtDecoder))
-//        );
+        httpSecurity.oauth2ResourceServer(oauth2 ->
+                oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJwtDecoder)) // Custom cách ta Decode JWT Token (Do ta còn lưu Token Logout vào DB nữa)
+        );
 
         httpSecurity.csrf(AbstractHttpConfigurer::disable);
         return httpSecurity.build();

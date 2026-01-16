@@ -1,9 +1,11 @@
 package com.example.bookland_be.service.impl;
 
-import com.example.bookland_be.dto.request.IntrospectRequest;
-import com.example.bookland_be.dto.request.LoginRequest;
+import com.example.bookland_be.dto.request.*;
+import com.example.bookland_be.dto.response.AuthenticationResponse;
 import com.example.bookland_be.dto.response.IntrospectResponse;
 import com.example.bookland_be.dto.response.LoginResponse;
+import com.example.bookland_be.dto.response.UserResponse;
+import com.example.bookland_be.entity.InvalidatedToken;
 import com.example.bookland_be.entity.User;
 import com.example.bookland_be.exception.AppException;
 import com.example.bookland_be.exception.ErrorCode;
@@ -89,6 +91,69 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build();
     }
 
+
+    // Service trả lại AccessToken cho người dùng nhờ Refresh Token
+    // Yêu cầu: Bên Client phải check nếu AccessToken gần hết hạn thì gửi 1 API để lấy nó
+    @Override
+    public AuthenticationResponse getTokenByRefresh(AuthenticationRequest request) {
+        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
+        var user = userRepository
+                .findByUsername(request.getUsername())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
+
+        if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        var token = generateToken(user, TokenType.ACCESS);
+
+        return AuthenticationResponse.builder().token(token).authenticated(true).build();
+    }
+
+
+    // Hàm Logout => ko cần trả về j. yêu cầu là nếu có lỗi thì bắn ra Exception => Nhớ Try Catch
+    // B1: Verify Token. => Nếu token Invaliated (hết hạn hoặc trong DB Invaliated)
+    // B2: Qua đc bước trên => Lưu token đó vào DB Invaliated
+    @Override
+    public void logout(LogoutRequest logoutRequest) throws JOSEException, ParseException{
+        try {
+            var signToken = verifyToken(logoutRequest.getToken(), "REFRESH");
+
+            String jit = signToken.getJWTClaimsSet().getJWTID();
+            Date expiryTime = signToken.getJWTClaimsSet().getExpirationTime();
+
+            InvalidatedToken invalidatedToken =
+                    InvalidatedToken.builder().id(jit).expiryTime(expiryTime).build();
+
+            invalidatedTokenRepository.save(invalidatedToken);
+        } catch (AppException exception) {
+            log.info("Token already expired");
+        }
+    }
+
+
+    // Hàm lấy refreshToken mới:
+    // B1: Nhận Token => Giải mã Token
+    // B2: Cho Token cũ đấy ko sd đc nữa (đưa vào DB Invaliated)
+    // B3: Tạo Token mới dựa vào thông tin ng dùng (lấy từ token cũ) => Trả về
+    @Override
+    public AuthenticationResponse refreshToken(RefreshRequest refreshRequest) throws JOSEException, ParseException{
+        SignedJWT signedJWT = verifyToken(refreshRequest.getToken(), "REFRESH");
+
+        String jid = signedJWT.getJWTClaimsSet().getJWTID();
+        var expiryTime = signedJWT.getJWTClaimsSet().getExpirationTime();
+
+        InvalidatedToken invalidatedToken = InvalidatedToken.builder().id(jid).expiryTime(expiryTime).build();
+        invalidatedTokenRepository.save(invalidatedToken);
+
+        var name = signedJWT.getJWTClaimsSet().getSubject();
+        var user = userRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+
+        var token = generateToken(user, TokenType.REFRESH);
+
+        return AuthenticationResponse.builder().token(token).authenticated(true).build();
+    }
+
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {
         boolean isValid = true;
         try {
@@ -129,12 +194,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
     }
 
-    private SignedJWT verifyToken(String token, String expectedType) throws JOSEException, ParseException {
+    private SignedJWT verifyToken(String token, String tokenType) throws JOSEException, ParseException {
         JWSVerifier verifier = new MACVerifier(SIGNER_KEY.getBytes());
 
         SignedJWT signedJWT = SignedJWT.parse(token);
 
-        boolean isRefresh = Objects.equals(expectedType, "REFRESH");
+        boolean isRefresh = Objects.equals(tokenType, "REFRESH");
         Date expiryTime = (isRefresh)
                 ? new Date(signedJWT
                 .getJWTClaimsSet()
@@ -166,4 +231,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return stringJoiner.toString();
     }
+
+
 }

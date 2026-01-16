@@ -12,7 +12,7 @@ import java.text.ParseException;
 public interface AuthenticationService {
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException ;
     public LoginResponse login(LoginRequest request) throws JOSEException, ParseException ;
-    public AuthenticationResponse getTokenByRefresh(AuthenticationRequest request);
+    public AuthenticationResponse getTokenByRefresh(RefreshRequest refreshRequest) throws ParseException, JOSEException ;
     public void logout(LogoutRequest logoutRequest) throws JOSEException, ParseException;
     public AuthenticationResponse refreshToken(RefreshRequest refreshRequest)  throws JOSEException, ParseException;
 }

@@ -3,13 +3,7 @@ package com.example.bookland_be.entity;
 import java.time.LocalDate;
 import java.util.Set;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -40,17 +34,20 @@ public class User {
     @Column(nullable = false, length = 255)
     String username;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = true, length = 255)
     String firstName;
 
-    @Column(nullable = false, length = 255)
+    @Column(nullable = true, length = 255)
     String lastName;
 
+    @Column(nullable = true)
     LocalDate dob; // DATE trong MySQL → LocalDate
 
     @ManyToMany
+    @JoinTable(
+            name = "users_roles",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "roles_name")
+    )
     Set<Role> roles;
-
-    @Column(nullable = false, unique = true, length = 255)
-    String userId; // Sử dụng cho oauth keycloak
 }

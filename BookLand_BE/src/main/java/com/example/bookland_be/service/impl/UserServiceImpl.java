@@ -1,13 +1,18 @@
 package com.example.bookland_be.service.impl;
 
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 
+import com.example.bookland_be.dto.request.UpdateUserRoleRequest;
 import com.example.bookland_be.dto.request.UserCreationRequest;
 import com.example.bookland_be.dto.request.UserUpdateRequest;
 import com.example.bookland_be.dto.response.UserResponse;
+import com.example.bookland_be.entity.Role;
 import com.example.bookland_be.entity.User;
 import com.example.bookland_be.mapper.UserMapper;
+import com.example.bookland_be.repository.RoleRepository;
 import com.example.bookland_be.repository.UserRepository;
 import com.example.bookland_be.service.UserService;
 import org.springframework.cache.annotation.CacheEvict;
@@ -28,11 +33,12 @@ import lombok.AccessLevel;
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
+    private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
     UserMapper userMapper;
 
 
-    @PreAuthorize("hasRole('ADMIN')")
+//    @PreAuthorize("hasRole('ADMIN')")
     @Cacheable(value = "USER_CACHE", key = "'allUser'") // Lưu key cố định là All USER => Khi update, delete, create thì phải xóa cache cái này đi
     @Override
     public List<UserResponse> handleGetAllUser() {
@@ -66,21 +72,33 @@ public class UserServiceImpl implements UserService {
     @CacheEvict(value = "USER_CACHE", allEntries = true)
     @Override
     public UserResponse handleCreateUser(UserCreationRequest userCreationRequestDTO){
-        // TODO Auto-generated method stub
         if (userRepository.findByEmail(userCreationRequestDTO.getEmail()).isPresent()) {
             throw new IllegalArgumentException("Email already exists");
         }
         if (userRepository.findByUsername(userCreationRequestDTO.getUsername()).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
-        // Mã hóa mật khẩu
+
+        // 1. Encode password
         String hashedPassword = passwordEncoder.encode(userCreationRequestDTO.getPassword());
-        userCreationRequestDTO.setPassword(hashedPassword);
 
+        // 2. Map DTO → Entity
         User user = userMapper.toUser(userCreationRequestDTO);
+        user.setPassword(hashedPassword);
 
+        // 3. GÁN ROLE (đúng chỗ)
+        if (userCreationRequestDTO.getRoleNames() != null && !userCreationRequestDTO.getRoleNames().isEmpty()) {
+            Set<Role> roles = userCreationRequestDTO.getRoleNames().stream()
+                    .map(roleName ->
+                            roleRepository.findById(roleName)
+                                    .orElseThrow(() ->
+                                            new RuntimeException("Role not found: " + roleName)))
+                    .collect(Collectors.toSet());
+            user.setRoles(roles);
+        }
+
+        // 4. Save
         User saved = userRepository.save(user);
-
         return userMapper.toUserResponse(saved);
     }
 
@@ -119,6 +137,28 @@ public class UserServiceImpl implements UserService {
         return userMapper.toUserResponse(saved);
     }
 
+    @Override
+    public UserResponse updateUserRoles(Long id, UpdateUserRoleRequest req) {
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (req.getRoleNames() == null || req.getRoleNames().isEmpty()) {
+            throw new IllegalArgumentException("Role list must not be empty");
+        }
+
+        Set<Role> roles = req.getRoleNames().stream()
+                .map(roleName -> roleRepository.findById(roleName)
+                        .orElseThrow(() ->
+                                new RuntimeException("Role not found: " + roleName)))
+                .collect(Collectors.toSet());
+
+        // Update bảng user_roles
+        user.setRoles(roles);
+
+        User saved = userRepository.save(user);
+        return userMapper.toUserResponse(saved);
+    }
 
     // Delete user → clear cả allUser và các user lẻ luôn :v- ko tối ưu lắm ha
     @CacheEvict(value = "USER_CACHE", allEntries = true)

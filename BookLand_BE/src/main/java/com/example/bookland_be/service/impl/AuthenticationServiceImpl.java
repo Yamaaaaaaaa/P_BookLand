@@ -4,7 +4,6 @@ import com.example.bookland_be.dto.request.*;
 import com.example.bookland_be.dto.response.AuthenticationResponse;
 import com.example.bookland_be.dto.response.IntrospectResponse;
 import com.example.bookland_be.dto.response.LoginResponse;
-import com.example.bookland_be.dto.response.UserResponse;
 import com.example.bookland_be.entity.InvalidatedToken;
 import com.example.bookland_be.entity.User;
 import com.example.bookland_be.exception.AppException;
@@ -91,19 +90,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build();
     }
 
-
-    // Service trả lại AccessToken cho người dùng nhờ Refresh Token
-    // Yêu cầu: Bên Client phải check nếu AccessToken gần hết hạn thì gửi 1 API để lấy nó
+    // --- Service trả lại AccessToken cho người dùng nhờ Refresh Token
+        // Hướng làm 1:
+        // Bên Client phải check nếu AccessToken gần hết hạn thì gửi 1 API (/refresh) để lấy Access mới
+        // Hướng làm 2:
+        // Bên Client nếu gọi Request dính 401 => FE gọi API (/refresh) để lấy token
     @Override
-    public AuthenticationResponse getTokenByRefresh(AuthenticationRequest request) {
-        PasswordEncoder passwordEncoder = new BCryptPasswordEncoder(10);
-        var user = userRepository
-                .findByUsername(request.getUsername())
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+    public AuthenticationResponse getTokenByRefresh(RefreshRequest request) throws ParseException, JOSEException {
+        SignedJWT signedJWT = verifyToken(request.getToken(), "REFRESH");
 
-        boolean authenticated = passwordEncoder.matches(request.getPassword(), user.getPassword());
-
-        if (!authenticated) throw new AppException(ErrorCode.UNAUTHENTICATED);
+        var name = signedJWT.getJWTClaimsSet().getSubject();
+        var user = userRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
         var token = generateToken(user, TokenType.ACCESS);
 
@@ -111,9 +108,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
 
-    // Hàm Logout => ko cần trả về j. yêu cầu là nếu có lỗi thì bắn ra Exception => Nhớ Try Catch
-    // B1: Verify Token. => Nếu token Invaliated (hết hạn hoặc trong DB Invaliated)
-    // B2: Qua đc bước trên => Lưu token đó vào DB Invaliated
+    // --- Service Logout => ko cần trả về j. yêu cầu là nếu có lỗi thì bắn ra Exception => Nhớ Try Catch
+        // B1: Verify Token. => Nếu token Invaliated (hết hạn hoặc trong DB Invaliated)
+        // B2: Qua đc bước trên => Lưu token đó vào DB Invaliated
     @Override
     public void logout(LogoutRequest logoutRequest) throws JOSEException, ParseException{
         try {
@@ -132,10 +129,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
 
-    // Hàm lấy refreshToken mới:
-    // B1: Nhận Token => Giải mã Token
-    // B2: Cho Token cũ đấy ko sd đc nữa (đưa vào DB Invaliated)
-    // B3: Tạo Token mới dựa vào thông tin ng dùng (lấy từ token cũ) => Trả về
+    // --- Service lấy refreshToken mới:
+        // B1: Nhận Token => Giải mã Token
+        // B2: Cho Token cũ đấy ko sd đc nữa (đưa vào DB Invaliated)
+        // B3: Tạo Token mới dựa vào thông tin ng dùng (lấy từ token cũ) => Trả về
     @Override
     public AuthenticationResponse refreshToken(RefreshRequest refreshRequest) throws JOSEException, ParseException{
         SignedJWT signedJWT = verifyToken(refreshRequest.getToken(), "REFRESH");
@@ -231,6 +228,4 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return stringJoiner.toString();
     }
-
-
 }

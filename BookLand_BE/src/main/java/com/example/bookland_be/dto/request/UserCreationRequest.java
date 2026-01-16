@@ -2,6 +2,7 @@ package com.example.bookland_be.dto.request;
 
 
 import java.time.LocalDate;
+import java.util.Set;
 
 //import com.example.ecomerce_platform.validator.DobConstraint;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -35,7 +36,7 @@ public class UserCreationRequest {
 
     @JsonFormat(pattern = "yyyy-MM-dd")
 //    @DobConstraint(min = 18, message = "INVALID_DOB")
-    private LocalDate dob; // DATE trong MySQL → LocalDate
+    private LocalDate dob; // DATE trong MySQL → LocalDate\
 
-
+    Set<String> roleNames;
 }

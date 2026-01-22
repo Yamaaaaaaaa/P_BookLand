@@ -1,34 +1,25 @@
 package com.example.bookland_be.dto.request;
 
+import lombok.*;
+import jakarta.validation.constraints.*;
 import java.time.LocalDate;
-
-//import com.example.ecomerce_platform.validator.DobConstraint;
-import com.fasterxml.jackson.annotation.JsonFormat;
-
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.experimental.FieldDefaults;
-import lombok.AccessLevel;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Size;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@FieldDefaults(level = AccessLevel.PRIVATE)
 public class UserUpdateRequest {
-    @Email(message = "INVALID_EMAIL")
+
+    private String firstName;
+
+    private String lastName;
+
+    @Past(message = "Ngày sinh phải là ngày trong quá khứ")
+    private LocalDate dob;
+
+    @Email(message = "Email không hợp lệ")
     private String email;
 
-    @Size(min = 8, message = "INVALID_PASSWORD")
-    private String password;
-
-    private String name;
-
-    @JsonFormat(pattern = "yyyy-MM-dd")
-//    @DobConstraint(min = 18, message = "INVALID_DOB")
-    private LocalDate dob; // DATE trong MySQL → LocalDate
+    @Pattern(regexp = "^[0-9]{10,11}$", message = "Số điện thoại không hợp lệ")
+    private String phone;
 }

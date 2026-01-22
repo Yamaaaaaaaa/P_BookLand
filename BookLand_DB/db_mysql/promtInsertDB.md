@@ -1,0 +1,13 @@
+- oke, bây giờ từ DB này, hãy tạo Insert cho tôi dữ liệu
+- Yêu cầu:
+  - user chỉ có 2 tài khoản: admin (admin@gmail.com) và user (user@gmail.com), role cũng chỉ có 2 cái ADMIN, USER (permission chưa cần)
+  - book thì hãy cho tôi: Full bộ HarryPotter, Full bộ truyện tranh dài (24 tập ấy) của Doraemon, Full Sách giáo khoa từ lớp 1 -> 12 (5 môn toán văn lịch sử, lý, hóa), và 1 vài cuốn sách lẻ (full truyện của bác Nguyễn nhật ánh) để tôi test truyên ko có series (Lưu ý tất cả thông tin phải thật sự chuẩn xác)
+  - category, publisherm, author, supplier thì bạn cú suy ra từ các cuốn sách để insert cho tôi
+  - shipping method thì cứ cho tôi: 2 cái là Giao hàng tiết kiệm và Viettel Post
+  - Payment method thì cứ cho tôi VnPay, Momo, Thanh toán khi nhận hàng
+  - Supplier thì làm chỉ 2 hóa đơn, 1 cái nhập hết Full bộ HarryPotter, Full bộ truyện tranh dài của Doraemon, 1 cái nhập Full Sách giáo khoa từ lớp 1 -> 12 (5 môn toán văn lịch sử, lý, hóa), và 1 vài cuốn sách lẻ (full truyện của bác Nguyễn nhật ánh)
+  - Cart thì cho User 1 cái cart và 1 vài quyển sách đang tạm chờ trong cart-item nhé
+  - Hóa đơn mua thì tạo giúp tôi 2 hóa đơn (1 cái đã hoàn thành và 1 cái chờ duyệt)
+  - Đảm bảo: (Các thông tin phải chuẩn xác, ăn khớp với toàn bộ dữ liệu tất cả đấy nhé)
+  - Nếu được thì hãy đóng thành file sql, các bước nếu có thì hãy comment lên đầu các bước để tôi có thể biết
+  - Dữ liệu các sách, category, publisherm, author, supplier ,. shipping method Payment method ,, lưu tiếng việt nhé

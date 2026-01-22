@@ -1,0 +1,460 @@
+@startuml
+hide methods
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' =======================
+' ======= ENTITIES ======
+' =======================
+
+class Author {
+  +id: INTEGER
+  name: STRING
+  description: TEXT
+  authorImage: TEXT
+}
+
+note right of Author
+  INDEX:
+  - UNIQUE(name)
+end note
+
+
+class Book {
+  +id: INTEGER
+  name: STRING
+  description: TEXT
+  originalCost: INTEGER
+  sale: INTEGER
+  stock: INTEGER
+  state: STRING
+  publishedDate: DATE
+  bookImageUrl: TEXT
+  pin: BOOLEAN
+  authorId: INTEGER
+  publisherId: INTEGER
+  seriesId: INTEGER
+  createdAt: DATETIME
+  updatedAt: DATETIME
+  createdBy: INTEGER
+}
+
+note right of Book
+  INDEX:
+  - (authorId)
+  - (publisherId)
+  - (seriesId)
+  - (state)
+  - (pin)
+  - (publishedDate)
+  - (state, publishedDate)
+  - FULLTEXT(name, description)
+end note
+
+
+class Publisher {
+  +id: INTEGER
+  name: STRING
+  description: TEXT
+}
+
+
+class Supplier {
+  +id: INTEGER
+  name: STRING
+  phone: STRING
+  email: STRING
+  address: STRING
+  status: STRING
+}
+
+
+class Serie {
+  +id: INTEGER
+  name: STRING
+  description: TEXT
+}
+
+note right of Serie
+  INDEX:
+  - UNIQUE(name)
+end note
+
+
+class Category {
+  +id: INTEGER
+  name: STRING
+  description: TEXT
+}
+
+note right of Category
+  INDEX:
+  - UNIQUE(name)
+end note
+
+
+class Book_Category {
+  bookId: INTEGER
+  categoryId: INTEGER
+}
+
+
+class User {
+  +id: INTEGER
+  username: STRING
+  firstName: STRING
+  lastName: STRING
+  dob: DATE
+  email: STRING
+  password: STRING
+  phone: STRING
+  status: STRING
+  createdAt: DATETIME
+}
+
+note right of User
+  INDEX:
+  - UNIQUE(email)
+  - UNIQUE(username)
+  - (status)
+  - (createdAt)
+end note
+
+
+class Address {
+  +id: INTEGER
+  userId: INTEGER
+  contactPhone: STRING
+  addressDetail: STRING
+  isDefault: BOOLEAN
+}
+
+note right of Address
+  Business rule:
+  - 1 user chỉ có 1 Address isDefault = TRUE
+end note
+
+
+class Role {
+  +id: INTEGER
+  name: STRING
+  description: TEXT
+}
+
+
+class Permission {
+  +id: INTEGER
+  name: STRING
+  description: TEXT
+}
+
+
+class User_Role {
+  userId: INTEGER
+  roleId: INTEGER
+}
+
+note right of User_Role
+  UNIQUE(userId, roleId)
+end note
+
+
+class Role_Permission {
+  roleId: INTEGER
+  permissionId: INTEGER
+}
+
+note right of Role_Permission
+  UNIQUE(roleId, permissionId)
+end note
+
+
+' =======================
+' ===== CART SYSTEM =====
+' =======================
+
+class Cart {
+  +id: INTEGER
+  userId: INTEGER
+  status: STRING
+  createdAt: DATETIME
+  updatedAt: DATETIME
+}
+
+note right of Cart
+  Business rule:
+  - 1 user chỉ có 1 Cart ACTIVE
+  - UNIQUE(userId, status) WHERE status = 'ACTIVE'
+end note
+
+
+class Cart_Item {
+  cartId: INTEGER
+  bookId: INTEGER
+  quantity: INTEGER
+}
+
+note right of Cart_Item
+  UNIQUE(cartId, bookId)
+end note
+
+
+class WishList {
+  +id: INTEGER
+  userId: INTEGER
+  bookId: INTEGER
+}
+
+note right of WishList
+  INDEX:
+  - UNIQUE(userId, bookId)
+  - (bookId)
+end note
+
+
+class Book_Comment {
+  +id: INTEGER
+  bookId: INTEGER
+  userId: INTEGER
+  comment: TEXT
+  rating: INTEGER
+  createdAt: DATETIME
+}
+
+
+class Book_Rating {
+  +id: INTEGER
+  bookId: INTEGER
+  userId: INTEGER
+  rating: INTEGER
+}
+
+note right of Book_Rating
+  UNIQUE(userId, bookId)
+end note
+
+
+class Bill {
+  +id: INTEGER
+  userId: INTEGER
+  paymentMethodId: INTEGER
+  shippingMethodId: INTEGER
+  totalCost: INTEGER
+  state: STRING
+  createdAt: DATETIME
+  updatedAt: DATETIME
+}
+
+note right of Bill
+  INDEX:
+  - (userId, createdAt)
+  - (state)
+  - (createdAt)
+  - (state, createdAt)
+end note
+
+
+class Bill_Book {
+  billId: INTEGER
+  bookId: INTEGER
+  priceSnapshot: INTEGER
+  quantity: INTEGER
+}
+
+
+' =======================
+' ===== PAYMENT ========
+' =======================
+
+class PaymentMethod {
+  +id: INTEGER
+  name: STRING
+  providerCode: STRING
+  isOnline: BOOLEAN
+  description: TEXT
+}
+
+
+class PaymentTransaction {
+  +id: INTEGER
+  billId: INTEGER
+  paymentMethodId: INTEGER
+  provider: STRING
+  amount: INTEGER
+  transactionCode: STRING
+  providerTransactionId: STRING
+  status: STRING
+  payUrl: TEXT
+  responseCode: STRING
+  responseMessage: STRING
+  paidAt: DATETIME
+  createdAt: DATETIME
+}
+
+
+' =======================
+' ===== SHIPPING =======
+' =======================
+
+class ShippingMethod {
+  +id: INTEGER
+  name: STRING
+  description: TEXT
+}
+
+
+class Notification {
+  +id: INTEGER
+  fromId: INTEGER
+  toId: INTEGER
+  type: STRING
+  title: STRING
+  content: TEXT
+  status: STRING
+  readAt: DATETIME
+  createdAt: DATETIME
+}
+note right of Notification
+  status ENUM:
+  - UNREAD
+  - READ
+  - ARCHIVED
+
+  INDEX:
+  - (toId, status, createdAt)
+  - (toId, createdAt)
+end note
+' =======================
+' ===== EVENT SYSTEM ====
+' =======================
+
+class Event {
+  +id: INTEGER
+  name: STRING
+  description: TEXT
+  type: STRING
+  startTime: DATETIME
+  endTime: DATETIME
+  status: STRING
+  priority: INTEGER
+  createdAt: DATETIME
+}
+
+
+class Event_Target {
+  +id: INTEGER
+  eventId: INTEGER
+  targetType: STRING
+  targetId: INTEGER
+}
+
+
+class Event_Rule {
+  +id: INTEGER
+  eventId: INTEGER
+  ruleType: STRING
+  ruleValue: STRING
+}
+
+
+class Event_Action {
+  +id: INTEGER
+  eventId: INTEGER
+  actionType: STRING
+  actionValue: STRING
+}
+
+
+class Event_Log {
+  +id: INTEGER
+  eventId: INTEGER
+  userId: INTEGER
+  billId: INTEGER
+  appliedValue: INTEGER
+  createdAt: DATETIME
+}
+
+
+' =========================
+' ===== IMPORT SYSTEM ====
+' =========================
+
+class PurchaseInvoice {
+  +id: INTEGER
+  supplierId: INTEGER
+  createdBy: INTEGER
+  totalCost: INTEGER
+  status: STRING
+  createdAt: DATETIME
+  updatedAt: DATETIME
+}
+
+
+class PurchaseInvoice_Book {
+  purchaseInvoiceId: INTEGER
+  bookId: INTEGER
+  quantity: INTEGER
+  importPrice: INTEGER
+}
+
+
+' ==========================
+' ===== RELATIONSHIPS ======
+' ==========================
+
+Author "1" -- "0..*" Book
+Publisher "1" -- "0..*" Book
+Serie "1" -- "0..*" Book
+
+Book "1" -- "0..*" Book_Category
+Category "1" -- "0..*" Book_Category
+
+Supplier "1" -- "0..*" PurchaseInvoice
+User "1" -- "0..*" PurchaseInvoice : createdBy
+
+PurchaseInvoice "1" -- "0..*" PurchaseInvoice_Book
+Book "1" -- "0..*" PurchaseInvoice_Book
+
+User "1" -- "0..*" Address
+
+User "1" -- "0..*" User_Role
+Role "1" -- "0..*" User_Role
+
+Role "1" -- "0..*" Role_Permission
+Permission "1" -- "0..*" Role_Permission
+
+User "1" -- "0..*" Cart
+Cart "1" -- "0..*" Cart_Item
+Book "1" -- "0..*" Cart_Item
+
+User "1" -- "0..*" WishList
+Book "1" -- "0..*" WishList
+
+User "1" -- "0..*" Book_Comment
+Book "1" -- "0..*" Book_Comment
+
+User "1" -- "0..*" Book_Rating
+Book "1" -- "0..*" Book_Rating
+
+User "1" -- "0..*" Bill
+Bill "1" -- "0..*" Bill_Book
+Book "1" -- "0..*" Bill_Book
+
+Bill "1" -- "0..*" PaymentTransaction
+PaymentMethod "1" -- "0..*" PaymentTransaction
+
+PaymentMethod "1" -- "0..*" Bill
+ShippingMethod "1" -- "0..*" Bill
+
+User "1" -- "0..*" Notification : fromId
+User "1" -- "0..*" Notification : toId
+
+Event "1" -- "0..*" Event_Target
+Event "1" -- "0..*" Event_Rule
+Event "1" -- "0..*" Event_Action
+Event "1" -- "0..*" Event_Log
+
+User "1" -- "0..*" Event_Log
+Bill "1" -- "0..*" Event_Log
+
+@enduml

@@ -1,0 +1,87 @@
+package com.example.bookland_be.service;
+
+
+import com.example.bookland_be.dto.AuthorDTO;
+import com.example.bookland_be.dto.request.AuthorRequest;
+import com.example.bookland_be.entity.Author;
+import com.example.bookland_be.repository.AuthorRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+public class AuthorService {
+
+    private final AuthorRepository authorRepository;
+
+    public List<AuthorDTO> getAllAuthors() {
+        return authorRepository.findAll().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    public AuthorDTO getAuthorById(Long id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Author not found with id: " + id));
+        return convertToDTO(author);
+    }
+
+    @Transactional
+    public AuthorDTO createAuthor(AuthorRequest request) {
+        if (authorRepository.existsByName(request.getName())) {
+            throw new RuntimeException("Author name already exists: " + request.getName());
+        }
+
+        Author author = Author.builder()
+                .name(request.getName())
+                .description(request.getDescription())
+                .authorImage(request.getAuthorImage())
+                .build();
+
+        Author savedAuthor = authorRepository.save(author);
+        return convertToDTO(savedAuthor);
+    }
+
+    @Transactional
+    public AuthorDTO updateAuthor(Long id, AuthorRequest request) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Author not found with id: " + id));
+
+        if (!author.getName().equals(request.getName()) &&
+                authorRepository.existsByName(request.getName())) {
+            throw new RuntimeException("Author name already exists: " + request.getName());
+        }
+
+        author.setName(request.getName());
+        author.setDescription(request.getDescription());
+        author.setAuthorImage(request.getAuthorImage());
+
+        Author updatedAuthor = authorRepository.save(author);
+        return convertToDTO(updatedAuthor);
+    }
+
+    @Transactional
+    public void deleteAuthor(Long id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Author not found with id: " + id));
+
+        if (!author.getBooks().isEmpty()) {
+            throw new RuntimeException("Cannot delete author with existing books");
+        }
+
+        authorRepository.delete(author);
+    }
+
+    private AuthorDTO convertToDTO(Author author) {
+        return AuthorDTO.builder()
+                .id(author.getId())
+                .name(author.getName())
+                .description(author.getDescription())
+                .authorImage(author.getAuthorImage())
+                .build();
+    }
+}

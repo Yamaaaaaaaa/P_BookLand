@@ -1,5 +1,5 @@
+// SupplierController.java
 package com.example.bookland_be.controller.common;
-
 
 import com.example.bookland_be.dto.SupplierDTO;
 import com.example.bookland_be.dto.request.SupplierRequest;
@@ -8,11 +8,13 @@ import com.example.bookland_be.service.SupplierService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/suppliers")
@@ -23,13 +25,21 @@ public class SupplierController {
     private final SupplierService supplierService;
 
     @GetMapping
-    public ResponseEntity<List<SupplierDTO>> getAllSuppliers() {
-        return ResponseEntity.ok(supplierService.getAllSuppliers());
-    }
+    public ResponseEntity<Page<SupplierDTO>> getAllSuppliers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) SupplierStatus status,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection
+    ) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC")
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<SupplierDTO>> getSuppliersByStatus(@PathVariable SupplierStatus status) {
-        return ResponseEntity.ok(supplierService.getSuppliersByStatus(status));
+        Page<SupplierDTO> suppliers = supplierService.getAllSuppliers(keyword, status, pageable);
+        return ResponseEntity.ok(suppliers);
     }
 
     @GetMapping("/{id}")

@@ -34,21 +34,21 @@ public class AdminUserController {
     /**
      * Lấy danh sách tất cả users (có phân trang)
      */
-    @GetMapping
-    public ResponseEntity<Page<UserResponse>> getAllUsers(
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "DESC") String sortDirection
-    ) {
-        Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC")
-                ? Sort.Direction.ASC
-                : Sort.Direction.DESC;
-        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
-
-        Page<UserResponse> users = userService.getAllUsers(pageable);
-        return ResponseEntity.ok(users);
-    }
+//    @GetMapping
+//    public ResponseEntity<Page<UserResponse>> getAllUsers(
+//            @RequestParam(defaultValue = "0") int page,
+//            @RequestParam(defaultValue = "10") int size,
+//            @RequestParam(defaultValue = "id") String sortBy,
+//            @RequestParam(defaultValue = "DESC") String sortDirection
+//    ) {
+//        Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC")
+//                ? Sort.Direction.ASC
+//                : Sort.Direction.DESC;
+//        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+//
+//        Page<UserResponse> users = userService.getAllUsers(pageable);
+//        return ResponseEntity.ok(users);
+//    }
 
     /**
      * Lấy thông tin user theo ID

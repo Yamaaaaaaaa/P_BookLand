@@ -1,17 +1,19 @@
 package com.example.bookland_be.service;
 
-
 import com.example.bookland_be.dto.BookDTO;
 import com.example.bookland_be.dto.request.BookRequest;
 import com.example.bookland_be.entity.*;
 import com.example.bookland_be.entity.Book.BookStatus;
 import com.example.bookland_be.repository.*;
+import com.example.bookland_be.repository.specification.BookSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -25,24 +27,25 @@ public class BookService {
     private final SerieRepository serieRepository;
     private final CategoryRepository categoryRepository;
 
-    public List<BookDTO> getAllBooks() {
-        return bookRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<BookDTO> getAllBooks(String keyword, BookStatus status, Long authorId,
+                                     Long publisherId, Long seriesId, Long categoryId,
+                                     Boolean pinned, Double minPrice, Double maxPrice,
+                                     Pageable pageable) {
+        Specification<Book> spec = BookSpecification.searchByKeyword(keyword)
+                .and(BookSpecification.hasStatus(status))
+                .and(BookSpecification.hasAuthor(authorId))
+                .and(BookSpecification.hasPublisher(publisherId))
+                .and(BookSpecification.hasSeries(seriesId))
+                .and(BookSpecification.hasCategory(categoryId))
+                .and(BookSpecification.isPinned(pinned))
+                .and(BookSpecification.priceBetween(minPrice, maxPrice));
+
+        return bookRepository.findAll(spec, pageable)
+                .map(this::convertToDTO);
     }
 
-    public List<BookDTO> getBooksByStatus(BookStatus status) {
-        return bookRepository.findByStatus(status).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
-    public List<BookDTO> getPinnedBooks() {
-        return bookRepository.findByPinTrue().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
+    @Transactional(readOnly = true)
     public BookDTO getBookById(Long id) {
         Book book = bookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));

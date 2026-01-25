@@ -1,5 +1,5 @@
+// BillController.java
 package com.example.bookland_be.controller.common;
-
 
 import com.example.bookland_be.dto.*;
 import com.example.bookland_be.dto.request.CreateBillRequest;
@@ -9,34 +9,46 @@ import com.example.bookland_be.service.BillService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/bills")
 @RequiredArgsConstructor
 @SecurityRequirement(name = "BearerAuth")
-
 public class BillController {
 
     private final BillService billService;
 
     @GetMapping
-    public ResponseEntity<List<BillDTO>> getAllBills() {
-        return ResponseEntity.ok(billService.getAllBills());
-    }
+    public ResponseEntity<Page<BillDTO>> getAllBills(
+            @RequestParam(required = false) Long userId,
+            @RequestParam(required = false) BillStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(required = false) Double minCost,
+            @RequestParam(required = false) Double maxCost,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection
+    ) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC")
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<BillDTO>> getUserBills(@PathVariable Long userId) {
-        return ResponseEntity.ok(billService.getUserBills(userId));
-    }
-
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<BillDTO>> getBillsByStatus(@PathVariable BillStatus status) {
-        return ResponseEntity.ok(billService.getBillsByStatus(status));
+        Page<BillDTO> bills = billService.getAllBills(userId, status, fromDate, toDate,
+                minCost, maxCost, pageable);
+        return ResponseEntity.ok(bills);
     }
 
     @GetMapping("/{id}")

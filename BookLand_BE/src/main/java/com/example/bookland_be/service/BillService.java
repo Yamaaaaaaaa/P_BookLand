@@ -1,5 +1,6 @@
-package com.example.bookland_be.service;
 
+// BillService.java
+package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.*;
 import com.example.bookland_be.dto.request.BillBookRequest;
@@ -8,7 +9,11 @@ import com.example.bookland_be.dto.request.UpdateBillStatusRequest;
 import com.example.bookland_be.entity.*;
 import com.example.bookland_be.entity.Bill.BillStatus;
 import com.example.bookland_be.repository.*;
+import com.example.bookland_be.repository.specification.BillSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,24 +32,21 @@ public class BillService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final ShippingMethodRepository shippingMethodRepository;
 
-    public List<BillDTO> getAllBills() {
-        return billRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<BillDTO> getAllBills(Long userId, BillStatus status,
+                                     LocalDateTime fromDate, LocalDateTime toDate,
+                                     Double minCost, Double maxCost,
+                                     Pageable pageable) {
+        Specification<Bill> spec = BillSpecification.hasUser(userId)
+                .and(BillSpecification.hasStatus(status))
+                .and(BillSpecification.createdBetween(fromDate, toDate))
+                .and(BillSpecification.totalCostBetween(minCost, maxCost));
+
+        return billRepository.findAll(spec, pageable)
+                .map(this::convertToDTO);
     }
 
-    public List<BillDTO> getUserBills(Long userId) {
-        return billRepository.findByUserId(userId).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
-    public List<BillDTO> getBillsByStatus(BillStatus status) {
-        return billRepository.findByStatus(status).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
+    @Transactional(readOnly = true)
     public BillDTO getBillById(Long id) {
         Bill bill = billRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
@@ -148,7 +150,7 @@ public class BillService {
         Bill bill = billRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
 
-        if (bill.getStatus() != BillStatus.PENDING && bill.getStatus() != BillStatus.CANCELED ) {
+        if (bill.getStatus() != BillStatus.PENDING && bill.getStatus() != BillStatus.CANCELED) {
             throw new RuntimeException("Can only delete pending or cancelled bills");
         }
 
@@ -165,7 +167,6 @@ public class BillService {
     }
 
     private void validateStatusTransition(BillStatus oldStatus, BillStatus newStatus) {
-        // Define allowed transitions
         switch (oldStatus) {
             case PENDING:
                 if (newStatus != BillStatus.APPROVED && newStatus != BillStatus.CANCELED) {

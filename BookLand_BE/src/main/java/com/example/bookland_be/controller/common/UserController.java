@@ -1,9 +1,8 @@
 package com.example.bookland_be.controller.common;
 
-
 import com.example.bookland_be.dto.request.*;
 import com.example.bookland_be.dto.response.UserResponse;
-import com.example.bookland_be.entity.User;
+import com.example.bookland_be.entity.User.UserStatus;
 import com.example.bookland_be.service.UserService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -24,11 +23,11 @@ public class UserController {
 
     private final UserService userService;
 
-    /**
-     * Lấy danh sách tất cả users (có phân trang)
-     */
     @GetMapping
     public ResponseEntity<Page<UserResponse>> getAllUsers(
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) UserStatus status,
+            @RequestParam(required = false) Long roleId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -39,31 +38,22 @@ public class UserController {
                 : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<UserResponse> users = userService.getAllUsers(pageable);
+        Page<UserResponse> users = userService.getAllUsers(keyword, status, roleId, pageable);
         return ResponseEntity.ok(users);
     }
 
-    /**
-     * Lấy thông tin user theo ID
-     */
     @GetMapping("/{id}")
     public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
         UserResponse user = userService.getUserById(id);
         return ResponseEntity.ok(user);
     }
 
-    /**
-     * Tạo user mới
-     */
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
         UserResponse createdUser = userService.createUser(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
     }
 
-    /**
-     * Cập nhật thông tin user
-     */
     @PutMapping("/{id}")
     public ResponseEntity<UserResponse> updateUser(
             @PathVariable Long id,
@@ -73,9 +63,6 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    /**
-     * Cập nhật roles của user
-     */
     @PutMapping("/{id}/roles")
     public ResponseEntity<UserResponse> updateUserRoles(
             @PathVariable Long id,
@@ -85,21 +72,15 @@ public class UserController {
         return ResponseEntity.ok(updatedUser);
     }
 
-    /**
-     * Cập nhật trạng thái user (ENABLE/DISABLE)
-     */
     @PatchMapping("/{id}/status")
     public ResponseEntity<UserResponse> updateUserStatus(
             @PathVariable Long id,
-            @RequestParam User.UserStatus status
+            @RequestParam UserStatus status
     ) {
         UserResponse updatedUser = userService.updateUserStatus(id, status);
         return ResponseEntity.ok(updatedUser);
     }
 
-    /**
-     * Xóa user
-     */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);

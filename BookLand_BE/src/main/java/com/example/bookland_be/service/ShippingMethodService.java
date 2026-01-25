@@ -1,3 +1,4 @@
+// ShippingMethodService.java
 package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.ShippingMethodDTO;
@@ -5,11 +6,10 @@ import com.example.bookland_be.dto.request.ShippingMethodRequest;
 import com.example.bookland_be.entity.ShippingMethod;
 import com.example.bookland_be.repository.ShippingMethodRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,12 +17,13 @@ public class ShippingMethodService {
 
     private final ShippingMethodRepository shippingMethodRepository;
 
-    public List<ShippingMethodDTO> getAllShippingMethods() {
-        return shippingMethodRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<ShippingMethodDTO> getAllShippingMethods(Pageable pageable) {
+        return shippingMethodRepository.findAll(pageable)
+                .map(this::convertToDTO);
     }
 
+    @Transactional(readOnly = true)
     public ShippingMethodDTO getShippingMethodById(Long id) {
         ShippingMethod shippingMethod = shippingMethodRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Shipping method not found with id: " + id));

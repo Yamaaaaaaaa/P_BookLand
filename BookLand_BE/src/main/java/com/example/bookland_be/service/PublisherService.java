@@ -1,16 +1,18 @@
-package com.example.bookland_be.service;
 
+// PublisherService.java
+package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.PublisherDTO;
 import com.example.bookland_be.dto.request.PublisherRequest;
 import com.example.bookland_be.entity.Publisher;
 import com.example.bookland_be.repository.PublisherRepository;
+import com.example.bookland_be.repository.specification.PublisherSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,12 +20,15 @@ public class PublisherService {
 
     private final PublisherRepository publisherRepository;
 
-    public List<PublisherDTO> getAllPublishers() {
-        return publisherRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<PublisherDTO> getAllPublishers(String keyword, Pageable pageable) {
+        Specification<Publisher> spec = PublisherSpecification.searchByKeyword(keyword);
+
+        return publisherRepository.findAll(spec, pageable)
+                .map(this::convertToDTO);
     }
 
+    @Transactional(readOnly = true)
     public PublisherDTO getPublisherById(Long id) {
         Publisher publisher = publisherRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + id));

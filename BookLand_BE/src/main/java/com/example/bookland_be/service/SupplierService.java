@@ -1,17 +1,18 @@
+// SupplierService.java
 package com.example.bookland_be.service;
-
 
 import com.example.bookland_be.dto.SupplierDTO;
 import com.example.bookland_be.dto.request.SupplierRequest;
 import com.example.bookland_be.entity.Supplier;
 import com.example.bookland_be.entity.Supplier.SupplierStatus;
 import com.example.bookland_be.repository.SupplierRepository;
+import com.example.bookland_be.repository.specification.SupplierSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,18 +20,16 @@ public class SupplierService {
 
     private final SupplierRepository supplierRepository;
 
-    public List<SupplierDTO> getAllSuppliers() {
-        return supplierRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<SupplierDTO> getAllSuppliers(String keyword, SupplierStatus status, Pageable pageable) {
+        Specification<Supplier> spec = SupplierSpecification.searchByKeyword(keyword)
+                .and(SupplierSpecification.hasStatus(status));
+
+        return supplierRepository.findAll(spec, pageable)
+                .map(this::convertToDTO);
     }
 
-    public List<SupplierDTO> getSuppliersByStatus(SupplierStatus status) {
-        return supplierRepository.findByStatus(status).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
-    }
-
+    @Transactional(readOnly = true)
     public SupplierDTO getSupplierById(Long id) {
         Supplier supplier = supplierRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Supplier not found with id: " + id));

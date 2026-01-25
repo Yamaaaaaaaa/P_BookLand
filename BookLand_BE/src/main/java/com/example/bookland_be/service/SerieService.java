@@ -1,15 +1,17 @@
+// SerieService.java
 package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.SerieDTO;
 import com.example.bookland_be.dto.request.SerieRequest;
 import com.example.bookland_be.entity.Serie;
 import com.example.bookland_be.repository.SerieRepository;
+import com.example.bookland_be.repository.specification.SerieSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -17,12 +19,15 @@ public class SerieService {
 
     private final SerieRepository serieRepository;
 
-    public List<SerieDTO> getAllSeries() {
-        return serieRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<SerieDTO> getAllSeries(String keyword, Pageable pageable) {
+        Specification<Serie> spec = SerieSpecification.searchByKeyword(keyword);
+
+        return serieRepository.findAll(spec, pageable)
+                .map(this::convertToDTO);
     }
 
+    @Transactional(readOnly = true)
     public SerieDTO getSerieById(Long id) {
         Serie serie = serieRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));

@@ -1,16 +1,18 @@
-package com.example.bookland_be.service;
 
+// AuthorService.java
+package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.AuthorDTO;
 import com.example.bookland_be.dto.request.AuthorRequest;
 import com.example.bookland_be.entity.Author;
 import com.example.bookland_be.repository.AuthorRepository;
+import com.example.bookland_be.repository.specification.AuthorSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -18,12 +20,15 @@ public class AuthorService {
 
     private final AuthorRepository authorRepository;
 
-    public List<AuthorDTO> getAllAuthors() {
-        return authorRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<AuthorDTO> getAllAuthors(String keyword, Pageable pageable) {
+        Specification<Author> spec = AuthorSpecification.searchByKeyword(keyword);
+
+        return authorRepository.findAll(spec, pageable)
+                .map(this::convertToDTO);
     }
 
+    @Transactional(readOnly = true)
     public AuthorDTO getAuthorById(Long id) {
         Author author = authorRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Author not found with id: " + id));

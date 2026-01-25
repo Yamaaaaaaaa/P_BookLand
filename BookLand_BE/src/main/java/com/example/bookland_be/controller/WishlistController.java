@@ -3,7 +3,7 @@ package com.example.bookland_be.controller;
 
 import com.example.bookland_be.dto.WishlistDTO;
 import com.example.bookland_be.dto.request.AddToWishlistRequest;
-import com.example.bookland_be.dto.request.WishlistService;
+import com.example.bookland_be.service.WishlistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

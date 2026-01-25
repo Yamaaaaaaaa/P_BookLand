@@ -1,6 +1,7 @@
-package com.example.bookland_be.dto.request;
+package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.WishlistDTO;
+import com.example.bookland_be.dto.request.AddToWishlistRequest;
 import com.example.bookland_be.entity.Book;
 import com.example.bookland_be.entity.User;
 import com.example.bookland_be.entity.Wishlist;

@@ -1,5 +1,5 @@
 
-// BillService.java
+// BillService.java (Updated with Event Logic)
 package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.*;
@@ -18,7 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,16 +31,30 @@ public class BillService {
     private final BookRepository bookRepository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final ShippingMethodRepository shippingMethodRepository;
+    private final EventApplicationService eventApplicationService;
 
     @Transactional(readOnly = true)
     public Page<BillDTO> getAllBills(Long userId, BillStatus status,
                                      LocalDateTime fromDate, LocalDateTime toDate,
                                      Double minCost, Double maxCost,
                                      Pageable pageable) {
-        Specification<Bill> spec = BillSpecification.hasUser(userId)
-                .and(BillSpecification.hasStatus(status))
-                .and(BillSpecification.createdBetween(fromDate, toDate))
-                .and(BillSpecification.totalCostBetween(minCost, maxCost));
+        Specification<Bill> spec = Specification.where(null);
+
+        if (userId != null) {
+            spec = spec.and(BillSpecification.hasUser(userId));
+        }
+
+        if (status != null) {
+            spec = spec.and(BillSpecification.hasStatus(status));
+        }
+
+        if (fromDate != null || toDate != null) {
+            spec = spec.and(BillSpecification.createdBetween(fromDate, toDate));
+        }
+
+        if (minCost != null || maxCost != null) {
+            spec = spec.and(BillSpecification.totalCostBetween(minCost, maxCost));
+        }
 
         return billRepository.findAll(spec, pageable)
                 .map(this::convertToDTO);
@@ -64,22 +78,56 @@ public class BillService {
         ShippingMethod shippingMethod = shippingMethodRepository.findById(request.getShippingMethodId())
                 .orElseThrow(() -> new RuntimeException("Shipping method not found"));
 
-        // Calculate total cost
+        // ========== LẤY EVENT CÓ PRIORITY CAO NHẤT ==========
+        Optional<Event> activeEventOpt = eventApplicationService.getHighestPriorityActiveEvent();
+
+        Event appliedEvent = null;
+        Map<Long, Double> eventDiscountedPrices = new HashMap<>();
+        int totalDiscountValue = 0;
+
+        if (activeEventOpt.isPresent()) {
+            Event event = activeEventOpt.get();
+
+            // Lọc các sản phẩm mà Event hướng đến và tính giá giảm
+            for (BillBookRequest bookRequest : request.getBooks()) {
+                Book book = bookRepository.findById(bookRequest.getBookId())
+                        .orElseThrow(() -> new RuntimeException("Book not found: " + bookRequest.getBookId()));
+
+                // Kiểm tra xem book có nằm trong target của event không
+                if (eventApplicationService.isBookInEventTarget(event, book)) {
+                    // Tính giá sau khi áp dụng event
+                    Double originalPrice = book.getFinalPrice();
+                    Double discountedPrice = eventApplicationService.calculateDiscountedPrice(event, originalPrice);
+
+                    eventDiscountedPrices.put(book.getId(), discountedPrice);
+
+                    // Tính tổng giá trị giảm
+                    totalDiscountValue += (int)((originalPrice - discountedPrice) * bookRequest.getQuantity());
+
+                    appliedEvent = event;
+                }
+            }
+        }
+
+        // ========== TÍNH TỔNG GIÁ TRỊ ĐỚN HÀNG ==========
         double booksCost = 0.0;
         for (BillBookRequest bookRequest : request.getBooks()) {
             Book book = bookRepository.findById(bookRequest.getBookId())
                     .orElseThrow(() -> new RuntimeException("Book not found: " + bookRequest.getBookId()));
 
+            // Kiểm tra tồn kho
             if (book.getStock() < bookRequest.getQuantity()) {
                 throw new RuntimeException("Insufficient stock for book: " + book.getName());
             }
 
-            booksCost += book.getFinalPrice() * bookRequest.getQuantity();
+            // Sử dụng giá đã giảm nếu có event, không thì dùng giá gốc
+            Double finalPrice = eventDiscountedPrices.getOrDefault(book.getId(), book.getFinalPrice());
+            booksCost += finalPrice * bookRequest.getQuantity();
         }
 
         double totalCost = booksCost + shippingMethod.getPrice();
 
-        // Create bill
+        // ========== TẠO BILL ==========
         Bill bill = Bill.builder()
                 .user(user)
                 .paymentMethod(paymentMethod)
@@ -90,23 +138,31 @@ public class BillService {
 
         Bill savedBill = billRepository.save(bill);
 
-        // Create bill books and update stock
+        // ========== TẠO BILL BOOKS VÀ CẬP NHẬT TỒN KHO ==========
         for (BillBookRequest bookRequest : request.getBooks()) {
             Book book = bookRepository.findById(bookRequest.getBookId())
                     .orElseThrow(() -> new RuntimeException("Book not found"));
 
+            // Lưu giá đã áp dụng event (nếu có)
+            Double priceToSave = eventDiscountedPrices.getOrDefault(book.getId(), book.getFinalPrice());
+
             BillBook billBook = BillBook.builder()
                     .bill(savedBill)
                     .book(book)
-                    .priceSnapshot(book.getFinalPrice())
+                    .priceSnapshot(priceToSave)
                     .quantity(bookRequest.getQuantity())
                     .build();
 
             billBookRepository.save(billBook);
 
-            // Update stock
+            // Cập nhật tồn kho
             book.setStock(book.getStock() - bookRequest.getQuantity());
             bookRepository.save(book);
+        }
+
+        // ========== LƯU EVENT LOG ==========
+        if (appliedEvent != null) {
+            eventApplicationService.logEventApplication(appliedEvent, user, savedBill, totalDiscountValue);
         }
 
         return convertToDTO(savedBill);
@@ -120,7 +176,6 @@ public class BillService {
         BillStatus oldStatus = bill.getStatus();
         BillStatus newStatus = request.getStatus();
 
-        // Validate status transition
         validateStatusTransition(oldStatus, newStatus);
 
         bill.setStatus(newStatus);
@@ -132,12 +187,20 @@ public class BillService {
             bill.setApprovedAt(LocalDateTime.now());
         }
 
-        // If cancelled, restore stock
+        // Nếu hủy đơn, hoàn lại tồn kho
         if (newStatus == BillStatus.CANCELED) {
             for (BillBook billBook : bill.getBillBooks()) {
-                Book book = billBook.getBook();
-                book.setStock(book.getStock() + billBook.getQuantity());
-                bookRepository.save(book);
+                try {
+                    Book book = billBook.getBook();
+                    if (book != null) {
+                        bookRepository.findById(book.getId()).ifPresent(existingBook -> {
+                            existingBook.setStock(existingBook.getStock() + billBook.getQuantity());
+                            bookRepository.save(existingBook);
+                        });
+                    }
+                } catch (Exception e) {
+                    // Book không tồn tại, bỏ qua
+                }
             }
         }
 
@@ -154,12 +217,20 @@ public class BillService {
             throw new RuntimeException("Can only delete pending or cancelled bills");
         }
 
-        // Restore stock if not already cancelled
+        // Hoàn lại tồn kho nếu bill đang PENDING
         if (bill.getStatus() == BillStatus.PENDING) {
             for (BillBook billBook : bill.getBillBooks()) {
-                Book book = billBook.getBook();
-                book.setStock(book.getStock() + billBook.getQuantity());
-                bookRepository.save(book);
+                try {
+                    Book book = billBook.getBook();
+                    if (book != null) {
+                        bookRepository.findById(book.getId()).ifPresent(existingBook -> {
+                            existingBook.setStock(existingBook.getStock() + billBook.getQuantity());
+                            bookRepository.save(existingBook);
+                        });
+                    }
+                } catch (Exception e) {
+                    // Book không tồn tại, bỏ qua
+                }
             }
         }
 

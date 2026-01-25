@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @SecurityRequirement(name = "BearerAuth")
 public class BookController {
-
     private final BookService bookService;
 
     @GetMapping

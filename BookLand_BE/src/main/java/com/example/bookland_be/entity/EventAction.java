@@ -1,4 +1,7 @@
+// EventAction.java (Updated)
 package com.example.bookland_be.entity;
+
+import com.example.bookland_be.enums.EventActionType;
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -19,8 +22,9 @@ public class EventAction {
     @JoinColumn(name = "eventId", nullable = false)
     private Event event;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String actionType; // DISCOUNT_PERCENT, DISCOUNT_AMOUNT, FREE_SHIPPING, etc.
+    private EventActionType actionType;
 
     @Column(nullable = false)
     private String actionValue;

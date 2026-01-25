@@ -1,5 +1,7 @@
+// EventTarget.java (Updated)
 package com.example.bookland_be.entity;
 
+import com.example.bookland_be.enums.EventTargetType;
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -19,8 +21,9 @@ public class EventTarget {
     @JoinColumn(name = "eventId", nullable = false)
     private Event event;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String targetType; // BOOK, CATEGORY, SERIES, AUTHOR, etc.
+    private EventTargetType targetType;
 
     @Column(nullable = false)
     private Long targetId;

@@ -1,6 +1,7 @@
+// EventRule.java (Updated)
 package com.example.bookland_be.entity;
 
-
+import com.example.bookland_be.enums.EventRuleType;
 import lombok.*;
 import jakarta.persistence.*;
 
@@ -21,8 +22,9 @@ public class EventRule {
     @JoinColumn(name = "eventId", nullable = false)
     private Event event;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String ruleType; // MIN_QUANTITY, MIN_ORDER_VALUE, MAX_USAGE, etc.
+    private EventRuleType ruleType;
 
     @Column(nullable = false)
     private String ruleValue;

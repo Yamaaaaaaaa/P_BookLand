@@ -1,10 +1,11 @@
-// BillController.java
 package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.*;
 import com.example.bookland_be.dto.request.CreateBillRequest;
+import com.example.bookland_be.dto.request.PreviewBillRequest;
 import com.example.bookland_be.dto.request.UpdateBillStatusRequest;
 import com.example.bookland_be.entity.Bill.BillStatus;
+import com.example.bookland_be.service.BillPreviewService;
 import com.example.bookland_be.service.BillService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -27,6 +28,7 @@ import java.time.LocalDateTime;
 public class BillController {
 
     private final BillService billService;
+    private final BillPreviewService billPreviewService;
 
     @GetMapping
     public ResponseEntity<Page<BillDTO>> getAllBills(
@@ -56,6 +58,17 @@ public class BillController {
         return ResponseEntity.ok(billService.getBillById(id));
     }
 
+    /**
+     * Preview bill - Xem giá và event trước khi tạo đơn
+     */
+    @PostMapping("/preview")
+    public ResponseEntity<BillPreviewDTO> previewBill(@Valid @RequestBody PreviewBillRequest request) {
+        return ResponseEntity.ok(billPreviewService.previewBill(request));
+    }
+
+    /**
+     * Tạo bill - Tự động áp dụng event có priority cao nhất
+     */
     @PostMapping
     public ResponseEntity<BillDTO> createBill(@Valid @RequestBody CreateBillRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)

@@ -1,5 +1,7 @@
+// Event.java (Updated)
 package com.example.bookland_be.entity;
 
+import com.example.bookland_be.enums.EventType;
 import lombok.*;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
@@ -25,8 +27,9 @@ public class Event {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private String type;
+    private EventType type;
 
     @Column(nullable = false)
     private LocalDateTime startTime;
@@ -41,8 +44,16 @@ public class Event {
     @Builder.Default
     private Integer priority = 0;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "createdBy")
+    private User createdBy;
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
+
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<EventImage> images = new HashSet<>();
 
     @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
@@ -65,7 +76,6 @@ public class Event {
         createdAt = LocalDateTime.now();
     }
 
-    // Helper method to check if event is active
     @Transient
     public boolean isActive() {
         LocalDateTime now = LocalDateTime.now();

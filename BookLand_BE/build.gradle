@@ -83,7 +83,8 @@ dependencies {
     // Swagger / OpenAPI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
-
+    // PostGre xài cho Supabase
+    runtimeOnly 'org.postgresql:postgresql'
 
     /* ================= TEST ================= */
 

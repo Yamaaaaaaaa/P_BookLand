@@ -38,7 +38,7 @@ public class BillService {
                                      LocalDateTime fromDate, LocalDateTime toDate,
                                      Double minCost, Double maxCost,
                                      Pageable pageable) {
-        Specification<Bill> spec = Specification.where(null);
+        Specification<Bill> spec = Specification.unrestricted();
 
         if (userId != null) {
             spec = spec.and(BillSpecification.hasUser(userId));

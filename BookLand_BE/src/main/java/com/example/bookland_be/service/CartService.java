@@ -6,6 +6,8 @@ import com.example.bookland_be.dto.request.AddToCartRequest;
 import com.example.bookland_be.dto.request.UpdateCartItemRequest;
 import com.example.bookland_be.entity.*;
 import com.example.bookland_be.entity.Cart.CartStatus;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,10 +37,10 @@ public class CartService {
                 .orElseGet(() -> createNewCart(userId));
 
         Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
         if (book.getStock() < request.getQuantity()) {
-            throw new RuntimeException("Insufficient stock");
+            throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
         }
 
         CartItem existingItem = cartItemRepository
@@ -48,7 +50,7 @@ public class CartService {
         if (existingItem != null) {
             int newQuantity = existingItem.getQuantity() + request.getQuantity();
             if (book.getStock() < newQuantity) {
-                throw new RuntimeException("Insufficient stock");
+                throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
             }
             existingItem.setQuantity(newQuantity);
             cartItemRepository.save(existingItem);
@@ -69,14 +71,14 @@ public class CartService {
     @Transactional
     public CartDTO updateCartItem(Long userId, Long bookId, UpdateCartItemRequest request) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.BUYING)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
 
         CartItem cartItem = cartItemRepository.findByCartIdAndBookId(cart.getId(), bookId)
-                .orElseThrow(() -> new RuntimeException("Item not found in cart"));
+                .orElseThrow(() -> new AppException(ErrorCode.CART_ITEM_NOT_FOUND));
 
         Book book = cartItem.getBook();
         if (book.getStock() < request.getQuantity()) {
-            throw new RuntimeException("Insufficient stock");
+            throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
         }
 
         cartItem.setQuantity(request.getQuantity());
@@ -88,10 +90,10 @@ public class CartService {
     @Transactional
     public CartDTO removeFromCart(Long userId, Long bookId) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.BUYING)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
 
         CartItem cartItem = cartItemRepository.findByCartIdAndBookId(cart.getId(), bookId)
-                .orElseThrow(() -> new RuntimeException("Item not found in cart"));
+                .orElseThrow(() -> new AppException(ErrorCode.CART_ITEM_NOT_FOUND));
 
         cart.getItems().remove(cartItem);
         cartItemRepository.delete(cartItem);
@@ -103,7 +105,7 @@ public class CartService {
     @Transactional
     public void clearCart(Long userId) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.BUYING)
-                .orElseThrow(() -> new RuntimeException("Cart not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
 
         cart.getItems().clear();
         cartRepository.save(cart);
@@ -111,7 +113,7 @@ public class CartService {
 
     private Cart createNewCart(Long userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         Cart cart = Cart.builder()
                 .user(user)

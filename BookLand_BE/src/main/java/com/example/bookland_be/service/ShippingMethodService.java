@@ -4,6 +4,8 @@ package com.example.bookland_be.service;
 import com.example.bookland_be.dto.ShippingMethodDTO;
 import com.example.bookland_be.dto.request.ShippingMethodRequest;
 import com.example.bookland_be.entity.ShippingMethod;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.ShippingMethodRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -26,7 +28,7 @@ public class ShippingMethodService {
     @Transactional(readOnly = true)
     public ShippingMethodDTO getShippingMethodById(Long id) {
         ShippingMethod shippingMethod = shippingMethodRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Shipping method not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_METHOD_NOT_FOUND));
         return convertToDTO(shippingMethod);
     }
 
@@ -45,7 +47,7 @@ public class ShippingMethodService {
     @Transactional
     public ShippingMethodDTO updateShippingMethod(Long id, ShippingMethodRequest request) {
         ShippingMethod shippingMethod = shippingMethodRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Shipping method not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_METHOD_NOT_FOUND));
 
         shippingMethod.setName(request.getName());
         shippingMethod.setDescription(request.getDescription());
@@ -58,7 +60,7 @@ public class ShippingMethodService {
     @Transactional
     public void deleteShippingMethod(Long id) {
         ShippingMethod shippingMethod = shippingMethodRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Shipping method not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_METHOD_NOT_FOUND));
 
         if (!shippingMethod.getBills().isEmpty()) {
             throw new RuntimeException("Cannot delete shipping method with existing orders");

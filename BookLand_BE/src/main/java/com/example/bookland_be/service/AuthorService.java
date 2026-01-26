@@ -5,6 +5,8 @@ package com.example.bookland_be.service;
 import com.example.bookland_be.dto.AuthorDTO;
 import com.example.bookland_be.dto.request.AuthorRequest;
 import com.example.bookland_be.entity.Author;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.AuthorRepository;
 import com.example.bookland_be.repository.specification.AuthorSpecification;
 import lombok.RequiredArgsConstructor;
@@ -31,14 +33,14 @@ public class AuthorService {
     @Transactional(readOnly = true)
     public AuthorDTO getAuthorById(Long id) {
         Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Author not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
         return convertToDTO(author);
     }
 
     @Transactional
     public AuthorDTO createAuthor(AuthorRequest request) {
         if (authorRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Author name already exists: " + request.getName());
+            throw new AppException(ErrorCode.AUTHOR_NAME_EXISTED);
         }
 
         Author author = Author.builder()
@@ -54,11 +56,11 @@ public class AuthorService {
     @Transactional
     public AuthorDTO updateAuthor(Long id, AuthorRequest request) {
         Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Author not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
 
         if (!author.getName().equals(request.getName()) &&
                 authorRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Author name already exists: " + request.getName());
+            throw new AppException(ErrorCode.AUTHOR_NAME_EXISTED);
         }
 
         author.setName(request.getName());
@@ -72,10 +74,10 @@ public class AuthorService {
     @Transactional
     public void deleteAuthor(Long id) {
         Author author = authorRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Author not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
 
         if (!author.getBooks().isEmpty()) {
-            throw new RuntimeException("Cannot delete author with existing books");
+            throw new AppException(ErrorCode.AUTHOR_HAS_BOOKS);
         }
 
         authorRepository.delete(author);

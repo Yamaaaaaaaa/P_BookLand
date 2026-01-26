@@ -5,6 +5,8 @@ package com.example.bookland_be.service;
 import com.example.bookland_be.dto.PublisherDTO;
 import com.example.bookland_be.dto.request.PublisherRequest;
 import com.example.bookland_be.entity.Publisher;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.PublisherRepository;
 import com.example.bookland_be.repository.specification.PublisherSpecification;
 import lombok.RequiredArgsConstructor;
@@ -31,14 +33,14 @@ public class PublisherService {
     @Transactional(readOnly = true)
     public PublisherDTO getPublisherById(Long id) {
         Publisher publisher = publisherRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND));
         return convertToDTO(publisher);
     }
 
     @Transactional
     public PublisherDTO createPublisher(PublisherRequest request) {
         if (publisherRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Publisher name already exists: " + request.getName());
+            throw new AppException(ErrorCode.PUBLISHER_NAME_EXISTED);
         }
 
         Publisher publisher = Publisher.builder()
@@ -53,11 +55,11 @@ public class PublisherService {
     @Transactional
     public PublisherDTO updatePublisher(Long id, PublisherRequest request) {
         Publisher publisher = publisherRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND));
 
         if (!publisher.getName().equals(request.getName()) &&
                 publisherRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Publisher name already exists: " + request.getName());
+            throw new AppException(ErrorCode.PUBLISHER_NAME_EXISTED);
         }
 
         publisher.setName(request.getName());
@@ -70,10 +72,10 @@ public class PublisherService {
     @Transactional
     public void deletePublisher(Long id) {
         Publisher publisher = publisherRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Publisher not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND));
 
         if (!publisher.getBooks().isEmpty()) {
-            throw new RuntimeException("Cannot delete publisher with existing books");
+            throw new AppException(ErrorCode.PUBLISHER_HAS_BOOKS);
         }
 
         publisherRepository.delete(publisher);

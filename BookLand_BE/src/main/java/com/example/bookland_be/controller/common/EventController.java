@@ -2,6 +2,7 @@ package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.EventDTO;
 import com.example.bookland_be.dto.request.EventRequest;
+import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.entity.Event.EventStatus;
 import com.example.bookland_be.enums.EventActionType;
 import com.example.bookland_be.enums.EventRuleType;
@@ -16,8 +17,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -64,7 +63,7 @@ public class EventController {
     private final EventService eventService;
 
     @GetMapping
-    public ResponseEntity<Page<EventDTO>> getAllEvents(
+    public ApiResponse<Page<EventDTO>> getAllEvents(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) EventStatus status,
             @RequestParam(required = false) EventType type,
@@ -89,37 +88,36 @@ public class EventController {
         Page<EventDTO> events = eventService.getAllEvents(keyword, status, type,
                 targetType, actionType, ruleType, createdById, minPriority,
                 activeOnly, fromDate, toDate, pageable);
-        return ResponseEntity.ok(events);
+        return ApiResponse.<Page<EventDTO>>builder().result(events).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<EventDTO> getEventById(@PathVariable Long id) {
-        return ResponseEntity.ok(eventService.getEventById(id));
+    public ApiResponse<EventDTO> getEventById(@PathVariable Long id) {
+        return ApiResponse.<EventDTO>builder().result(eventService.getEventById(id)).build();
     }
 
     @PostMapping
-    public ResponseEntity<EventDTO> createEvent(@Valid @RequestBody EventRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(eventService.createEvent(request));
+    public ApiResponse<EventDTO> createEvent(@Valid @RequestBody EventRequest request) {
+        return ApiResponse.<EventDTO>builder().result(eventService.createEvent(request)).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<EventDTO> updateEvent(
+    public ApiResponse<EventDTO> updateEvent(
             @PathVariable Long id,
             @Valid @RequestBody EventRequest request) {
-        return ResponseEntity.ok(eventService.updateEvent(id, request));
+        return ApiResponse.<EventDTO>builder().result(eventService.updateEvent(id, request)).build();
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<EventDTO> updateEventStatus(
+    public ApiResponse<EventDTO> updateEventStatus(
             @PathVariable Long id,
             @RequestParam EventStatus status) {
-        return ResponseEntity.ok(eventService.updateEventStatus(id, status));
+        return ApiResponse.<EventDTO>builder().result(eventService.updateEventStatus(id, status)).build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteEvent(@PathVariable Long id) {
+    public ApiResponse<Void> deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().build();
     }
 }

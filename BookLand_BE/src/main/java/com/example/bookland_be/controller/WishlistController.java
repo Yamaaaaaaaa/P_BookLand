@@ -3,11 +3,10 @@ package com.example.bookland_be.controller;
 
 import com.example.bookland_be.dto.WishlistDTO;
 import com.example.bookland_be.dto.request.AddToWishlistRequest;
+import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.service.WishlistService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,36 +19,35 @@ public class WishlistController {
     private final WishlistService wishlistService;
 
     @GetMapping("/{userId}")
-    public ResponseEntity<List<WishlistDTO>> getUserWishlist(@PathVariable Long userId) {
-        return ResponseEntity.ok(wishlistService.getUserWishlist(userId));
+    public ApiResponse<List<WishlistDTO>> getUserWishlist(@PathVariable Long userId) {
+        return ApiResponse.<List<WishlistDTO>>builder().result(wishlistService.getUserWishlist(userId)).build();
     }
 
     @GetMapping("/{userId}/check/{bookId}")
-    public ResponseEntity<Boolean> isInWishlist(
+    public ApiResponse<Boolean> isInWishlist(
             @PathVariable Long userId,
             @PathVariable Long bookId) {
-        return ResponseEntity.ok(wishlistService.isInWishlist(userId, bookId));
+        return ApiResponse.<Boolean>builder().result(wishlistService.isInWishlist(userId, bookId)).build();
     }
 
     @PostMapping("/{userId}")
-    public ResponseEntity<WishlistDTO> addToWishlist(
+    public ApiResponse<WishlistDTO> addToWishlist(
             @PathVariable Long userId,
             @Valid @RequestBody AddToWishlistRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(wishlistService.addToWishlist(userId, request));
+        return ApiResponse.<WishlistDTO>builder().result(wishlistService.addToWishlist(userId, request)).build();
     }
 
     @DeleteMapping("/{userId}/books/{bookId}")
-    public ResponseEntity<Void> removeFromWishlist(
+    public ApiResponse<Void> removeFromWishlist(
             @PathVariable Long userId,
             @PathVariable Long bookId) {
         wishlistService.removeFromWishlist(userId, bookId);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().build();
     }
 
     @DeleteMapping("/{userId}/clear")
-    public ResponseEntity<Void> clearWishlist(@PathVariable Long userId) {
+    public ApiResponse<Void> clearWishlist(@PathVariable Long userId) {
         wishlistService.clearWishlist(userId);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().build();
     }
 }

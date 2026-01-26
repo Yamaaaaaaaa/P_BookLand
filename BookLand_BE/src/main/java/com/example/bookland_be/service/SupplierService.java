@@ -5,6 +5,8 @@ import com.example.bookland_be.dto.SupplierDTO;
 import com.example.bookland_be.dto.request.SupplierRequest;
 import com.example.bookland_be.entity.Supplier;
 import com.example.bookland_be.entity.Supplier.SupplierStatus;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.SupplierRepository;
 import com.example.bookland_be.repository.specification.SupplierSpecification;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +34,7 @@ public class SupplierService {
     @Transactional(readOnly = true)
     public SupplierDTO getSupplierById(Long id) {
         Supplier supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Supplier not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
         return convertToDTO(supplier);
     }
 
@@ -53,7 +55,7 @@ public class SupplierService {
     @Transactional
     public SupplierDTO updateSupplier(Long id, SupplierRequest request) {
         Supplier supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Supplier not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
 
         supplier.setName(request.getName());
         supplier.setPhone(request.getPhone());
@@ -68,7 +70,7 @@ public class SupplierService {
     @Transactional
     public void deleteSupplier(Long id) {
         Supplier supplier = supplierRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Supplier not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.SUPPLIER_NOT_FOUND));
 
         if (!supplier.getPurchaseInvoices().isEmpty()) {
             throw new RuntimeException("Cannot delete supplier with existing purchase invoices");

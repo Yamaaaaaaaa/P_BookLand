@@ -5,6 +5,8 @@ import com.example.bookland_be.dto.request.AddToWishlistRequest;
 import com.example.bookland_be.entity.Book;
 import com.example.bookland_be.entity.User;
 import com.example.bookland_be.entity.Wishlist;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.BookRepository;
 import com.example.bookland_be.repository.UserRepository;
 import com.example.bookland_be.repository.WishlistRepository;
@@ -36,10 +38,10 @@ public class WishlistService {
         }
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         Book book = bookRepository.findById(request.getBookId())
-                .orElseThrow(() -> new RuntimeException("Book not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
         Wishlist wishlist = Wishlist.builder()
                 .user(user)
@@ -53,7 +55,7 @@ public class WishlistService {
     @Transactional
     public void removeFromWishlist(Long userId, Long bookId) {
         Wishlist wishlist = wishlistRepository.findByUserIdAndBookId(userId, bookId)
-                .orElseThrow(() -> new RuntimeException("Item not found in wishlist"));
+                .orElseThrow(() -> new AppException(ErrorCode.WISHLIST_ITEM_NOT_FOUND));
 
         wishlistRepository.delete(wishlist);
     }

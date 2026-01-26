@@ -4,6 +4,7 @@ package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.SerieDTO;
 import com.example.bookland_be.dto.request.SerieRequest;
+import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.service.SerieService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -12,8 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,7 +24,7 @@ public class SerieController {
     private final SerieService serieService;
 
     @GetMapping
-    public ResponseEntity<Page<SerieDTO>> getAllSeries(
+    public ApiResponse<Page<SerieDTO>> getAllSeries(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -38,30 +37,29 @@ public class SerieController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<SerieDTO> series = serieService.getAllSeries(keyword, pageable);
-        return ResponseEntity.ok(series);
+        return ApiResponse.<Page<SerieDTO>>builder().result(series).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SerieDTO> getSerieById(@PathVariable Long id) {
-        return ResponseEntity.ok(serieService.getSerieById(id));
+    public ApiResponse<SerieDTO> getSerieById(@PathVariable Long id) {
+        return ApiResponse.<SerieDTO>builder().result(serieService.getSerieById(id)).build();
     }
 
     @PostMapping
-    public ResponseEntity<SerieDTO> createSerie(@Valid @RequestBody SerieRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(serieService.createSerie(request));
+    public ApiResponse<SerieDTO> createSerie(@Valid @RequestBody SerieRequest request) {
+        return ApiResponse.<SerieDTO>builder().result(serieService.createSerie(request)).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SerieDTO> updateSerie(
+    public ApiResponse<SerieDTO> updateSerie(
             @PathVariable Long id,
             @Valid @RequestBody SerieRequest request) {
-        return ResponseEntity.ok(serieService.updateSerie(id, request));
+        return ApiResponse.<SerieDTO>builder().result(serieService.updateSerie(id, request)).build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteSerie(@PathVariable Long id) {
+    public ApiResponse<Void> deleteSerie(@PathVariable Long id) {
         serieService.deleteSerie(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().build();
     }
 }

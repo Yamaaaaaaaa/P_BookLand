@@ -9,6 +9,8 @@ import com.example.bookland_be.enums.EventActionType;
 import com.example.bookland_be.enums.EventRuleType;
 import com.example.bookland_be.enums.EventTargetType;
 import com.example.bookland_be.enums.EventType;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.*;
 import com.example.bookland_be.repository.specification.EventSpecification;
 import lombok.RequiredArgsConstructor;
@@ -89,7 +91,7 @@ public class EventService {
     @Transactional(readOnly = true)
     public EventDTO getEventById(Long id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
         return convertToDTO(event);
     }
 
@@ -99,7 +101,7 @@ public class EventService {
 
         // Get creator user
         User creator = userRepository.findById(request.getCreatedById())
-                .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getCreatedById()));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         Event event = Event.builder()
                 .name(request.getName())
@@ -184,7 +186,7 @@ public class EventService {
     @Transactional
     public EventDTO updateEvent(Long id, EventRequest request) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
 
         validateEventTime(request.getStartTime(), request.getEndTime());
 
@@ -200,7 +202,7 @@ public class EventService {
         if (request.getCreatedById() != null &&
                 (event.getCreatedBy() == null || !event.getCreatedBy().getId().equals(request.getCreatedById()))) {
             User creator = userRepository.findById(request.getCreatedById())
-                    .orElseThrow(() -> new RuntimeException("User not found with id: " + request.getCreatedById()));
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
             event.setCreatedBy(creator);
         }
 
@@ -287,7 +289,7 @@ public class EventService {
     @Transactional
     public EventDTO updateEventStatus(Long id, EventStatus status) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
 
         event.setStatus(status);
         Event updatedEvent = eventRepository.save(event);
@@ -298,7 +300,7 @@ public class EventService {
     @Transactional
     public void deleteEvent(Long id) {
         Event event = eventRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Event not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
 
         if (!event.getLogs().isEmpty()) {
             throw new RuntimeException("Cannot delete event with existing logs. " +

@@ -4,6 +4,7 @@ package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.ShippingMethodDTO;
 import com.example.bookland_be.dto.request.ShippingMethodRequest;
+import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.service.ShippingMethodService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -12,8 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,7 +24,7 @@ public class ShippingMethodController {
     private final ShippingMethodService shippingMethodService;
 
     @GetMapping
-    public ResponseEntity<Page<ShippingMethodDTO>> getAllShippingMethods(
+    public ApiResponse<Page<ShippingMethodDTO>> getAllShippingMethods(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -37,31 +36,30 @@ public class ShippingMethodController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<ShippingMethodDTO> shippingMethods = shippingMethodService.getAllShippingMethods(pageable);
-        return ResponseEntity.ok(shippingMethods);
+        return ApiResponse.<Page<ShippingMethodDTO>>builder().result(shippingMethods).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ShippingMethodDTO> getShippingMethodById(@PathVariable Long id) {
-        return ResponseEntity.ok(shippingMethodService.getShippingMethodById(id));
+    public ApiResponse<ShippingMethodDTO> getShippingMethodById(@PathVariable Long id) {
+        return ApiResponse.<ShippingMethodDTO>builder().result(shippingMethodService.getShippingMethodById(id)).build();
     }
 
     @PostMapping
-    public ResponseEntity<ShippingMethodDTO> createShippingMethod(
+    public ApiResponse<ShippingMethodDTO> createShippingMethod(
             @Valid @RequestBody ShippingMethodRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(shippingMethodService.createShippingMethod(request));
+        return ApiResponse.<ShippingMethodDTO>builder().result(shippingMethodService.createShippingMethod(request)).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ShippingMethodDTO> updateShippingMethod(
+    public ApiResponse<ShippingMethodDTO> updateShippingMethod(
             @PathVariable Long id,
             @Valid @RequestBody ShippingMethodRequest request) {
-        return ResponseEntity.ok(shippingMethodService.updateShippingMethod(id, request));
+        return ApiResponse.<ShippingMethodDTO>builder().result(shippingMethodService.updateShippingMethod(id, request)).build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteShippingMethod(@PathVariable Long id) {
+    public ApiResponse<Void> deleteShippingMethod(@PathVariable Long id) {
         shippingMethodService.deleteShippingMethod(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().build();
     }
 }

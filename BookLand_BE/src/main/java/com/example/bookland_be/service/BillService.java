@@ -8,6 +8,8 @@ import com.example.bookland_be.dto.request.CreateBillRequest;
 import com.example.bookland_be.dto.request.UpdateBillStatusRequest;
 import com.example.bookland_be.entity.*;
 import com.example.bookland_be.entity.Bill.BillStatus;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.*;
 import com.example.bookland_be.repository.specification.BillSpecification;
 import lombok.RequiredArgsConstructor;
@@ -63,20 +65,20 @@ public class BillService {
     @Transactional(readOnly = true)
     public BillDTO getBillById(Long id) {
         Bill bill = billRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
         return convertToDTO(bill);
     }
 
     @Transactional
     public BillDTO createBill(CreateBillRequest request) {
         User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId())
-                .orElseThrow(() -> new RuntimeException("Payment method not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_METHOD_NOT_FOUND));
 
         ShippingMethod shippingMethod = shippingMethodRepository.findById(request.getShippingMethodId())
-                .orElseThrow(() -> new RuntimeException("Shipping method not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_METHOD_NOT_FOUND));
 
         // ========== LẤY EVENT CÓ PRIORITY CAO NHẤT ==========
         Optional<Event> activeEventOpt = eventApplicationService.getHighestPriorityActiveEvent();
@@ -91,7 +93,7 @@ public class BillService {
             // Lọc các sản phẩm mà Event hướng đến và tính giá giảm
             for (BillBookRequest bookRequest : request.getBooks()) {
                 Book book = bookRepository.findById(bookRequest.getBookId())
-                        .orElseThrow(() -> new RuntimeException("Book not found: " + bookRequest.getBookId()));
+                        .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
                 // Kiểm tra xem book có nằm trong target của event không
                 if (eventApplicationService.isBookInEventTarget(event, book)) {
@@ -113,11 +115,11 @@ public class BillService {
         double booksCost = 0.0;
         for (BillBookRequest bookRequest : request.getBooks()) {
             Book book = bookRepository.findById(bookRequest.getBookId())
-                    .orElseThrow(() -> new RuntimeException("Book not found: " + bookRequest.getBookId()));
+                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
             // Kiểm tra tồn kho
             if (book.getStock() < bookRequest.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for book: " + book.getName());
+                throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
             }
 
             // Sử dụng giá đã giảm nếu có event, không thì dùng giá gốc
@@ -141,7 +143,7 @@ public class BillService {
         // ========== TẠO BILL BOOKS VÀ CẬP NHẬT TỒN KHO ==========
         for (BillBookRequest bookRequest : request.getBooks()) {
             Book book = bookRepository.findById(bookRequest.getBookId())
-                    .orElseThrow(() -> new RuntimeException("Book not found"));
+                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
             // Lưu giá đã áp dụng event (nếu có)
             Double priceToSave = eventDiscountedPrices.getOrDefault(book.getId(), book.getFinalPrice());
@@ -171,7 +173,7 @@ public class BillService {
     @Transactional
     public BillDTO updateBillStatus(Long id, UpdateBillStatusRequest request) {
         Bill bill = billRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
 
         BillStatus oldStatus = bill.getStatus();
         BillStatus newStatus = request.getStatus();
@@ -182,7 +184,7 @@ public class BillService {
 
         if (newStatus == BillStatus.APPROVED && request.getApprovedById() != null) {
             User approver = userRepository.findById(request.getApprovedById())
-                    .orElseThrow(() -> new RuntimeException("Approver not found"));
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
             bill.setApprovedBy(approver);
             bill.setApprovedAt(LocalDateTime.now());
         }
@@ -211,7 +213,7 @@ public class BillService {
     @Transactional
     public void deleteBill(Long id) {
         Bill bill = billRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Bill not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
 
         if (bill.getStatus() != BillStatus.PENDING && bill.getStatus() != BillStatus.CANCELED) {
             throw new RuntimeException("Can only delete pending or cancelled bills");

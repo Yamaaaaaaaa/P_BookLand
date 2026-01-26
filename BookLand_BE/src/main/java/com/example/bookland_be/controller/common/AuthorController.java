@@ -4,6 +4,7 @@ package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.AuthorDTO;
 import com.example.bookland_be.dto.request.AuthorRequest;
+import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.service.AuthorService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -12,8 +13,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -25,7 +24,7 @@ public class AuthorController {
     private final AuthorService authorService;
 
     @GetMapping
-    public ResponseEntity<Page<AuthorDTO>> getAllAuthors(
+    public ApiResponse<Page<AuthorDTO>> getAllAuthors(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -38,30 +37,29 @@ public class AuthorController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<AuthorDTO> authors = authorService.getAllAuthors(keyword, pageable);
-        return ResponseEntity.ok(authors);
+        return ApiResponse.<Page<AuthorDTO>>builder().result(authors).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AuthorDTO> getAuthorById(@PathVariable Long id) {
-        return ResponseEntity.ok(authorService.getAuthorById(id));
+    public ApiResponse<AuthorDTO> getAuthorById(@PathVariable Long id) {
+        return ApiResponse.<AuthorDTO>builder().result(authorService.getAuthorById(id)).build();
     }
 
     @PostMapping
-    public ResponseEntity<AuthorDTO> createAuthor(@Valid @RequestBody AuthorRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(authorService.createAuthor(request));
+    public ApiResponse<AuthorDTO> createAuthor(@Valid @RequestBody AuthorRequest request) {
+        return ApiResponse.<AuthorDTO>builder().result(authorService.createAuthor(request)).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<AuthorDTO> updateAuthor(
+    public ApiResponse<AuthorDTO> updateAuthor(
             @PathVariable Long id,
             @Valid @RequestBody AuthorRequest request) {
-        return ResponseEntity.ok(authorService.updateAuthor(id, request));
+        return ApiResponse.<AuthorDTO>builder().result(authorService.updateAuthor(id, request)).build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAuthor(@PathVariable Long id) {
+    public ApiResponse<Void> deleteAuthor(@PathVariable Long id) {
         authorService.deleteAuthor(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().build();
     }
 }

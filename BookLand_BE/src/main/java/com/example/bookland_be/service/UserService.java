@@ -7,6 +7,8 @@ import com.example.bookland_be.dto.response.UserResponse;
 import com.example.bookland_be.entity.Role;
 import com.example.bookland_be.entity.User;
 import com.example.bookland_be.entity.User.UserStatus;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.RoleRepository;
 import com.example.bookland_be.repository.UserRepository;
 import com.example.bookland_be.repository.specification.UserSpecification;
@@ -42,24 +44,24 @@ public class UserService {
     @Transactional(readOnly = true)
     public UserResponse getUserById(Long id) {
         User user = userRepository.findByIdWithRoles(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy user với id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
         return UserResponse.fromEntity(user);
     }
 
     @Transactional
     public UserResponse createUser(UserRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username đã tồn tại: " + request.getUsername());
+            throw new AppException(ErrorCode.USER_EXISTED);
         }
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email đã tồn tại: " + request.getEmail());
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
         }
 
         Set<Role> roles = new HashSet<>();
         if (request.getRoleIds() != null && !request.getRoleIds().isEmpty()) {
             roles = roleRepository.findByIdIn(request.getRoleIds());
             if (roles.size() != request.getRoleIds().size()) {
-                throw new RuntimeException("Một số role không tồn tại");
+                throw new AppException(ErrorCode.SOME_ROLES_NOT_FOUND);
             }
         }
 
@@ -82,11 +84,11 @@ public class UserService {
     @Transactional
     public UserResponse updateUser(Long id, UserUpdateRequest request) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy user với id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         if (request.getEmail() != null && !request.getEmail().equals(user.getEmail())) {
             if (userRepository.existsByEmail(request.getEmail())) {
-                throw new RuntimeException("Email đã tồn tại: " + request.getEmail());
+                throw new AppException(ErrorCode.EMAIL_EXISTED);
             }
             user.setEmail(request.getEmail());
         }
@@ -103,11 +105,11 @@ public class UserService {
     @Transactional
     public UserResponse updateUserRoles(Long id, UpdateRolesRequest request) {
         User user = userRepository.findByIdWithRoles(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy user với id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         Set<Role> newRoles = roleRepository.findByIdIn(request.getRoleIds());
         if (newRoles.size() != request.getRoleIds().size()) {
-            throw new RuntimeException("Một số role không tồn tại");
+            throw new AppException(ErrorCode.SOME_ROLES_NOT_FOUND);
         }
 
         user.setRoles(newRoles);
@@ -119,7 +121,7 @@ public class UserService {
     @Transactional
     public UserResponse updateUserStatus(Long id, User.UserStatus status) {
         User user = userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy user với id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
 
         user.setStatus(status);
         User updatedUser = userRepository.save(user);
@@ -130,7 +132,7 @@ public class UserService {
     @Transactional
     public void deleteUser(Long id) {
         if (!userRepository.existsById(id)) {
-            throw new RuntimeException("Không tìm thấy user với id: " + id);
+            throw new AppException(ErrorCode.USER_NOT_EXISTED);
         }
         userRepository.deleteById(id);
     }

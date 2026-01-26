@@ -2,6 +2,7 @@ package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.BookDTO;
 import com.example.bookland_be.dto.request.BookRequest;
+import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.entity.Book.BookStatus;
 import com.example.bookland_be.service.BookService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -11,8 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,7 +22,7 @@ public class BookController {
     private final BookService bookService;
 
     @GetMapping
-    public ResponseEntity<Page<BookDTO>> getAllBooks(
+    public ApiResponse<Page<BookDTO>> getAllBooks(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) BookStatus status,
             @RequestParam(required = false) Long authorId,
@@ -45,37 +44,36 @@ public class BookController {
 
         Page<BookDTO> books = bookService.getAllBooks(keyword, status, authorId,
                 publisherId, seriesId, categoryId, pinned, minPrice, maxPrice, pageable);
-        return ResponseEntity.ok(books);
+        return ApiResponse.<Page<BookDTO>>builder().result(books).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<BookDTO> getBookById(@PathVariable Long id) {
-        return ResponseEntity.ok(bookService.getBookById(id));
+    public ApiResponse<BookDTO> getBookById(@PathVariable Long id) {
+        return ApiResponse.<BookDTO>builder().result(bookService.getBookById(id)).build();
     }
 
     @PostMapping
-    public ResponseEntity<BookDTO> createBook(@Valid @RequestBody BookRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(bookService.createBook(request));
+    public ApiResponse<BookDTO> createBook(@Valid @RequestBody BookRequest request) {
+        return ApiResponse.<BookDTO>builder().result(bookService.createBook(request)).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<BookDTO> updateBook(
+    public ApiResponse<BookDTO> updateBook(
             @PathVariable Long id,
             @Valid @RequestBody BookRequest request) {
-        return ResponseEntity.ok(bookService.updateBook(id, request));
+        return ApiResponse.<BookDTO>builder().result(bookService.updateBook(id, request)).build();
     }
 
     @PatchMapping("/{id}/stock")
-    public ResponseEntity<BookDTO> updateBookStock(
+    public ApiResponse<BookDTO> updateBookStock(
             @PathVariable Long id,
             @RequestParam Integer quantity) {
-        return ResponseEntity.ok(bookService.updateBookStock(id, quantity));
+        return ApiResponse.<BookDTO>builder().result(bookService.updateBookStock(id, quantity)).build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBook(@PathVariable Long id) {
+    public ApiResponse<Void> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().build();
     }
 }

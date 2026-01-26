@@ -4,6 +4,8 @@ import com.example.bookland_be.dto.BookDTO;
 import com.example.bookland_be.dto.request.BookRequest;
 import com.example.bookland_be.entity.*;
 import com.example.bookland_be.entity.Book.BookStatus;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.*;
 import com.example.bookland_be.repository.specification.BookSpecification;
 import lombok.RequiredArgsConstructor;
@@ -47,29 +49,29 @@ public class BookService {
     @Transactional(readOnly = true)
     public BookDTO getBookById(Long id) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
         return convertToDTO(book);
     }
 
     @Transactional
     public BookDTO createBook(BookRequest request) {
         Author author = authorRepository.findById(request.getAuthorId())
-                .orElseThrow(() -> new RuntimeException("Author not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
 
         Publisher publisher = publisherRepository.findById(request.getPublisherId())
-                .orElseThrow(() -> new RuntimeException("Publisher not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND));
 
         Serie series = null;
         if (request.getSeriesId() != null) {
             series = serieRepository.findById(request.getSeriesId())
-                    .orElseThrow(() -> new RuntimeException("Series not found"));
+                    .orElseThrow(() -> new AppException(ErrorCode.SERIE_NOT_FOUND));
         }
 
         Set<Category> categories = new HashSet<>();
         if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
             categories = request.getCategoryIds().stream()
                     .map(id -> categoryRepository.findById(id)
-                            .orElseThrow(() -> new RuntimeException("Category not found: " + id)))
+                            .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND)))
                     .collect(Collectors.toSet());
         }
 
@@ -96,25 +98,25 @@ public class BookService {
     @Transactional
     public BookDTO updateBook(Long id, BookRequest request) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
         Author author = authorRepository.findById(request.getAuthorId())
-                .orElseThrow(() -> new RuntimeException("Author not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.AUTHOR_NOT_FOUND));
 
         Publisher publisher = publisherRepository.findById(request.getPublisherId())
-                .orElseThrow(() -> new RuntimeException("Publisher not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.PUBLISHER_NOT_FOUND));
 
         Serie series = null;
         if (request.getSeriesId() != null) {
             series = serieRepository.findById(request.getSeriesId())
-                    .orElseThrow(() -> new RuntimeException("Series not found"));
+                    .orElseThrow(() -> new AppException(ErrorCode.SERIE_NOT_FOUND));
         }
 
         Set<Category> categories = new HashSet<>();
         if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
             categories = request.getCategoryIds().stream()
                     .map(catId -> categoryRepository.findById(catId)
-                            .orElseThrow(() -> new RuntimeException("Category not found: " + catId)))
+                            .orElseThrow(() -> new AppException(ErrorCode.CATEGORY_NOT_FOUND)))
                     .collect(Collectors.toSet());
         }
 
@@ -140,10 +142,10 @@ public class BookService {
     @Transactional
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
         if (!book.getBillBooks().isEmpty()) {
-            throw new RuntimeException("Cannot delete book with existing orders");
+            throw new AppException(ErrorCode.BOOK_HAS_ORDERS);
         }
 
         bookRepository.delete(book);
@@ -152,7 +154,7 @@ public class BookService {
     @Transactional
     public BookDTO updateBookStock(Long id, Integer quantity) {
         Book book = bookRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Book not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
         book.setStock(quantity);
         Book updatedBook = bookRepository.save(book);

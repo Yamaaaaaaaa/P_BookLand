@@ -1,6 +1,7 @@
 package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.request.*;
+import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.dto.response.UserResponse;
 import com.example.bookland_be.entity.User.UserStatus;
 import com.example.bookland_be.service.UserService;
@@ -11,8 +12,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,7 +23,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<Page<UserResponse>> getAllUsers(
+    public ApiResponse<Page<UserResponse>> getAllUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) UserStatus status,
             @RequestParam(required = false) Long roleId,
@@ -39,51 +38,51 @@ public class UserController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<UserResponse> users = userService.getAllUsers(keyword, status, roleId, pageable);
-        return ResponseEntity.ok(users);
+        return ApiResponse.<Page<UserResponse>>builder().result(users).build();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserResponse> getUserById(@PathVariable Long id) {
+    public ApiResponse<UserResponse> getUserById(@PathVariable Long id) {
         UserResponse user = userService.getUserById(id);
-        return ResponseEntity.ok(user);
+        return ApiResponse.<UserResponse>builder().result(user).build();
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
+    public ApiResponse<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
         UserResponse createdUser = userService.createUser(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+        return ApiResponse.<UserResponse>builder().result(createdUser).build();
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponse> updateUser(
+    public ApiResponse<UserResponse> updateUser(
             @PathVariable Long id,
             @Valid @RequestBody UserUpdateRequest request
     ) {
         UserResponse updatedUser = userService.updateUser(id, request);
-        return ResponseEntity.ok(updatedUser);
+        return ApiResponse.<UserResponse>builder().result(updatedUser).build();
     }
 
     @PutMapping("/{id}/roles")
-    public ResponseEntity<UserResponse> updateUserRoles(
+    public ApiResponse<UserResponse> updateUserRoles(
             @PathVariable Long id,
             @Valid @RequestBody UpdateRolesRequest request
     ) {
         UserResponse updatedUser = userService.updateUserRoles(id, request);
-        return ResponseEntity.ok(updatedUser);
+        return ApiResponse.<UserResponse>builder().result(updatedUser).build();
     }
 
     @PatchMapping("/{id}/status")
-    public ResponseEntity<UserResponse> updateUserStatus(
+    public ApiResponse<UserResponse> updateUserStatus(
             @PathVariable Long id,
             @RequestParam UserStatus status
     ) {
         UserResponse updatedUser = userService.updateUserStatus(id, status);
-        return ResponseEntity.ok(updatedUser);
+        return ApiResponse.<UserResponse>builder().result(updatedUser).build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+    public ApiResponse<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
-        return ResponseEntity.noContent().build();
+        return ApiResponse.<Void>builder().build();
     }
 }

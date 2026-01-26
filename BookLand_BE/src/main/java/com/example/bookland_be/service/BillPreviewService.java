@@ -4,6 +4,8 @@ import com.example.bookland_be.dto.*;
 import com.example.bookland_be.dto.request.BillBookRequest;
 import com.example.bookland_be.dto.request.PreviewBillRequest;
 import com.example.bookland_be.entity.*;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +27,7 @@ public class BillPreviewService {
     @Transactional(readOnly = true)
     public BillPreviewDTO previewBill(PreviewBillRequest request) {
         ShippingMethod shippingMethod = shippingMethodRepository.findById(request.getShippingMethodId())
-                .orElseThrow(() -> new RuntimeException("Shipping method not found"));
+                .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_METHOD_NOT_FOUND));
 
         // Lấy event có priority cao nhất
         Optional<Event> activeEventOpt = eventApplicationService.getHighestPriorityActiveEvent();
@@ -38,10 +40,10 @@ public class BillPreviewService {
 
         for (BillBookRequest bookRequest : request.getBooks()) {
             Book book = bookRepository.findById(bookRequest.getBookId())
-                    .orElseThrow(() -> new RuntimeException("Book not found: " + bookRequest.getBookId()));
+                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
 
             if (book.getStock() < bookRequest.getQuantity()) {
-                throw new RuntimeException("Insufficient stock for book: " + book.getName());
+                throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
             }
 
             Double originalPrice = book.getFinalPrice();

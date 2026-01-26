@@ -4,6 +4,8 @@ package com.example.bookland_be.service;
 import com.example.bookland_be.dto.SerieDTO;
 import com.example.bookland_be.dto.request.SerieRequest;
 import com.example.bookland_be.entity.Serie;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.SerieRepository;
 import com.example.bookland_be.repository.specification.SerieSpecification;
 import lombok.RequiredArgsConstructor;
@@ -30,14 +32,14 @@ public class SerieService {
     @Transactional(readOnly = true)
     public SerieDTO getSerieById(Long id) {
         Serie serie = serieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.SERIE_NOT_FOUND));
         return convertToDTO(serie);
     }
 
     @Transactional
     public SerieDTO createSerie(SerieRequest request) {
         if (serieRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Series name already exists: " + request.getName());
+            throw new AppException(ErrorCode.SERIE_NAME_EXISTED);
         }
 
         Serie serie = Serie.builder()
@@ -52,11 +54,11 @@ public class SerieService {
     @Transactional
     public SerieDTO updateSerie(Long id, SerieRequest request) {
         Serie serie = serieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.SERIE_NOT_FOUND));
 
         if (!serie.getName().equals(request.getName()) &&
                 serieRepository.existsByName(request.getName())) {
-            throw new RuntimeException("Series name already exists: " + request.getName());
+            throw new AppException(ErrorCode.SERIE_NAME_EXISTED);
         }
 
         serie.setName(request.getName());
@@ -69,10 +71,10 @@ public class SerieService {
     @Transactional
     public void deleteSerie(Long id) {
         Serie serie = serieRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Series not found with id: " + id));
+                .orElseThrow(() -> new AppException(ErrorCode.SERIE_NOT_FOUND));
 
         if (!serie.getBooks().isEmpty()) {
-            throw new RuntimeException("Cannot delete series with existing books");
+            throw new AppException(ErrorCode.SERIE_HAS_BOOKS);
         }
 
         serieRepository.delete(serie);

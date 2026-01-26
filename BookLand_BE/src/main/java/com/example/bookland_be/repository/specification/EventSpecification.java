@@ -2,6 +2,9 @@ package com.example.bookland_be.repository.specification;
 
 import com.example.bookland_be.entity.Event;
 import com.example.bookland_be.entity.Event.EventStatus;
+import com.example.bookland_be.enums.EventActionType;
+import com.example.bookland_be.enums.EventRuleType;
+import com.example.bookland_be.enums.EventTargetType;
 import com.example.bookland_be.enums.EventType;
 import org.springframework.data.jpa.domain.Specification;
 import java.time.LocalDateTime;
@@ -52,6 +55,50 @@ public class EventSpecification extends BaseSpecification {
                 return cb.greaterThanOrEqualTo(root.get("startTime"), from);
             }
             return cb.lessThanOrEqualTo(root.get("startTime"), to);
+        };
+    }
+
+    public static Specification<Event> hasTargetType(EventTargetType targetType) {
+        return (root, query, cb) -> {
+            if (targetType == null) {
+                return cb.conjunction();
+            }
+            // Distinct để tránh duplicate khi join
+            query.distinct(true);
+            return cb.equal(root.join("targets").get("targetType"), targetType);
+        };
+    }
+
+    public static Specification<Event> hasActionType(EventActionType actionType) {
+        return (root, query, cb) -> {
+            if (actionType == null) {
+                return cb.conjunction();
+            }
+            query.distinct(true);
+            return cb.equal(root.join("actions").get("actionType"), actionType);
+        };
+    }
+
+    public static Specification<Event> hasRuleType(EventRuleType ruleType) {
+        return (root, query, cb) -> {
+            if (ruleType == null) {
+                return cb.conjunction();
+            }
+            query.distinct(true);
+            return cb.equal(root.join("rules").get("ruleType"), ruleType);
+        };
+    }
+
+    public static Specification<Event> hasCreator(Long createdById) {
+        return hasNestedFieldEqual("createdBy", "id", createdById);
+    }
+
+    public static Specification<Event> hasPriorityGreaterThan(Integer minPriority) {
+        return (root, query, cb) -> {
+            if (minPriority == null) {
+                return cb.conjunction();
+            }
+            return cb.greaterThanOrEqualTo(root.get("priority"), minPriority);
         };
     }
 }

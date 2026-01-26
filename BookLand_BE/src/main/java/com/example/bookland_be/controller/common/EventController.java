@@ -3,6 +3,10 @@ package com.example.bookland_be.controller.common;
 import com.example.bookland_be.dto.EventDTO;
 import com.example.bookland_be.dto.request.EventRequest;
 import com.example.bookland_be.entity.Event.EventStatus;
+import com.example.bookland_be.enums.EventActionType;
+import com.example.bookland_be.enums.EventRuleType;
+import com.example.bookland_be.enums.EventTargetType;
+import com.example.bookland_be.enums.EventType;
 import com.example.bookland_be.service.EventService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -63,13 +67,18 @@ public class EventController {
     public ResponseEntity<Page<EventDTO>> getAllEvents(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) EventStatus status,
-            @RequestParam(required = false) String type,
+            @RequestParam(required = false) EventType type,
+            @RequestParam(required = false) EventTargetType targetType,
+            @RequestParam(required = false) EventActionType actionType,
+            @RequestParam(required = false) EventRuleType ruleType,
+            @RequestParam(required = false) Long createdById,
+            @RequestParam(required = false) Integer minPriority,
             @RequestParam(required = false) Boolean activeOnly,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
+            @RequestParam(defaultValue = "priority") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDirection
     ) {
         Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC")
@@ -78,6 +87,7 @@ public class EventController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<EventDTO> events = eventService.getAllEvents(keyword, status, type,
+                targetType, actionType, ruleType, createdById, minPriority,
                 activeOnly, fromDate, toDate, pageable);
         return ResponseEntity.ok(events);
     }

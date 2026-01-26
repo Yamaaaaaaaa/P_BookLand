@@ -5,6 +5,9 @@ import com.example.bookland_be.dto.request.*;
 import com.example.bookland_be.entity.*;
 import com.example.bookland_be.entity.Event.EventStatus;
 import com.example.bookland_be.entity.EventImage.ImageType;
+import com.example.bookland_be.enums.EventActionType;
+import com.example.bookland_be.enums.EventRuleType;
+import com.example.bookland_be.enums.EventTargetType;
 import com.example.bookland_be.enums.EventType;
 import com.example.bookland_be.repository.*;
 import com.example.bookland_be.repository.specification.EventSpecification;
@@ -31,18 +34,49 @@ public class EventService {
     private final UserRepository userRepository;
 
     @Transactional(readOnly = true)
-    public Page<EventDTO> getAllEvents(String keyword, EventStatus status, String type,
+    public Page<EventDTO> getAllEvents(String keyword, EventStatus status, EventType type,
+                                       EventTargetType targetType, EventActionType actionType,
+                                       EventRuleType ruleType, Long createdById, Integer minPriority,
                                        Boolean activeOnly, LocalDateTime fromDate, LocalDateTime toDate,
                                        Pageable pageable) {
-        EventType eventType = null;
-        if (type != null) {
-            eventType = EventType.valueOf(type);
+        Specification<Event> spec = Specification.unrestricted();
+
+        // Chỉ thêm vào spec khi có giá trị
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            spec = spec.and(EventSpecification.searchByKeyword(keyword));
         }
 
-        Specification<Event> spec = EventSpecification.searchByKeyword(keyword)
-                .and(EventSpecification.hasStatus(status))
-                .and(EventSpecification.hasType(eventType))
-                .and(EventSpecification.startTimeBetween(fromDate, toDate));
+        if (status != null) {
+            spec = spec.and(EventSpecification.hasStatus(status));
+        }
+
+        if (type != null) {
+            spec = spec.and(EventSpecification.hasType(type));
+        }
+
+        if (targetType != null) {
+            spec = spec.and(EventSpecification.hasTargetType(targetType));
+        }
+
+        if (actionType != null) {
+            spec = spec.and(EventSpecification.hasActionType(actionType));
+        }
+
+        if (ruleType != null) {
+            spec = spec.and(EventSpecification.hasRuleType(ruleType));
+        }
+
+        if (createdById != null) {
+            spec = spec.and(EventSpecification.hasCreator(createdById));
+        }
+
+        if (minPriority != null) {
+            spec = spec.and(EventSpecification.hasPriorityGreaterThan(minPriority));
+        }
+
+        if (fromDate != null || toDate != null) {
+            spec = spec.and(EventSpecification.startTimeBetween(fromDate, toDate));
+        }
 
         if (activeOnly != null && activeOnly) {
             spec = spec.and(EventSpecification.isActiveNow());

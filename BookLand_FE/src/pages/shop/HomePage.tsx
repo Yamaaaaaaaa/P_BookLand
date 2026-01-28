@@ -1,5 +1,4 @@
 
-import CategoryIcons from '../../components/CategoryIcons';
 import FeaturedBooks from '../../components/FeaturedBooks';
 import HeroSection from '../../components/HeroSection';
 import LatestArticles from '../../components/LatestArticles';
@@ -11,7 +10,6 @@ const HomePage = () => {
     return (
         <div>
             <HeroSection />
-            <CategoryIcons />
             <FeaturedBooks
                 subtitle="Some Quality Items"
                 title="Featured Books"

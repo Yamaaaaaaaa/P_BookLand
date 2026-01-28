@@ -1,7 +1,8 @@
 import { Heart, Eye, ShoppingCart, Star } from 'lucide-react';
 import '../styles/shop.css';
-import type { Book } from '../data/mockBooks';
+import type { Book } from '../types/Book';
 import { Link } from 'react-router-dom';
+import { formatCurrency } from '../utils/formatters';
 
 interface BookCardProps {
     book: Book;
@@ -28,16 +29,12 @@ const BookCard = ({ book }: BookCardProps) => {
 
     return (
         <div className="book-card">
-            {book.badge && (
-                <span className={`book-card__badge book-card__badge--${book.badge}`}>
-                    {book.badge === 'sale' ? 'Sale' : 'New'}
-                </span>
-            )}
+
 
             <div className="book-card__image-wrapper">
                 <img
-                    src={book.image}
-                    alt={book.title}
+                    src={book.bookImageUrl || 'https://via.placeholder.com/150'}
+                    alt={book.name}
                     className="book-card__image"
                 />
                 <div className="book-card__actions">
@@ -54,24 +51,24 @@ const BookCard = ({ book }: BookCardProps) => {
             </div>
 
             <div className="book-card__content">
-                <span className="book-card__category">{book.category}</span>
-                <h3 className="book-card__title">{book.title}</h3>
-                <p className="book-card__author">by {book.author}</p>
+                <span className="book-card__category">{book.categories?.[0]?.name || 'General'}</span>
+                <h3 className="book-card__title">{book.name}</h3>
+                <p className="book-card__author">by {book.author?.name}</p>
 
                 <div className="book-card__footer">
                     <div className="book-card__price">
-                        ${book.price.toFixed(2)}
-                        {book.originalPrice && (
+                        {formatCurrency(book.originalCost - (book.sale || 0))}
+                        {book.sale > 0 && (
                             <span className="book-card__price-old">
-                                ${book.originalPrice.toFixed(2)}
+                                {formatCurrency(book.originalCost)}
                             </span>
                         )}
                     </div>
                     <div className="book-card__rating">
                         <div className="book-card__stars">
-                            {renderStars(book.rating)}
+                            {renderStars(5)}
                         </div>
-                        <span className="book-card__rating-count">({book.reviewCount})</span>
+                        <span className="book-card__rating-count">(0)</span>
                     </div>
                 </div>
             </div>

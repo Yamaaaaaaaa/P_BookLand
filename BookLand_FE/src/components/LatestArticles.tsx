@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
 import '../styles/shop.css';
-import { articles } from '../data/mockArticles';
 
 const LatestArticles = () => {
     return (
@@ -12,7 +10,7 @@ const LatestArticles = () => {
                 </div>
 
                 <div className="articles__grid">
-                    {articles.map((article) => (
+                    {/* {articles.map((article) => (
                         <Link
                             key={article.id}
                             to={`/shop/articles/${article.slug}`}
@@ -29,7 +27,7 @@ const LatestArticles = () => {
                                 <p className="article-card__excerpt">{article.excerpt}</p>
                             </div>
                         </Link>
-                    ))}
+                    ))} */}
                 </div>
             </div>
         </section>

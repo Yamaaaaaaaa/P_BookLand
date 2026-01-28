@@ -1,4 +1,4 @@
-import { bookCategories, priceRanges, sortOptions } from '../data/allBooks';
+import { bookCategories, priceRanges, sortOptions } from '../data/mockBooks';
 import '../styles/shop.css';
 
 interface FilterSidebarProps {

@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X } from 'lucide-react';
 import '../../styles/shop.css';
+import { mockUsers } from '../../data/mockUsers';
 
+// Local interface for form state, mapped from User entity
 interface UserProfile {
     name: string;
     email: string;
@@ -13,18 +15,39 @@ interface UserProfile {
 }
 
 const ProfilePage = () => {
+    // Simulate getting logged in user
+    const currentUser = mockUsers.find(u => u.username === 'customer1') || mockUsers[1];
+
+    // Default address
+    const defaultAddress = currentUser.addresses?.find(a => a.isDefault) || currentUser.addresses?.[0];
+
     const [isEditing, setIsEditing] = useState(false);
+
+    // Initialize state from properties
     const [profile, setProfile] = useState<UserProfile>({
-        name: 'John Doe',
-        email: 'john.doe@example.com',
-        phone: '+1 234 567 8900',
-        address: '123 Book Street',
-        city: 'New York',
-        country: 'United States',
-        joinDate: 'January 2024',
+        name: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username,
+        email: currentUser.email,
+        phone: currentUser.phone || defaultAddress?.contactPhone || '',
+        address: defaultAddress?.addressDetail || '',
+        city: 'Hanoi', // Placeholder as it's not in Address entity
+        country: 'Vietnam', // Placeholder
+        joinDate: currentUser.createdAt || 'January 2024',
     });
 
     const [editedProfile, setEditedProfile] = useState<UserProfile>(profile);
+
+    // Update profile if currentUser changes (simulated)
+    useEffect(() => {
+        setProfile({
+            name: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username,
+            email: currentUser.email,
+            phone: currentUser.phone || defaultAddress?.contactPhone || '',
+            address: defaultAddress?.addressDetail || '',
+            city: 'Hanoi',
+            country: 'Vietnam',
+            joinDate: currentUser.createdAt || 'January 2024',
+        });
+    }, []);
 
     const handleEdit = () => {
         setIsEditing(true);
@@ -34,6 +57,7 @@ const ProfilePage = () => {
     const handleSave = () => {
         setProfile(editedProfile);
         setIsEditing(false);
+        // In real app, would call API to update User entity
     };
 
     const handleCancel = () => {

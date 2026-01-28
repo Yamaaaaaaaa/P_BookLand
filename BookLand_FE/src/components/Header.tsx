@@ -25,7 +25,7 @@ const Header = ({ onLogout, cartItemCount = 3 }: HeaderProps) => {
             <div className="shop-container">
                 <div className="shop-header__inner">
                     <Link to="/shop/home" className="shop-header__logo">
-                        BOOKSAW
+                        BOOKLAND
                     </Link>
 
                     {/* Desktop Navigation */}

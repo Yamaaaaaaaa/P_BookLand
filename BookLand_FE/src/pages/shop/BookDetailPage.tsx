@@ -1,8 +1,9 @@
 import { useParams, Link } from 'react-router-dom';
 import { Heart, ShoppingCart, Star, ArrowLeft, Share2, Truck, Shield, RotateCcw } from 'lucide-react';
-import { getBookById, getRelatedBooks } from '../../data/allBooks';
+import { getBookById, getRelatedBooks } from '../../data/mockBooks';
 import '../../styles/shop.css';
 import BookCard from '../../components/BookCard';
+import { formatCurrency } from '../../utils/formatters';
 
 const BookDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -53,7 +54,7 @@ const BookDetailPage = () => {
                     <span className="breadcrumb__separator">/</span>
                     <Link to="/shop/books" className="breadcrumb__link">Books</Link>
                     <span className="breadcrumb__separator">/</span>
-                    <span className="breadcrumb__current">{book.title}</span>
+                    <span className="breadcrumb__current">{book.name}</span>
                 </nav>
 
                 {/* Book Detail */}
@@ -61,42 +62,31 @@ const BookDetailPage = () => {
                     {/* Image Section */}
                     <div className="book-detail__image-section">
                         <div className="book-detail__image-wrapper">
-                            {book.badge && (
-                                <span className={`book-card__badge book-card__badge--${book.badge}`}>
-                                    {book.badge === 'sale' ? 'Sale' : 'New'}
-                                </span>
-                            )}
-                            <img src={book.image} alt={book.title} className="book-detail__image" />
+
+                            <img src={book.bookImageUrl} alt={book.name} className="book-detail__image" />
                         </div>
                     </div>
 
                     {/* Info Section */}
                     <div className="book-detail__info">
-                        <span className="book-detail__category">{book.category}</span>
-                        <h1 className="book-detail__title">{book.title}</h1>
-                        <p className="book-detail__author">by <strong>{book.author}</strong></p>
+                        <span className="book-detail__category">{book.categories?.[0]?.name}</span>
+                        <h1 className="book-detail__title">{book.name}</h1>
+                        <p className="book-detail__author">by <strong>{book.author?.name}</strong></p>
 
                         {/* Rating */}
                         <div className="book-detail__rating">
                             <div className="book-detail__stars">
-                                {renderStars(book.rating)}
+                                {renderStars(5)}
                             </div>
                             <span className="book-detail__rating-text">
-                                {book.rating} ({book.reviewCount} reviews)
+                                5.0 (0 reviews)
                             </span>
                         </div>
 
                         {/* Price */}
                         <div className="book-detail__price-section">
-                            <span className="book-detail__price">${book.price.toFixed(2)}</span>
-                            {book.originalPrice && (
-                                <span className="book-detail__price-old">${book.originalPrice.toFixed(2)}</span>
-                            )}
-                            {book.originalPrice && (
-                                <span className="book-detail__discount">
-                                    {Math.round(((book.originalPrice - book.price) / book.originalPrice) * 100)}% OFF
-                                </span>
-                            )}
+                            <span className="book-detail__price">{formatCurrency(book.originalCost)}</span>
+                            {/* Original price logic is confusing with 'originalCost' vs 'sale', assuming originalCost is final unless sale > 0 */}
                         </div>
 
                         {/* Description */}

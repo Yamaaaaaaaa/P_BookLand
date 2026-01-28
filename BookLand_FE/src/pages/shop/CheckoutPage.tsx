@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatCurrency } from '../../utils/formatters';
 import {
     ShoppingBag,
     Truck,
@@ -8,81 +9,27 @@ import {
     User,
     Phone,
     Mail,
-    Tag,
     CheckCircle,
     ArrowLeft
 } from 'lucide-react';
 import '../../styles/shop.css';
+import { mockCart } from '../../data/mockOrders';
+import { mockShippingMethods, mockPaymentMethods } from '../../data/mockMasterData';
+import type { CartItem } from '../../types/CartItem';
+import type { ShippingMethod } from '../../types/ShippingMethod';
+import type { PaymentMethod } from '../../types/PaymentMethod';
 
-interface CartItem {
-    id: string;
-    title: string;
-    author: string;
-    price: number;
-    image: string;
-    quantity: number;
-}
 
-interface ShippingMethod {
-    id: string;
-    name: string;
-    price: number;
-    estimatedDays: string;
-}
-
-interface PaymentMethod {
-    id: string;
-    name: string;
-}
-
-interface DiscountCode {
-    code: string;
-    discount: number; // percentage
-    description: string;
-}
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
 
     // Mock data - In real app, this would come from cart state/context
-    const [cartItems] = useState<CartItem[]>([
-        {
-            id: '1',
-            title: 'The Great Gatsby',
-            author: 'F. Scott Fitzgerald',
-            price: 12.99,
-            image: '/src/assets/book1.jpg',
-            quantity: 1,
-        },
-        {
-            id: '2',
-            title: 'To Kill a Mockingbird',
-            author: 'Harper Lee',
-            price: 14.99,
-            image: '/src/assets/book2.jpg',
-            quantity: 2,
-        },
-        {
-            id: '3',
-            title: '1984',
-            author: 'George Orwell',
-            price: 13.99,
-            image: '/src/assets/book3.jpg',
-            quantity: 1,
-        },
-    ]);
+    const [cartItems] = useState<CartItem[]>(mockCart.items || []);
 
-    const [selectedShipping] = useState<ShippingMethod>({
-        id: 'express',
-        name: 'Express Shipping',
-        price: 9.99,
-        estimatedDays: '2-3 business days',
-    });
+    const [selectedShipping] = useState<ShippingMethod>(mockShippingMethods[1]); // Default to Express
 
-    const [selectedPayment] = useState<PaymentMethod>({
-        id: 'credit-card',
-        name: 'Credit Card',
-    });
+    const [selectedPayment] = useState<PaymentMethod>(mockPaymentMethods[0]); // Default to COD
 
     // Form states
     const [formData, setFormData] = useState({
@@ -95,44 +42,20 @@ const CheckoutPage = () => {
         notes: '',
     });
 
-    const [discountCode, setDiscountCode] = useState('');
-    const [appliedDiscount, setAppliedDiscount] = useState<DiscountCode | null>(null);
     const [isProcessing, setIsProcessing] = useState(false);
 
-    // Mock discount codes
-    const validDiscountCodes: DiscountCode[] = [
-        { code: 'BOOK10', discount: 10, description: '10% off your order' },
-        { code: 'BOOK20', discount: 20, description: '20% off your order' },
-        { code: 'WELCOME15', discount: 15, description: '15% off for new customers' },
-    ];
-
     // Calculations
-    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = cartItems.reduce((sum, item) => sum + item.book.originalCost * item.quantity, 0);
     const shippingFee = selectedShipping.price;
-    const discountAmount = appliedDiscount ? (subtotal * appliedDiscount.discount) / 100 : 0;
-    const tax = (subtotal - discountAmount) * 0.1;
-    const total = subtotal + shippingFee - discountAmount + tax;
+    const tax = subtotal * 0.1;
+    const total = subtotal + shippingFee + tax;
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-    const handleApplyDiscount = () => {
-        const code = validDiscountCodes.find(
-            c => c.code.toLowerCase() === discountCode.toLowerCase()
-        );
-        if (code) {
-            setAppliedDiscount(code);
-        } else {
-            alert('Invalid discount code');
-        }
-    };
 
-    const handleRemoveDiscount = () => {
-        setAppliedDiscount(null);
-        setDiscountCode('');
-    };
 
     const handleSubmitOrder = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -307,10 +230,10 @@ const CheckoutPage = () => {
                                         <div className="checkout-method__content">
                                             <div className="checkout-method__label">Shipping Method</div>
                                             <div className="checkout-method__value">{selectedShipping.name}</div>
-                                            <div className="checkout-method__detail">{selectedShipping.estimatedDays}</div>
+                                            <div className="checkout-method__detail">{selectedShipping.description}</div>
                                         </div>
                                         <div className="checkout-method__price">
-                                            ${selectedShipping.price.toFixed(2)}
+                                            {formatCurrency(selectedShipping.price)}
                                         </div>
                                     </div>
 
@@ -339,101 +262,47 @@ const CheckoutPage = () => {
 
                             <div className="checkout-summary__items">
                                 {cartItems.map(item => (
-                                    <div key={item.id} className="checkout-item">
+                                    <div key={item.book.id} className="checkout-item">
                                         <div className="checkout-item__image-wrapper">
                                             <img
-                                                src={item.image}
-                                                alt={item.title}
+                                                src={item.book.bookImageUrl}
+                                                alt={item.book.name}
                                                 className="checkout-item__image"
                                             />
                                             <span className="checkout-item__quantity">{item.quantity}</span>
                                         </div>
                                         <div className="checkout-item__details">
-                                            <div className="checkout-item__title">{item.title}</div>
-                                            <div className="checkout-item__author">{item.author}</div>
+                                            <div className="checkout-item__title">{item.book.name}</div>
+                                            <div className="checkout-item__author">{item.book.author.name}</div>
                                         </div>
                                         <div className="checkout-item__price">
-                                            ${(item.price * item.quantity).toFixed(2)}
+                                            {formatCurrency(item.book.originalCost * item.quantity)}
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-                            {/* Discount Code */}
-                            <div className="checkout-discount">
-                                <label className="checkout-discount__label">
-                                    <Tag size={16} />
-                                    Discount Code
-                                </label>
-                                {appliedDiscount ? (
-                                    <div className="checkout-discount__applied">
-                                        <div className="checkout-discount__applied-info">
-                                            <CheckCircle size={16} />
-                                            <div>
-                                                <div className="checkout-discount__applied-code">
-                                                    {appliedDiscount.code}
-                                                </div>
-                                                <div className="checkout-discount__applied-desc">
-                                                    {appliedDiscount.description}
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button
-                                            type="button"
-                                            onClick={handleRemoveDiscount}
-                                            className="checkout-discount__remove"
-                                        >
-                                            Remove
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="checkout-discount__input-group">
-                                        <input
-                                            type="text"
-                                            value={discountCode}
-                                            onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                                            className="checkout-discount__input"
-                                            placeholder="Enter code"
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={handleApplyDiscount}
-                                            className="checkout-discount__apply"
-                                            disabled={!discountCode}
-                                        >
-                                            Apply
-                                        </button>
-                                    </div>
-                                )}
-                                <div className="checkout-discount__hint">
-                                    Try: BOOK10, BOOK20, or WELCOME15
-                                </div>
-                            </div>
+
 
                             {/* Price Breakdown */}
                             <div className="checkout-summary__breakdown">
                                 <div className="checkout-summary__row">
                                     <span>Subtotal</span>
-                                    <span>${subtotal.toFixed(2)}</span>
+                                    <span>{formatCurrency(subtotal)}</span>
                                 </div>
                                 <div className="checkout-summary__row">
                                     <span>Shipping</span>
-                                    <span>${shippingFee.toFixed(2)}</span>
+                                    <span>{formatCurrency(shippingFee)}</span>
                                 </div>
-                                {appliedDiscount && (
-                                    <div className="checkout-summary__row checkout-summary__row--discount">
-                                        <span>Discount ({appliedDiscount.discount}%)</span>
-                                        <span>-${discountAmount.toFixed(2)}</span>
-                                    </div>
-                                )}
+
                                 <div className="checkout-summary__row">
                                     <span>Tax (10%)</span>
-                                    <span>${tax.toFixed(2)}</span>
+                                    <span>{formatCurrency(tax)}</span>
                                 </div>
                                 <div className="checkout-summary__divider"></div>
                                 <div className="checkout-summary__row checkout-summary__row--total">
                                     <span>Total</span>
-                                    <span>${total.toFixed(2)}</span>
+                                    <span>{formatCurrency(total)}</span>
                                 </div>
                             </div>
 

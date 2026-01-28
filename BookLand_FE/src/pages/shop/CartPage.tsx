@@ -1,135 +1,44 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, CreditCard, Banknote, Wallet } from 'lucide-react';
+import { formatCurrency } from '../../utils/formatters';
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, CreditCard } from 'lucide-react';
 import '../../styles/shop.css';
+import { mockCart } from '../../data/mockOrders';
+import { mockPaymentMethods, mockShippingMethods } from '../../data/mockMasterData';
+import type { CartItem } from '../../types/CartItem';
 
-interface CartItem {
-    id: string;
-    title: string;
-    author: string;
-    price: number;
-    image: string;
-    quantity: number;
-}
-
-interface ShippingMethod {
-    id: string;
-    name: string;
-    description: string;
-    price: number;
-    estimatedDays: string;
-}
-
-interface PaymentMethod {
-    id: string;
-    name: string;
-    description: string;
-    icon: React.ReactNode;
-}
-
+// Helper to keep local state for demo purposes, initialized from mock data
 const CartPage = () => {
-    const [cartItems, setCartItems] = useState<CartItem[]>([
-        {
-            id: '1',
-            title: 'The Great Gatsby',
-            author: 'F. Scott Fitzgerald',
-            price: 12.99,
-            image: '/src/assets/book1.jpg',
-            quantity: 1,
-        },
-        {
-            id: '2',
-            title: 'To Kill a Mockingbird',
-            author: 'Harper Lee',
-            price: 14.99,
-            image: '/src/assets/book2.jpg',
-            quantity: 2,
-        },
-        {
-            id: '3',
-            title: '1984',
-            author: 'George Orwell',
-            price: 13.99,
-            image: '/src/assets/book3.jpg',
-            quantity: 1,
-        },
-    ]);
+    // In a real app, this would be global state or API data
+    const [cartItems, setCartItems] = useState<CartItem[]>(mockCart.items || []);
 
-    const [selectedShipping, setSelectedShipping] = useState<string>('');
-    const [selectedPayment, setSelectedPayment] = useState<string>('');
+    const [selectedShipping, setSelectedShipping] = useState<number>(0);
+    const [selectedPayment, setSelectedPayment] = useState<number>(0);
 
-    const shippingMethods: ShippingMethod[] = [
-        {
-            id: 'standard',
-            name: 'Standard Shipping',
-            description: 'Free shipping on orders over $50',
-            price: 0,
-            estimatedDays: '5-7 business days',
-        },
-        {
-            id: 'express',
-            name: 'Express Shipping',
-            description: 'Faster delivery',
-            price: 9.99,
-            estimatedDays: '2-3 business days',
-        },
-        {
-            id: 'overnight',
-            name: 'Overnight Shipping',
-            description: 'Next day delivery',
-            price: 19.99,
-            estimatedDays: '1 business day',
-        },
-    ];
+    // const shippingMethods... removed
+    // const paymentMethods... removed
 
-    const paymentMethods: PaymentMethod[] = [
-        {
-            id: 'credit-card',
-            name: 'Credit Card',
-            description: 'Pay with Visa, Mastercard, or Amex',
-            icon: <CreditCard size={20} />,
-        },
-        {
-            id: 'paypal',
-            name: 'PayPal',
-            description: 'Fast and secure payment',
-            icon: <Wallet size={20} />,
-        },
-        {
-            id: 'cod',
-            name: 'Cash on Delivery',
-            description: 'Pay when you receive',
-            icon: <Banknote size={20} />,
-        },
-    ];
-
-    const updateQuantity = (id: string, delta: number) => {
+    const updateQuantity = (bookId: number, delta: number) => {
         setCartItems(items =>
             items.map(item =>
-                item.id === id
+                item.book.id === bookId
                     ? { ...item, quantity: Math.max(1, item.quantity + delta) }
                     : item
             )
         );
     };
 
-    const removeItem = (id: string) => {
-        setCartItems(items => items.filter(item => item.id !== id));
+    const removeItem = (bookId: number) => {
+        setCartItems(items => items.filter(item => item.book.id !== bookId));
     };
 
-    const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
+    const subtotal = cartItems.reduce((sum, item) => sum + item.book.originalCost * item.quantity, 0);
 
     // Calculate shipping fee based on selected method
     const getShippingFee = () => {
         if (!selectedShipping) return 0;
-        const method = shippingMethods.find(m => m.id === selectedShipping);
-        if (!method) return 0;
-
-        // Standard shipping is free for orders over $50
-        if (method.id === 'standard' && subtotal >= 50) {
-            return 0;
-        }
-        return method.price;
+        const method = mockShippingMethods.find(m => m.id === selectedShipping);
+        return method ? method.price : 0;
     };
 
     const shippingFee = getShippingFee();
@@ -161,26 +70,27 @@ const CartPage = () => {
                         {/* Cart Items */}
                         <div className="cart-items">
                             {cartItems.map(item => (
-                                <div key={item.id} className="cart-item">
+                                <div key={item.book.id} className="cart-item">
                                     <div className="cart-item__image-wrapper">
+
                                         <img
-                                            src={item.image}
-                                            alt={item.title}
+                                            src={item.book.bookImageUrl}
+                                            alt={item.book.name}
                                             className="cart-item__image"
                                         />
                                     </div>
 
                                     <div className="cart-item__details">
-                                        <h3 className="cart-item__title">{item.title}</h3>
-                                        <p className="cart-item__author">by {item.author}</p>
-                                        <p className="cart-item__price">${item.price.toFixed(2)}</p>
+                                        <h3 className="cart-item__title">{item.book.name}</h3>
+                                        <p className="cart-item__author">by {item.book.author.name}</p>
+                                        <p className="cart-item__price">{formatCurrency(item.book.originalCost)}</p>
                                     </div>
 
                                     <div className="cart-item__actions">
                                         <div className="cart-item__quantity">
                                             <button
                                                 className="cart-item__qty-btn"
-                                                onClick={() => updateQuantity(item.id, -1)}
+                                                onClick={() => updateQuantity(item.book.id, -1)}
                                                 aria-label="Decrease quantity"
                                             >
                                                 <Minus size={16} />
@@ -188,7 +98,7 @@ const CartPage = () => {
                                             <span className="cart-item__qty-value">{item.quantity}</span>
                                             <button
                                                 className="cart-item__qty-btn"
-                                                onClick={() => updateQuantity(item.id, 1)}
+                                                onClick={() => updateQuantity(item.book.id, 1)}
                                                 aria-label="Increase quantity"
                                             >
                                                 <Plus size={16} />
@@ -197,7 +107,7 @@ const CartPage = () => {
 
                                         <button
                                             className="cart-item__remove"
-                                            onClick={() => removeItem(item.id)}
+                                            onClick={() => removeItem(item.book.id)}
                                             aria-label="Remove item"
                                         >
                                             <Trash2 size={18} />
@@ -206,7 +116,7 @@ const CartPage = () => {
                                     </div>
 
                                     <div className="cart-item__total">
-                                        ${(item.price * item.quantity).toFixed(2)}
+                                        {formatCurrency(item.book.originalCost * item.quantity)}
                                     </div>
                                 </div>
                             ))}
@@ -218,7 +128,7 @@ const CartPage = () => {
 
                             <div className="cart-summary__row">
                                 <span>Subtotal</span>
-                                <span>${subtotal.toFixed(2)}</span>
+                                <span>{formatCurrency(subtotal)}</span>
                             </div>
 
                             {/* Shipping Method Selection */}
@@ -228,7 +138,7 @@ const CartPage = () => {
                                     Shipping Method
                                 </h3>
                                 <div className="cart-summary__options">
-                                    {shippingMethods.map(method => (
+                                    {mockShippingMethods.map(method => (
                                         <div
                                             key={method.id}
                                             className={`cart-summary__option ${selectedShipping === method.id ? 'cart-summary__option--selected' : ''}`}
@@ -241,15 +151,10 @@ const CartPage = () => {
                                                 <div className="cart-summary__option-content">
                                                     <div className="cart-summary__option-name">{method.name}</div>
                                                     <div className="cart-summary__option-desc">{method.description}</div>
-                                                    <div className="cart-summary__option-time">{method.estimatedDays}</div>
+                                                    {/* <div className="cart-summary__option-time">{method.estimatedDays}</div> */}
                                                 </div>
                                                 <div className="cart-summary__option-price">
-                                                    {method.id === 'standard' && subtotal >= 50
-                                                        ? 'FREE'
-                                                        : method.price === 0
-                                                            ? `$${(subtotal < 50 ? 5.99 : 0).toFixed(2)}`
-                                                            : `$${method.price.toFixed(2)}`
-                                                    }
+                                                    {formatCurrency(method.price)}
                                                 </div>
                                             </div>
                                         </div>
@@ -264,7 +169,7 @@ const CartPage = () => {
                                     Payment Method
                                 </h3>
                                 <div className="cart-summary__options">
-                                    {paymentMethods.map(method => (
+                                    {mockPaymentMethods.map(method => (
                                         <div
                                             key={method.id}
                                             className={`cart-summary__option ${selectedPayment === method.id ? 'cart-summary__option--selected' : ''}`}
@@ -276,7 +181,7 @@ const CartPage = () => {
                                                 </div>
                                                 <div className="cart-summary__option-content">
                                                     <div className="cart-summary__option-name">
-                                                        <span className="cart-summary__option-icon">{method.icon}</span>
+                                                        {/* <span className="cart-summary__option-icon">{method.icon}</span> */}
                                                         {method.name}
                                                     </div>
                                                     <div className="cart-summary__option-desc">{method.description}</div>
@@ -294,21 +199,21 @@ const CartPage = () => {
                                         ? 'Select method'
                                         : shippingFee === 0
                                             ? 'FREE'
-                                            : `$${shippingFee.toFixed(2)}`
+                                            : formatCurrency(shippingFee)
                                     }
                                 </span>
                             </div>
 
                             <div className="cart-summary__row">
                                 <span>Tax (10%)</span>
-                                <span>${tax.toFixed(2)}</span>
+                                <span>{formatCurrency(tax)}</span>
                             </div>
 
                             <div className="cart-summary__divider"></div>
 
                             <div className="cart-summary__row cart-summary__row--total">
                                 <span>Total</span>
-                                <span>${total.toFixed(2)}</span>
+                                <span>{formatCurrency(total)}</span>
                             </div>
 
                             {!canProceedToCheckout && (
@@ -317,9 +222,9 @@ const CartPage = () => {
                                 </div>
                             )}
 
-                            {subtotal < 50 && selectedShipping === 'standard' && (
+                            {subtotal < 500000 && selectedShipping === 1 && (
                                 <div className="cart-summary__notice">
-                                    Add ${(50 - subtotal).toFixed(2)} more for free standard shipping!
+                                    Add {formatCurrency(500000 - subtotal)} more for free standard shipping!
                                 </div>
                             )}
 

@@ -1,6 +1,6 @@
 import BookCard from './BookCard';
 import '../styles/shop.css';
-import type { Book } from '../data/mockBooks';
+import type { Book } from '../types/Book';
 
 interface FeaturedBooksProps {
     title: string;

@@ -3180,127 +3180,7 @@ html, body {
   flex-shrink: 0;
 }
 
-/* Discount Code */
-.checkout-discount {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-sm);
-  padding: var(--spacing-md) 0;
-  border-top: 1px solid var(--shop-border);
-}
 
-.checkout-discount__label {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--shop-text-primary);
-}
-
-.checkout-discount__label svg {
-  color: var(--shop-accent-primary);
-}
-
-.checkout-discount__input-group {
-  display: flex;
-  gap: var(--spacing-sm);
-}
-
-.checkout-discount__input {
-  flex: 1;
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: 0.9rem;
-  font-weight: 600;
-  font-family: var(--font-body);
-  color: var(--shop-text-primary);
-  background-color: var(--shop-bg-primary);
-  border: 2px solid var(--shop-border);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-  text-transform: uppercase;
-}
-
-.checkout-discount__input:focus {
-  outline: none;
-  border-color: var(--shop-accent-primary);
-}
-
-.checkout-discount__apply {
-  padding: var(--spacing-sm) var(--spacing-lg);
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: var(--shop-text-light);
-  background-color: var(--shop-accent-primary);
-  border: none;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.checkout-discount__apply:hover:not(:disabled) {
-  background-color: var(--shop-accent-hover);
-}
-
-.checkout-discount__apply:disabled {
-  background-color: var(--shop-text-muted);
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
-.checkout-discount__applied {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-md);
-  background-color: #D4EDDA;
-  border: 1px solid #C3E6CB;
-  border-radius: var(--radius-md);
-}
-
-.checkout-discount__applied-info {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  color: #155724;
-}
-
-.checkout-discount__applied-info svg {
-  flex-shrink: 0;
-}
-
-.checkout-discount__applied-code {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: #155724;
-}
-
-.checkout-discount__applied-desc {
-  font-size: 0.8rem;
-  color: #155724;
-}
-
-.checkout-discount__remove {
-  padding: var(--spacing-xs) var(--spacing-md);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: #721C24;
-  background-color: transparent;
-  border: 1px solid #721C24;
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-}
-
-.checkout-discount__remove:hover {
-  background-color: #F8D7DA;
-}
-
-.checkout-discount__hint {
-  font-size: 0.75rem;
-  color: var(--shop-text-muted);
-  font-style: italic;
-}
 
 /* Price Breakdown */
 .checkout-summary__breakdown {
@@ -3319,10 +3199,7 @@ html, body {
   color: var(--shop-text-secondary);
 }
 
-.checkout-summary__row--discount {
-  color: #28A745;
-  font-weight: 600;
-}
+
 
 .checkout-summary__row--total {
   font-size: 1.25rem;

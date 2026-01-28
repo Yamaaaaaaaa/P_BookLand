@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import '../styles/shop.css';
-import { heroBook } from '../data/mockBooks';
+import { featuredBooks } from '../data/mockBooks';
 
 const HeroSection = () => {
+    const heroBook = featuredBooks[0];
+
     return (
         <section className="hero">
             <div className="shop-container">
@@ -11,9 +13,9 @@ const HeroSection = () => {
                     <div className="hero__content">
                         <span className="hero__subtitle">Best Seller</span>
                         <h1 className="hero__title">
-                            {heroBook.title.split(' ').slice(0, -2).join(' ')}{' '}
+                            {heroBook.name.split(' ').slice(0, -2).join(' ')}{' '}
                             <span className="hero__title-accent">
-                                {heroBook.title.split(' ').slice(-2).join(' ')}
+                                {heroBook.name.split(' ').slice(-2).join(' ')}
                             </span>
                         </h1>
                         <p className="hero__description">
@@ -28,8 +30,8 @@ const HeroSection = () => {
                     <div className="hero__visual">
                         <div className="hero__book-display">
                             <img
-                                src={heroBook.image}
-                                alt={heroBook.title}
+                                src={heroBook.bookImageUrl}
+                                alt={heroBook.name}
                                 className="hero__book-cover"
                             />
                             <div className="hero__nav-arrows">

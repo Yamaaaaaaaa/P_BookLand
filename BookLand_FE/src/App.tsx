@@ -30,6 +30,7 @@ import AuthorPage from './pages/admin/manage-information/AuthorPage';
 import SeriePage from './pages/admin/manage-information/SeriePage';
 import AdminBookDetailPage from './pages/admin/manage-information/AdminBookDetailPage';
 import WishList from './pages/shop/WishList';
+import EventPage from './pages/admin/manage-business/Event';
 
 function App() {
   return (
@@ -71,6 +72,7 @@ function App() {
               <Route path="all-bills" element={<AllBillsPage />} />
               <Route path="payment-method" element={<PaymentMethodPage />} />
               <Route path="shipping-method" element={<ShippingMethodPage />} />
+              <Route path="event" element={<EventPage />} />
               <Route path="bill-detail/:id" element={<BillDetailPage />} />
             </Route>
 

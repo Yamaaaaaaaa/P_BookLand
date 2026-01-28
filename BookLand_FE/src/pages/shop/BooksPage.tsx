@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import BookGrid from '../../components/BooksGrid';
-import { allBooks, priceRanges } from '../../data/allBooks';
+import { allBooks, priceRanges } from '../../data/mockBooks';
 import '../../styles/shop.css';
 import FilterSidebar from '../../components/FilterSidebar';
 import SearchBar from '../../components/SearchBar';
@@ -19,37 +19,37 @@ const BooksPage = () => {
             const query = searchQuery.toLowerCase();
             result = result.filter(
                 (book) =>
-                    book.title.toLowerCase().includes(query) ||
-                    book.author.toLowerCase().includes(query)
+                    book.name.toLowerCase().includes(query) ||
+                    book.author.name.toLowerCase().includes(query)
             );
         }
 
         // Filter by category
         if (selectedCategory !== 'All') {
-            result = result.filter((book) => book.category === selectedCategory);
+            result = result.filter((book) => book.categories?.[0]?.name === selectedCategory);
         }
 
         // Filter by price range
         const priceRange = priceRanges.find((r) => r.value === selectedPriceRange);
-        if (priceRange && selectedPriceRange !== 'all') {
+        if (priceRange && selectedPriceRange !== 'all' && priceRange.min !== undefined && priceRange.max !== undefined) {
             result = result.filter(
-                (book) => book.price >= priceRange.min && book.price <= priceRange.max
+                (book) => book.originalCost >= priceRange.min! && book.originalCost <= priceRange.max!
             );
         }
 
         // Sort
         switch (selectedSort) {
             case 'price-low':
-                result.sort((a, b) => a.price - b.price);
+                result.sort((a, b) => a.originalCost - b.originalCost);
                 break;
             case 'price-high':
-                result.sort((a, b) => b.price - a.price);
+                result.sort((a, b) => b.originalCost - a.originalCost);
                 break;
             case 'rating':
-                result.sort((a, b) => b.rating - a.rating);
+                // result.sort((a, b) => b.rating - a.rating);
                 break;
             case 'newest':
-                result.sort((a, b) => (b.badge === 'new' ? 1 : 0) - (a.badge === 'new' ? 1 : 0));
+                // result.sort((a, b) => (b.badge === 'new' ? 1 : 0) - (a.badge === 'new' ? 1 : 0));
                 break;
             default:
                 break;

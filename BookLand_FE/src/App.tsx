@@ -12,6 +12,7 @@ import BooksPage from './pages/shop/BooksPage';
 import BookDetailPage from './pages/shop/BookDetailPage';
 import CartPage from './pages/shop/CartPage';
 import CheckoutPage from './pages/shop/CheckoutPage';
+import ProfilePage from './pages/shop/ProfilePage';
 import LoginPage from './pages/shop/auth/LoginPage';
 import RegisterPage from './pages/shop/auth/RegisterPage';
 
@@ -28,6 +29,7 @@ import CategoryPage from './pages/admin/manage-information/CategoryPage';
 import AuthorPage from './pages/admin/manage-information/AuthorPage';
 import SeriePage from './pages/admin/manage-information/SeriePage';
 import AdminBookDetailPage from './pages/admin/manage-information/AdminBookDetailPage';
+import WishList from './pages/shop/WishList';
 
 function App() {
   return (
@@ -47,7 +49,9 @@ function App() {
           <Route path="books" element={<BooksPage />} />
           <Route path="book-detail/:id" element={<BookDetailPage />} />
           <Route path="cart" element={<CartPage />} />
+          <Route path="wishlist" element={<WishList />} />
           <Route path="checkout" element={<CheckoutPage />} />
+          <Route path="profile" element={<ProfilePage />} />
         </Route>
       </Route>
 

@@ -1,0 +1,91 @@
+import { Routes, Route, Navigate } from 'react-router-dom';
+import ProtectedRoute from './components/ProtectedRoute';
+import { isCustomerAuthenticated, isAdminAuthenticated } from './utils/auth';
+
+// Layouts
+import ShopLayout from './layouts/ShopLayout';
+import AdminLayout from './layouts/AdminLayout';
+
+// Shop Pages
+import HomePage from './pages/shop/HomePage';
+import BooksPage from './pages/shop/BooksPage';
+import BookDetailPage from './pages/shop/BookDetailPage';
+import CartPage from './pages/shop/CartPage';
+import CheckoutPage from './pages/shop/CheckoutPage';
+import LoginPage from './pages/shop/auth/LoginPage';
+import RegisterPage from './pages/shop/auth/RegisterPage';
+
+// Admin Pages
+import DashboardPage from './pages/admin/DashboardPage';
+import AdminLoginPage from './pages/admin/auth/AdminLoginPage';
+import ManageUserPage from './pages/admin/ManageUserPage';
+import AllBillsPage from './pages/admin/manage-business/AllBillsPage';
+import PaymentMethodPage from './pages/admin/manage-business/PaymentMethodPage';
+import ShippingMethodPage from './pages/admin/manage-business/ShippingMethodPage';
+import BillDetailPage from './pages/admin/manage-business/BillDetailPage';
+import BookManagementPage from './pages/admin/manage-information/BookManagementPage';
+import CategoryPage from './pages/admin/manage-information/CategoryPage';
+import AuthorPage from './pages/admin/manage-information/AuthorPage';
+import SeriePage from './pages/admin/manage-information/SeriePage';
+import AdminBookDetailPage from './pages/admin/manage-information/AdminBookDetailPage';
+
+function App() {
+  return (
+    <Routes>
+      {/* Defaults redirect to Shop Home */}
+      <Route path="/" element={<Navigate to="/shop/home" replace />} />
+
+      {/* SHOP ROUTES */}
+      <Route path="/shop" element={<ShopLayout />}>
+        {/* Public Routes */}
+        <Route path="login" element={<LoginPage />} />
+        <Route path="register" element={<RegisterPage />} />
+
+        {/* Protected Customer Routes */}
+        <Route element={<ProtectedRoute isAuthenticated={isCustomerAuthenticated()} redirectPath="/shop/login" />}>
+          <Route path="home" element={<HomePage />} />
+          <Route path="books" element={<BooksPage />} />
+          <Route path="book-detail/:id" element={<BookDetailPage />} />
+          <Route path="cart" element={<CartPage />} />
+          <Route path="checkout" element={<CheckoutPage />} />
+        </Route>
+      </Route>
+
+      {/* ADMIN ROUTES */}
+      <Route path="/admin">
+        {/* Public Admin Routes */}
+        <Route path="login" element={<AdminLoginPage />} />
+
+        {/* Protected Admin Routes */}
+        <Route element={<ProtectedRoute isAuthenticated={isAdminAuthenticated()} redirectPath="/admin/login" />}>
+          <Route element={<AdminLayout />}>
+            <Route path="dashboard" element={<DashboardPage />} />
+            <Route path="manage-user" element={<ManageUserPage />} />
+
+            {/* Manage Business */}
+            <Route path="manage-business">
+              <Route path="all-bills" element={<AllBillsPage />} />
+              <Route path="payment-method" element={<PaymentMethodPage />} />
+              <Route path="shipping-method" element={<ShippingMethodPage />} />
+              <Route path="bill-detail/:id" element={<BillDetailPage />} />
+            </Route>
+
+            {/* Manage Information */}
+            <Route path="manage-information">
+              <Route path="book" element={<BookManagementPage />} />
+              <Route path="category" element={<CategoryPage />} />
+              <Route path="author" element={<AuthorPage />} />
+              <Route path="serie" element={<SeriePage />} />
+              <Route path="book-detail/:id" element={<AdminBookDetailPage />} />
+            </Route>
+          </Route>
+        </Route>
+      </Route>
+
+      {/* 404 - Redirect to home */}
+      <Route path="*" element={<Navigate to="/shop/home" replace />} />
+    </Routes>
+  );
+}
+
+export default App;

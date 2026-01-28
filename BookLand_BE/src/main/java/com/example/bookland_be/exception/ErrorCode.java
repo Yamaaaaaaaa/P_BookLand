@@ -52,9 +52,19 @@ public enum ErrorCode {
     // Wishlist errors
     WISHLIST_NOT_FOUND(2801, "Wishlist not found", HttpStatus.NOT_FOUND),
     WISHLIST_ITEM_NOT_FOUND(2802, "Wishlist item not found", HttpStatus.NOT_FOUND),
-    
-    // Event errors
+
+    // Event errors (2901-2950)
     EVENT_NOT_FOUND(2901, "Event not found", HttpStatus.NOT_FOUND),
+    EVENT_HAS_LOGS(2902, "Cannot delete event with existing logs", HttpStatus.BAD_REQUEST),
+    EVENT_INVALID_TIME(2903, "Start time must be before end time", HttpStatus.BAD_REQUEST),
+
+    // Event Target errors (2910-2920)
+    EVENT_TARGET_BOOK_NOT_FOUND(2910, "Target book not found", HttpStatus.NOT_FOUND),
+    EVENT_TARGET_CATEGORY_NOT_FOUND(2911, "Target category not found", HttpStatus.NOT_FOUND),
+    EVENT_TARGET_SERIES_NOT_FOUND(2912, "Target series not found", HttpStatus.NOT_FOUND),
+    EVENT_TARGET_AUTHOR_NOT_FOUND(2913, "Target author not found", HttpStatus.NOT_FOUND),
+    EVENT_TARGET_PUBLISHER_NOT_FOUND(2914, "Target publisher not found", HttpStatus.NOT_FOUND),
+    EVENT_TARGET_USER_NOT_FOUND(2915, "Target user not found", HttpStatus.NOT_FOUND),
     
     // Bill errors
     BILL_NOT_FOUND(3001, "Bill not found", HttpStatus.NOT_FOUND),

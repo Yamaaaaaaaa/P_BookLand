@@ -34,6 +34,11 @@ public class EventService {
     private final EventRuleRepository eventRuleRepository;
     private final EventActionRepository eventActionRepository;
     private final UserRepository userRepository;
+    private final BookRepository bookRepository;
+    private final CategoryRepository categoryRepository;
+    private final SerieRepository serieRepository;
+    private final AuthorRepository authorRepository;
+    private final PublisherRepository publisherRepository;
 
     @Transactional(readOnly = true)
     public Page<EventDTO> getAllEvents(String keyword, EventStatus status, EventType type,
@@ -102,6 +107,11 @@ public class EventService {
         // Get creator user
         User creator = userRepository.findById(request.getCreatedById())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        // ========== VALIDATE TARGETS ==========
+        if (request.getTargets() != null && !request.getTargets().isEmpty()) {
+            validateEventTargets(request.getTargets());
+        }
 
         Event event = Event.builder()
                 .name(request.getName())
@@ -183,12 +193,69 @@ public class EventService {
         return convertToDTO(savedEvent);
     }
 
+    // ========== VALIDATION METHOD ==========
+    private void validateEventTargets(List<EventTargetRequest> targets) {
+        for (EventTargetRequest target : targets) {
+            switch (target.getTargetType()) {
+                case BOOK:
+                    if (!bookRepository.existsById(target.getTargetId())) {
+                        throw new AppException(ErrorCode.EVENT_TARGET_BOOK_NOT_FOUND);
+                    }
+                    break;
+
+                case CATEGORY:
+                    if (!categoryRepository.existsById(target.getTargetId())) {
+                        throw new AppException(ErrorCode.EVENT_TARGET_CATEGORY_NOT_FOUND);
+                    }
+                    break;
+
+                case SERIES:
+                    if (!serieRepository.existsById(target.getTargetId())) {
+                        throw new AppException(ErrorCode.EVENT_TARGET_SERIES_NOT_FOUND);
+                    }
+                    break;
+
+                case AUTHOR:
+                    if (!authorRepository.existsById(target.getTargetId())) {
+                        throw new AppException(ErrorCode.EVENT_TARGET_AUTHOR_NOT_FOUND);
+                    }
+                    break;
+
+                case PUBLISHER:
+                    if (!publisherRepository.existsById(target.getTargetId())) {
+                        throw new AppException(ErrorCode.EVENT_TARGET_PUBLISHER_NOT_FOUND);
+                    }
+                    break;
+
+                case USER:
+                    if (!userRepository.existsById(target.getTargetId())) {
+                        throw new AppException(ErrorCode.EVENT_TARGET_USER_NOT_FOUND);
+                    }
+                    break;
+
+                case ALL:
+                case ALL_ORDERS:
+                case FIRST_ORDER:
+                case NEW_USER:
+                case VIP_USER:
+                case USER_GROUP:
+                case LOCATION:
+                    // Không cần validate cho các loại này
+                    break;
+            }
+        }
+    }
+
     @Transactional
     public EventDTO updateEvent(Long id, EventRequest request) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
 
         validateEventTime(request.getStartTime(), request.getEndTime());
+
+        if (request.getTargets() != null && !request.getTargets().isEmpty()) {
+            validateEventTargets(request.getTargets());
+        }
 
         event.setName(request.getName());
         event.setDescription(request.getDescription());
@@ -303,8 +370,7 @@ public class EventService {
                 .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
 
         if (!event.getLogs().isEmpty()) {
-            throw new RuntimeException("Cannot delete event with existing logs. " +
-                    "This event has been applied " + event.getLogs().size() + " time(s).");
+            throw new AppException(ErrorCode.EVENT_HAS_LOGS);
         }
 
         eventRepository.delete(event);

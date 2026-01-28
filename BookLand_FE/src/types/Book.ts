@@ -1,4 +1,3 @@
-import type { User } from '.';
 import type { Author } from './Author';
 import type { Publisher } from './Publisher';
 import type { Serie } from './Serie';
@@ -8,6 +7,7 @@ import type { BillBook } from './BillBook';
 import type { Wishlist } from './Wishlist';
 import type { BookComment } from './BookComment';
 import type { PurchaseInvoiceBook } from './PurchaseInvoiceBook';
+import type { User } from './User';
 
 export const BookStatus = {
     ENABLE: 'ENABLE',

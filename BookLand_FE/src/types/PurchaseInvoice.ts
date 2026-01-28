@@ -1,6 +1,6 @@
-import type { User } from ".";
 import type { PurchaseInvoiceBook } from "./PurchaseInvoiceBook";
 import type { Supplier } from "./Supplier";
+import type { User } from "./User";
 
 
 export const PurchaseStatus = {

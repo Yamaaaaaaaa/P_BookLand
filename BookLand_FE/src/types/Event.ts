@@ -1,4 +1,4 @@
-import type { User } from '.';
+import type { User } from './User';
 import type { EventImage } from './EventImage';
 import type { EventTarget } from './EventTarget';
 import type { EventRule } from './EventRule';

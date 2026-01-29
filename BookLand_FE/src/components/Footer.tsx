@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
-import '../styles/shop.css';
+import '../styles/components/footer.css';
 import { footerLinks } from '../data/mockNavigation';
 
 const Footer = () => {

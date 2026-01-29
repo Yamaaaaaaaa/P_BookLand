@@ -1,5 +1,5 @@
 import { mockUsers } from '../../data/mockUsers';
-import '../../styles/shop.css'; // Reuse shop styles for now or basic table
+import '../../styles/base.css'; // Reuse base styles for now or basic table
 
 const ManageUserPage = () => {
     return (

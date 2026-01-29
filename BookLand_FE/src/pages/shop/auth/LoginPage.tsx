@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, BookOpen, ArrowRight } from 'lucide-react';
 import { mockCustomerLogin } from '../../../utils/auth';
-import '../../../styles/shop.css';
+import '../../../styles/pages/auth.css';
+import '../../../styles/components/forms.css';
+import '../../../styles/components/buttons.css';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');

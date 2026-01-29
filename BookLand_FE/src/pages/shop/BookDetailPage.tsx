@@ -1,7 +1,10 @@
 import { useParams, Link } from 'react-router-dom';
 import { Heart, ShoppingCart, Star, ArrowLeft, Share2, Truck, Shield, RotateCcw } from 'lucide-react';
 import { getBookById, getRelatedBooks } from '../../data/mockBooks';
-import '../../styles/shop.css';
+import '../../styles/pages/book-detail.css';
+import '../../styles/components/book-card.css';
+import '../../styles/components/buttons.css';
+import '../../styles/components/forms.css';
 import BookCard from '../../components/BookCard';
 import { formatCurrency } from '../../utils/formatters';
 

@@ -1,5 +1,6 @@
 import { Heart, Eye, ShoppingCart, Star } from 'lucide-react';
-import '../styles/shop.css';
+import '../styles/components/book-card.css';
+import '../styles/components/buttons.css';
 import type { Book } from '../types/Book';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../utils/formatters';

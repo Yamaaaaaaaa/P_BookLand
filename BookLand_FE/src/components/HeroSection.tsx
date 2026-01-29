@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
-import '../styles/shop.css';
+import '../styles/pages/home.css';
+import '../styles/components/buttons.css';
 import { featuredBooks } from '../data/mockBooks';
 
 const HeroSection = () => {

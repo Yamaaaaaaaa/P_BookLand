@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, BookOpen, ArrowRight, User } from 'lucide-react';
 import { mockCustomerLogin } from '../../../utils/auth';
-import '../../../styles/shop.css';
+import '../../../styles/pages/auth.css';
+import '../../../styles/components/forms.css';
+import '../../../styles/components/buttons.css';
 
 const RegisterPage = () => {
     const [name, setName] = useState('');

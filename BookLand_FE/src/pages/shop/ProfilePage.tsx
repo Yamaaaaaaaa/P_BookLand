@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
 import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X } from 'lucide-react';
-import '../../styles/shop.css';
+import '../../styles/pages/profile.css';
+import '../../styles/components/buttons.css';
+import '../../styles/components/forms.css';
 import { mockUsers } from '../../data/mockUsers';
 
 // Local interface for form state, mapped from User entity

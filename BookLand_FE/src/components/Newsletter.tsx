@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import '../styles/shop.css';
+import '../styles/pages/home.css';
+import '../styles/components/buttons.css';
 
 const Newsletter = () => {
     const [email, setEmail] = useState('');

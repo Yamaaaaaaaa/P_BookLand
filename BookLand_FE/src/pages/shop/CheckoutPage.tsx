@@ -12,7 +12,9 @@ import {
     CheckCircle,
     ArrowLeft
 } from 'lucide-react';
-import '../../styles/shop.css';
+import '../../styles/pages/checkout.css';
+import '../../styles/components/buttons.css';
+import '../../styles/components/forms.css';
 import { mockCart } from '../../data/mockOrders';
 import { mockShippingMethods, mockPaymentMethods } from '../../data/mockMasterData';
 import type { CartItem } from '../../types/CartItem';

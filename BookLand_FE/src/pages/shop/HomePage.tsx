@@ -4,7 +4,8 @@ import HeroSection from '../../components/HeroSection';
 import LatestArticles from '../../components/LatestArticles';
 import Newsletter from '../../components/Newsletter';
 import { featuredBooks, offerBooks } from '../../data/mockBooks';
-import '../../styles/shop.css';
+import '../../styles/pages/home.css';
+import '../../styles/components/book-card.css';
 
 const HomePage = () => {
     return (

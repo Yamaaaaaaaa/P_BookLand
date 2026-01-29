@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Search, Heart, ShoppingBag, User, Menu, X } from 'lucide-react';
-import '../styles/shop.css';
+import '../styles/components/header.css';
 import { mainNavLinks } from '../data/mockNavigation';
 
 interface HeaderProps {

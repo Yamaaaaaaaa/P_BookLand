@@ -1,0 +1,249 @@
+/* ===========================================
+   BOOK DETAIL PAGE
+   =========================================== */
+
+.book-detail-page {
+  padding: var(--spacing-2xl) 0 var(--spacing-4xl);
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-2xl);
+  font-size: 0.9rem;
+}
+
+.breadcrumb__link {
+  color: var(--shop-text-muted);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+.breadcrumb__link:hover {
+  color: var(--shop-accent-primary);
+}
+
+.breadcrumb__separator {
+  color: var(--shop-text-muted);
+}
+
+.breadcrumb__current {
+  color: var(--shop-text-primary);
+  font-weight: 500;
+}
+
+/* Book Detail Layout */
+.book-detail {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-4xl);
+  margin-bottom: var(--spacing-4xl);
+}
+
+.book-detail__not-found {
+  text-align: center;
+  padding: var(--spacing-4xl);
+}
+
+.book-detail__not-found h2 {
+  font-family: var(--font-display);
+  margin-bottom: var(--spacing-xl);
+}
+
+/* Image Section */
+.book-detail__image-section {
+  display: flex;
+  justify-content: center;
+}
+
+.book-detail__image-wrapper {
+  position: relative;
+  background-color: var(--shop-bg-secondary);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-3xl);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.book-detail__image {
+  max-width: 300px;
+  height: auto;
+  border-radius: var(--radius-md);
+  box-shadow: 0 20px 40px var(--shop-shadow);
+}
+
+/* Info Section */
+.book-detail__info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.book-detail__category {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--shop-accent-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.book-detail__title {
+  font-family: var(--font-display);
+  font-size: 2.5rem;
+  font-weight: 600;
+  color: var(--shop-text-primary);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.book-detail__author {
+  font-size: 1rem;
+  color: var(--shop-text-secondary);
+  margin: 0;
+}
+
+.book-detail__author strong {
+  color: var(--shop-text-primary);
+}
+
+.book-detail__rating {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.book-detail__stars {
+  display: flex;
+  gap: 2px;
+  color: var(--shop-accent-secondary);
+}
+
+.book-detail__rating-text {
+  font-size: 0.9rem;
+  color: var(--shop-text-muted);
+}
+
+.book-detail__price-section {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-sm);
+}
+
+.book-detail__price {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--shop-accent-primary);
+}
+
+.book-detail__price-old {
+  font-size: 1.25rem;
+  color: var(--shop-text-muted);
+  text-decoration: line-through;
+}
+
+.book-detail__discount {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background-color: #E74C3C;
+  color: var(--shop-text-light);
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+}
+
+.book-detail__description {
+  margin-top: var(--spacing-lg);
+}
+
+.book-detail__description h3 {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--shop-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.book-detail__description p {
+  font-size: 0.95rem;
+  color: var(--shop-text-secondary);
+  line-height: 1.7;
+  margin: 0;
+}
+
+/* Actions */
+.book-detail__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-top: var(--spacing-lg);
+}
+
+/* Features */
+.book-detail__features {
+  display: flex;
+  gap: var(--spacing-xl);
+  margin-top: var(--spacing-xl);
+  padding-top: var(--spacing-xl);
+  border-top: 1px solid var(--shop-border);
+}
+
+.book-detail__feature {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.85rem;
+  color: var(--shop-text-secondary);
+}
+
+.book-detail__feature svg {
+  color: var(--shop-accent-primary);
+}
+
+/* Related Books */
+.related-books {
+  padding-top: var(--spacing-3xl);
+  border-top: 1px solid var(--shop-border);
+}
+
+.related-books__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-xl);
+}
+
+/* ===========================================
+   RESPONSIVE
+   =========================================== */
+
+@media (max-width: 1024px) {
+  .book-detail {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-2xl);
+  }
+  
+  .related-books__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .book-detail__title {
+    font-size: 1.75rem;
+  }
+  
+  .book-detail__actions {
+    flex-wrap: wrap;
+  }
+  
+  .book-detail__features {
+    flex-direction: column;
+    gap: var(--spacing-md);
+  }
+  
+  .related-books__grid {
+    grid-template-columns: 1fr;
+  }
+}

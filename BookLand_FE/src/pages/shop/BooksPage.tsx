@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
 import BookGrid from '../../components/BooksGrid';
 import { allBooks, priceRanges } from '../../data/mockBooks';
-import '../../styles/shop.css';
+import '../../styles/pages/books.css';
+import '../../styles/components/book-card.css';
 import FilterSidebar from '../../components/FilterSidebar';
 import SearchBar from '../../components/SearchBar';
 

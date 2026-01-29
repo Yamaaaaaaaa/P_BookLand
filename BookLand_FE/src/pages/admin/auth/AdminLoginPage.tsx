@@ -2,7 +2,9 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Shield, ArrowRight } from 'lucide-react';
 import { mockAdminLogin } from '../../../utils/auth';
-import '../../../styles/shop.css';
+import '../../../styles/pages/auth.css';
+import '../../../styles/components/forms.css';
+import '../../../styles/components/buttons.css';
 
 const AdminLoginPage = () => {
     const [email, setEmail] = useState('');

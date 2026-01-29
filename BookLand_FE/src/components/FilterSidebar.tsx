@@ -1,5 +1,5 @@
 import { bookCategories, priceRanges, sortOptions } from '../data/mockBooks';
-import '../styles/shop.css';
+import '../styles/pages/books.css';
 
 interface FilterSidebarProps {
     selectedCategory: string;

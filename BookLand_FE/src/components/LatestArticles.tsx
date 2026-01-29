@@ -1,4 +1,4 @@
-import '../styles/shop.css';
+import '../styles/pages/home.css';
 
 const LatestArticles = () => {
     return (

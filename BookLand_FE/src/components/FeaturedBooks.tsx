@@ -1,5 +1,5 @@
 import BookCard from './BookCard';
-import '../styles/shop.css';
+import '../styles/pages/home.css';
 import type { Book } from '../types/Book';
 
 interface FeaturedBooksProps {

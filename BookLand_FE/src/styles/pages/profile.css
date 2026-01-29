@@ -1,0 +1,206 @@
+/* ===========================================
+   PROFILE PAGE
+   =========================================== */
+
+.profile-page {
+  padding: var(--spacing-2xl) 0 var(--spacing-4xl);
+}
+
+.profile-page__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-2xl);
+}
+
+.profile-page__title {
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--shop-text-primary);
+  margin: 0 0 var(--spacing-xs) 0;
+}
+
+.profile-page__subtitle {
+  font-size: 0.9rem;
+  color: var(--shop-text-muted);
+  margin: 0;
+}
+
+.profile-page__actions {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+/* Profile Content */
+.profile-content {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: var(--spacing-2xl);
+  margin-bottom: var(--spacing-2xl);
+}
+
+.profile-card {
+  background-color: var(--shop-bg-card);
+  border: 1px solid var(--shop-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.profile-card__avatar {
+  width: 100px;
+  height: 100px;
+  background-color: var(--shop-bg-secondary);
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--shop-accent-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.profile-card__name {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--shop-text-primary);
+  margin: 0;
+}
+
+.profile-card__email {
+  font-size: 0.9rem;
+  color: var(--shop-text-muted);
+  margin: 0;
+}
+
+.profile-card__badge {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-md);
+  background-color: var(--shop-bg-secondary);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+  color: var(--shop-text-secondary);
+  margin-top: var(--spacing-sm);
+}
+
+/* Profile Details */
+.profile-details {
+  background-color: var(--shop-bg-card);
+  border: 1px solid var(--shop-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+}
+
+.profile-details__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--shop-text-primary);
+  margin: 0 0 var(--spacing-xl) 0;
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--shop-border);
+}
+
+.profile-field {
+  margin-bottom: var(--spacing-lg);
+}
+
+.profile-field__label {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--shop-text-secondary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.profile-field__value {
+  font-size: 1rem;
+  color: var(--shop-text-primary);
+  margin: 0;
+  padding: var(--spacing-sm) 0;
+}
+
+.profile-field__input {
+  width: 100%;
+  padding: var(--spacing-sm);
+  font-size: 0.95rem;
+  border: 1px solid var(--shop-border);
+  border-radius: var(--radius-md);
+  background-color: var(--shop-bg-primary);
+  color: var(--shop-text-primary);
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+}
+
+.profile-field__input:focus {
+  outline: none;
+  border-color: var(--shop-accent-primary);
+}
+
+.profile-field-group {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-lg);
+}
+
+.profile-field-group .profile-field {
+  margin-bottom: 0;
+}
+
+/* Order History */
+.order-history {
+  background-color: var(--shop-bg-card);
+  border: 1px solid var(--shop-border);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl);
+}
+
+.order-history__title {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--shop-text-primary);
+  margin: 0 0 var(--spacing-xl) 0;
+  padding-bottom: var(--spacing-md);
+  border-bottom: 1px solid var(--shop-border);
+}
+
+.order-history__empty {
+  text-align: center;
+  padding: var(--spacing-3xl);
+  color: var(--shop-text-muted);
+}
+
+.order-history__link {
+  color: var(--shop-accent-primary);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color var(--transition-fast);
+}
+
+.order-history__link:hover {
+  color: var(--shop-accent-hover);
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .profile-content {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-field-group {
+    grid-template-columns: 1fr;
+  }
+}

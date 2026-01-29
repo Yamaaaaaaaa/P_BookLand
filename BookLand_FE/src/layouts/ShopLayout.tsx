@@ -2,7 +2,10 @@ import { Outlet, useNavigate } from 'react-router-dom';
 import { logoutCustomer } from '../utils/auth';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
-import '../styles/shop.css';
+import '../styles/variables.css';
+import '../styles/base.css';
+import '../styles/components/header.css';
+import '../styles/components/footer.css';
 
 const ShopLayout = () => {
     const navigate = useNavigate();

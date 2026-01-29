@@ -1,42 +1,82 @@
-import { Outlet, Link, useNavigate } from 'react-router-dom';
+import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { logoutAdmin } from '../utils/auth';
+import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt } from 'lucide-react';
+import '../styles/layouts/admin.css';
 
 const AdminLayout = () => {
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleLogout = () => {
         logoutAdmin();
         navigate('/admin/login');
     };
 
+    const isActive = (path: string) => location.pathname.includes(path);
+
     return (
-        <div>
-            <aside>
-                <h2>Admin Panel</h2>
-                <nav>
-                    <div>
-                        <Link to="/admin/dashboard">Dashboard</Link>
+        <div className="admin-layout">
+            <aside className="admin-sidebar">
+                <div className="admin-sidebar-header">
+                    <div className="admin-logo">BookLand Admin</div>
+                </div>
+
+                <nav className="admin-nav">
+                    <div className="admin-nav-group">
+                        <div className="admin-nav-title">Overview</div>
+                        <Link to="/admin/dashboard" className={`admin-nav-item ${isActive('/dashboard') ? 'active' : ''}`}>
+                            <LayoutDashboard /> Dashboard
+                        </Link>
                     </div>
-                    <div>
-                        <strong>Manage Business</strong>
-                        <Link to="/admin/manage-business/all-bills">All Bills</Link>
-                        <Link to="/admin/manage-business/payment-method">Payment Method</Link>
-                        <Link to="/admin/manage-business/shipping-method">Shipping Method</Link>
+
+                    <div className="admin-nav-group">
+                        <div className="admin-nav-title">Business</div>
+                        <Link to="/admin/manage-business/bills" className={`admin-nav-item ${isActive('/bills') ? 'active' : ''}`}>
+                            <Receipt /> Orders & Bills
+                        </Link>
+                        <Link to="/admin/manage-business/payment-method" className={`admin-nav-item ${isActive('/payment-method') ? 'active' : ''}`}>
+                            <CreditCard /> Payment Methods
+                        </Link>
+                        <Link to="/admin/manage-business/shipping-method" className={`admin-nav-item ${isActive('/shipping-method') ? 'active' : ''}`}>
+                            <Truck /> Shipping Methods
+                        </Link>
+                        <Link to="/admin/manage-business/event" className={`admin-nav-item ${isActive('/event') ? 'active' : ''}`}>
+                            <Calendar /> Events & Sales
+                        </Link>
                     </div>
-                    <div>
-                        <Link to="/admin/manage-user">Manage User</Link>
+
+                    <div className="admin-nav-group">
+                        <div className="admin-nav-title">Catalog</div>
+                        <Link to="/admin/manage-information/book" className={`admin-nav-item ${isActive('/book') ? 'active' : ''}`}>
+                            <Book /> Books
+                        </Link>
+                        <Link to="/admin/manage-information/category" className={`admin-nav-item ${isActive('/category') ? 'active' : ''}`}>
+                            <Layers /> Categories
+                        </Link>
+                        <Link to="/admin/manage-information/author" className={`admin-nav-item ${isActive('/author') ? 'active' : ''}`}>
+                            <Users /> Authors
+                        </Link>
+                        <Link to="/admin/manage-information/serie" className={`admin-nav-item ${isActive('/serie') ? 'active' : ''}`}>
+                            <Hash /> Series
+                        </Link>
                     </div>
-                    <div>
-                        <strong>Manage Information</strong>
-                        <Link to="/admin/manage-information/book">Books</Link>
-                        <Link to="/admin/manage-information/category">Categories</Link>
-                        <Link to="/admin/manage-information/author">Authors</Link>
-                        <Link to="/admin/manage-information/serie">Series</Link>
+
+                    <div className="admin-nav-group">
+                        <div className="admin-nav-title">Users</div>
+                        <Link to="/admin/manage-user" className={`admin-nav-item ${isActive('/manage-user') ? 'active' : ''}`}>
+                            <Users /> User Management
+                        </Link>
                     </div>
-                    <button onClick={handleLogout}>Logout</button>
                 </nav>
+
+                <div className="admin-footer">
+                    <button onClick={handleLogout} className="admin-logout-btn">
+                        <LogOut size={18} /> Logout
+                    </button>
+                </div>
             </aside>
-            <main>
+
+            <main className="admin-main">
                 <Outlet />
             </main>
         </div>

@@ -9,7 +9,7 @@ export const mockBooks: Book[] = [
     {
         id: 1,
         name: 'The Great Gatsby',
-        description: 'A classic novel.',
+        description: 'A classic novel of the Jazz Age.',
         originalCost: 200000,
         sale: 0,
         stock: 50,
@@ -17,7 +17,7 @@ export const mockBooks: Book[] = [
         publishedDate: '1925-04-10',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/The_Great_Gatsby_Cover_1925_Retouched.jpg',
         pin: true,
-        author: mockAuthors[0], // JK Rowling placehold (using what we have)
+        author: mockAuthors[0], // JK Rowling (placeholder)
         publisher: mockPublishers[0],
         series: undefined,
         creator: admin,
@@ -30,7 +30,7 @@ export const mockBooks: Book[] = [
         name: 'Clean Code',
         description: 'A Handbook of Agile Software Craftsmanship.',
         originalCost: 500000,
-        sale: 10, // 10% off? or 10 value? Usually percentage or amount. Assuming percent or amount. Type is number.
+        sale: 10,
         stock: 20,
         status: BookStatus.ENABLE,
         publishedDate: '2008-08-01',
@@ -90,12 +90,139 @@ export const mockBooks: Book[] = [
         publishedDate: '2009-07-31',
         bookImageUrl: 'https://m.media-amazon.com/images/I/41T0iTbWJEL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg',
         pin: false,
-        author: mockAuthors[3], // Asimov (wrong author but using mock data valid ref)
+        author: mockAuthors[3], // Asimov (Using as placeholder tech author)
         publisher: mockPublishers[3], // OReilly
         series: undefined,
         creator: admin,
         categories: [mockCategories[4]], // Tech
         createdAt: '2023-03-01T10:00:00Z'
+    },
+    // NEW BOOKS
+    {
+        id: 6,
+        name: 'Foundation',
+        description: 'The first novel in Isaac Asimov\'s Foundation Series.',
+        originalCost: 220000,
+        sale: 0,
+        stock: 35,
+        status: BookStatus.ENABLE,
+        publishedDate: '1951-05-01',
+        bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/2/25/Foundation_gnome.jpg',
+        pin: true,
+        author: mockAuthors[3], // Isaac Asimov
+        publisher: mockPublishers[1], // Bantam
+        series: mockSeries[3], // Foundation
+        categories: [mockCategories[0], mockCategories[1]], // Fiction, SciFi
+        creator: admin,
+        createdAt: '2023-04-10T11:00:00Z'
+    },
+    {
+        id: 7,
+        name: 'Steve Jobs',
+        description: 'The exclusive biography of Steve Jobs.',
+        originalCost: 350000,
+        sale: 15, // 15%
+        stock: 60,
+        status: BookStatus.ENABLE,
+        publishedDate: '2011-10-24',
+        bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e5/Steve_Jobs_Book_cover.jpg',
+        pin: true,
+        author: mockAuthors[6], // Walter Isaacson
+        publisher: mockPublishers[4], // Simon & Schuster (mapped to 5 Penguin RH for now or add new)
+        series: undefined,
+        categories: [mockCategories[6], mockCategories[4], mockCategories[2]], // Biography, Tech, Business
+        creator: admin,
+        createdAt: '2023-04-15T09:00:00Z'
+    },
+    {
+        id: 8,
+        name: 'The Shining',
+        description: 'A horror novel by American author Stephen King.',
+        originalCost: 190000,
+        sale: 0,
+        stock: 25,
+        status: BookStatus.ENABLE,
+        publishedDate: '1977-01-28',
+        bookImageUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/09/The_Shining_%281977%29_front_cover%2C_first_edition.jpg',
+        pin: false,
+        author: mockAuthors[4], // Stephen King
+        publisher: mockPublishers[1], // Bantam
+        series: undefined,
+        categories: [mockCategories[0], mockCategories[9]], // Fiction, Thriller
+        creator: admin,
+        createdAt: '2023-05-01T10:00:00Z'
+    },
+    {
+        id: 9,
+        name: 'Murder on the Orient Express',
+        description: 'A detective novel by Agatha Christie.',
+        originalCost: 160000,
+        sale: 0,
+        stock: 45,
+        status: BookStatus.ENABLE,
+        publishedDate: '1934-01-01',
+        bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/c/c0/Murder_on_the_Orient_Express_First_Edition_Cover_1934.jpg',
+        pin: false,
+        author: mockAuthors[5], // Agatha Christie
+        publisher: mockPublishers[0], // Bloomsbury
+        series: mockSeries[4], // Poirot
+        categories: [mockCategories[0], mockCategories[9]], // Fiction, Thriller/Mystery
+        creator: admin,
+        createdAt: '2023-05-20T14:00:00Z'
+    },
+    {
+        id: 10,
+        name: 'Mastering the Art of French Cooking',
+        description: 'Classic cookbook for American cooks.',
+        originalCost: 550000,
+        sale: 0,
+        stock: 15,
+        status: BookStatus.ENABLE,
+        publishedDate: '1961-01-01',
+        bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/b/b2/Mastering_the_Art_of_French_Cooking_cover.jpg',
+        pin: false,
+        author: mockAuthors[7], // Gordon Ramsay (Placeholder for Julia Child really)
+        publisher: mockPublishers[4], // Penguin
+        series: undefined,
+        categories: [mockCategories[10]], // Cookbooks
+        creator: admin,
+        createdAt: '2023-06-05T16:00:00Z'
+    },
+    {
+        id: 11,
+        name: 'Thinking, Fast and Slow',
+        description: 'The major work of nobel laureate Daniel Kahneman.',
+        originalCost: 280000,
+        sale: 20,
+        stock: 80,
+        status: BookStatus.ENABLE,
+        publishedDate: '2011-10-25',
+        bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/c/c1/Thinking%2C_Fast_and_Slow.jpg',
+        pin: true,
+        author: mockAuthors[6], // Walter (placeholder)
+        publisher: mockPublishers[4], // Penguin
+        series: undefined,
+        categories: [mockCategories[7], mockCategories[2]], // Self-Help, Business
+        creator: admin,
+        createdAt: '2023-06-10T09:30:00Z'
+    },
+    {
+        id: 12,
+        name: 'The Pragmatic Programmer',
+        description: 'From Journeyman to Master.',
+        originalCost: 480000,
+        sale: 0,
+        stock: 30,
+        status: BookStatus.ENABLE,
+        publishedDate: '1999-10-20',
+        bookImageUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1401432508i/4099.jpg',
+        pin: false,
+        author: mockAuthors[2], // Uncle Bob (placeholder for Dave Thomas)
+        publisher: mockPublishers[3], // OReilly (Addison-Wesley)
+        series: undefined,
+        categories: [mockCategories[4]], // Tech
+        creator: admin,
+        createdAt: '2023-07-01T10:00:00Z'
     }
 ];
 

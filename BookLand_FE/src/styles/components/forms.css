@@ -40,6 +40,22 @@
   border-color: var(--shop-accent-primary);
 }
 
+/* Form Actions */
+.form-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1.5rem;
+  padding-top: 1.5rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--shop-border);
+}
+
+.form-actions button {
+  min-width: 120px;
+  justify-content: center;
+}
+
 /* Quantity Selector */
 .quantity-selector {
   display: flex;
@@ -70,4 +86,50 @@
   font-size: 1rem;
   font-weight: 500;
   color: var(--shop-text-primary);
+}
+
+/* Dynamic Form Sections */
+.form-section {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--shop-border);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--shop-text-primary);
+  margin: 0;
+}
+
+.dynamic-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px dashed var(--shop-border);
+}
+
+.dynamic-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.empty-text {
+  text-align: center;
+  color: var(--shop-text-muted);
+  font-style: italic;
+  padding: 1rem 0;
 }

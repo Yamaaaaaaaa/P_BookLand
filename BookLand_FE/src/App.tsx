@@ -30,7 +30,8 @@ import AuthorPage from './pages/admin/manage-information/AuthorPage';
 import SeriePage from './pages/admin/manage-information/SeriePage';
 import AdminBookDetailPage from './pages/admin/manage-information/AdminBookDetailPage';
 import WishList from './pages/shop/WishList';
-import EventPage from './pages/admin/manage-business/Event';
+import EventPage from './pages/admin/manage-business/EventPage';
+import EventFormPage from './pages/admin/manage-business/EventFormPage';
 
 function App() {
   return (
@@ -57,7 +58,8 @@ function App() {
       </Route>
 
       {/* ADMIN ROUTES */}
-      <Route path="/admin">
+      <Route path="/admin" >
+        <Route index element={<Navigate to="dashboard" replace />} />
         {/* Public Admin Routes */}
         <Route path="login" element={<AdminLoginPage />} />
 
@@ -69,11 +71,17 @@ function App() {
 
             {/* Manage Business */}
             <Route path="manage-business">
-              <Route path="all-bills" element={<AllBillsPage />} />
-              <Route path="payment-method" element={<PaymentMethodPage />} />
-              <Route path="shipping-method" element={<ShippingMethodPage />} />
-              <Route path="event" element={<EventPage />} />
+              <Route path="bills" element={<AllBillsPage />} />
               <Route path="bill-detail/:id" element={<BillDetailPage />} />
+
+              <Route path="payment" element={<Navigate to="payment-method" replace />} />
+              <Route path="payment-method" element={<PaymentMethodPage />} />
+
+              <Route path="shipping" element={<Navigate to="shipping-method" replace />} />
+              <Route path="shipping-method" element={<ShippingMethodPage />} />
+
+              <Route path="event" element={<EventPage />} />
+              <Route path="event/:id" element={<EventFormPage />} />
             </Route>
 
             {/* Manage Information */}

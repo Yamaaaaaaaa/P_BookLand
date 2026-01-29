@@ -4,6 +4,7 @@ import { mockRoles } from './mockMasterData';
 import type { Address } from '../types/Address';
 
 const adminRole = mockRoles.find(r => r.name === 'ADMIN') || mockRoles[0];
+const staffRole = mockRoles.find(r => r.name === 'STAFF') || mockRoles[1];
 const customerRole = mockRoles.find(r => r.name === 'CUSTOMER') || mockRoles[2];
 
 export const mockUsers: User[] = [
@@ -24,7 +25,28 @@ export const mockUsers: User[] = [
         lastName: 'Doe',
         phone: '0987654321',
         status: UserStatus.ENABLE,
-        roles: [customerRole]
+        roles: [customerRole],
+        createdAt: '2023-01-15T08:00:00Z'
+    },
+    {
+        id: 3,
+        username: 'manager_alice',
+        email: 'alice@bookland.com',
+        firstName: 'Alice',
+        lastName: 'Smith',
+        status: UserStatus.ENABLE,
+        roles: [staffRole],
+        createdAt: '2023-02-01T09:00:00Z'
+    },
+    {
+        id: 4,
+        username: 'new_user_bob',
+        email: 'bob@test.com',
+        firstName: 'Bob',
+        lastName: 'Jones',
+        status: UserStatus.ENABLE,
+        roles: [customerRole],
+        createdAt: '2023-05-20T14:30:00Z'
     }
 ];
 
@@ -47,8 +69,16 @@ export const mockAddresses: Address[] = [
         contactPhone: '0987654322',
         addressDetail: '456 Side St, Danang',
         isDefault: false
+    },
+    {
+        id: 3,
+        user: mockUsers[3], // Bob
+        contactPhone: '0909090909',
+        addressDetail: '789 High Way, HCM City',
+        isDefault: true
     }
 ];
 
 // bi-directional assignment
-mockUsers[1].addresses = mockAddresses;
+mockUsers[1].addresses = [mockAddresses[0], mockAddresses[1]];
+mockUsers[3].addresses = [mockAddresses[2]];

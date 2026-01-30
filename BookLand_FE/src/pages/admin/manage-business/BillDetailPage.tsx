@@ -34,6 +34,7 @@ const BillDetailPage = () => {
     };
 
     const handleUpdateStatus = () => {
+        if (!bill) return;
         const nextStatuses = getAvailableNextStatuses(bill.status);
         if (nextStatuses.length === 0) {
             alert(`Cannot update status from ${bill.status}`);
@@ -52,7 +53,9 @@ const BillDetailPage = () => {
         console.log('Updating status to:', formData.status);
 
         // Mock update for display
-        bill.status = formData.status;
+        if (bill) {
+            bill.status = formData.status;
+        }
         setIsModalOpen(false);
     };
 

@@ -169,8 +169,8 @@ const AllBillsPage = () => {
                             <th onClick={() => handleSort('totalCost')} className="sortable-header">
                                 <div className="th-content">Total {getSortIcon('totalCost')}</div>
                             </th>
-                            <th onClick={() => handleSort('status')} className="sortable-header">
-                                <div className="th-content">Status {getSortIcon('status')}</div>
+                            <th className="sortable-header">
+                                <div className="th-content">Status</div>
                             </th>
                             <th className="sortable-header">
                                 <div className="th-content">Payment Method</div>

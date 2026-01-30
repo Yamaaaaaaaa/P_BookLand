@@ -139,7 +139,7 @@ const BookManagementPage = () => {
     };
 
     return (
-        <div className="admin-container">
+        <div className="admin-container" style={{ paddingRight: 'var(--spacing-xl)' }}>
             <div className="admin-header">
                 <div>
                     <h1 className="admin-title">Book Management</h1>

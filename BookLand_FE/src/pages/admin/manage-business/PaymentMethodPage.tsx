@@ -148,14 +148,14 @@ const PaymentMethodPage = () => {
                             <th onClick={() => handleSort('id')} className="sortable-header">
                                 <div className="th-content">ID {getSortIcon('id')}</div>
                             </th>
-                            <th onClick={() => handleSort('name')} className="sortable-header">
-                                <div className="th-content">Name {getSortIcon('name')}</div>
+                            <th className="sortable-header">
+                                <div className="th-content">Name</div>
                             </th>
-                            <th onClick={() => handleSort('providerCode')} className="sortable-header">
-                                <div className="th-content">Code {getSortIcon('providerCode')}</div>
+                            <th className="sortable-header">
+                                <div className="th-content">Code</div>
                             </th>
-                            <th onClick={() => handleSort('isOnline')} className="sortable-header">
-                                <div className="th-content">Type {getSortIcon('isOnline')}</div>
+                            <th className="sortable-header">
+                                <div className="th-content">Type</div>
                             </th>
                             <th>Description</th>
                             <th style={{ textAlign: 'right' }}>Actions</th>

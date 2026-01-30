@@ -1,6 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { logoutAdmin } from '../utils/auth';
-import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt, ImageIcon } from 'lucide-react';
 import '../styles/layouts/admin.css';
 
 const AdminLayout = () => {
@@ -65,6 +65,12 @@ const AdminLayout = () => {
                         <div className="admin-nav-title">Users</div>
                         <Link to="/admin/manage-user" className={`admin-nav-item ${isActive('/manage-user') ? 'active' : ''}`}>
                             <Users /> User Management
+                        </Link>
+                    </div>
+                    <div className="admin-nav-group">
+                        <div className="admin-nav-title">Gallery</div>
+                        <Link to="/admin/gallery" className={`admin-nav-item ${isActive('/gallery') ? 'active' : ''}`}>
+                            <ImageIcon /> Gallery
                         </Link>
                     </div>
                 </nav>

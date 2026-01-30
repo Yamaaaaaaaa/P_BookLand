@@ -151,11 +151,11 @@ const EventPage = () => {
                             <th onClick={() => handleSort('id')} className="sortable-header">
                                 <div className="th-content">ID {getSortIcon('id')}</div>
                             </th>
-                            <th onClick={() => handleSort('name')} className="sortable-header">
-                                <div className="th-content">Name {getSortIcon('name')}</div>
+                            <th className="sortable-header">
+                                <div className="th-content">Name</div>
                             </th>
-                            <th onClick={() => handleSort('type')} className="sortable-header">
-                                <div className="th-content">Type {getSortIcon('type')}</div>
+                            <th className="sortable-header">
+                                <div className="th-content">Type</div>
                             </th>
                             <th onClick={() => handleSort('startTime')} className="sortable-header">
                                 <div className="th-content">Start Date {getSortIcon('startTime')}</div>
@@ -163,8 +163,8 @@ const EventPage = () => {
                             <th onClick={() => handleSort('priority')} className="sortable-header">
                                 <div className="th-content">Priority {getSortIcon('priority')}</div>
                             </th>
-                            <th onClick={() => handleSort('status')} className="sortable-header">
-                                <div className="th-content">Status {getSortIcon('status')}</div>
+                            <th className="sortable-header">
+                                <div className="th-content">Status</div>
                             </th>
                             <th style={{ textAlign: 'right' }}>Actions</th>
                         </tr>

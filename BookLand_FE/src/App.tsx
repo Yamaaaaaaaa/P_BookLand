@@ -32,6 +32,7 @@ import AdminBookDetailPage from './pages/admin/manage-information/AdminBookDetai
 import WishList from './pages/shop/WishList';
 import EventPage from './pages/admin/manage-business/EventPage';
 import EventFormPage from './pages/admin/manage-business/EventFormPage';
+import Gallery from './pages/admin/Gallery';
 
 function App() {
   return (
@@ -68,6 +69,7 @@ function App() {
           <Route element={<AdminLayout />}>
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="manage-user" element={<ManageUserPage />} />
+            <Route path="gallery" element={<Gallery />} />
 
             {/* Manage Business */}
             <Route path="manage-business">

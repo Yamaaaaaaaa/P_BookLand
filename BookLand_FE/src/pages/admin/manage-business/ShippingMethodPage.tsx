@@ -141,11 +141,11 @@ const ShippingMethodPage = () => {
                             <th onClick={() => handleSort('id')} className="sortable-header">
                                 <div className="th-content">ID {getSortIcon('id')}</div>
                             </th>
-                            <th onClick={() => handleSort('name')} className="sortable-header">
-                                <div className="th-content">Name {getSortIcon('name')}</div>
+                            <th className="sortable-header">
+                                <div className="th-content">Name</div>
                             </th>
-                            <th onClick={() => handleSort('price')} className="sortable-header">
-                                <div className="th-content">Price {getSortIcon('price')}</div>
+                            <th className="sortable-header">
+                                <div className="th-content">Price</div>
                             </th>
                             <th>Description</th>
                             <th style={{ textAlign: 'right' }}>Actions</th>

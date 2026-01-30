@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ChevronDown, Check } from 'lucide-react';
+import { Check } from 'lucide-react';
 import '../../styles/components/forms.css';
 
 interface Option {

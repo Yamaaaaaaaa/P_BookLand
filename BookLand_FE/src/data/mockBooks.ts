@@ -12,16 +12,19 @@ export const mockBooks: Book[] = [
         description: 'A classic novel of the Jazz Age.',
         originalCost: 200000,
         sale: 0,
+        finalPrice: 200000,
         stock: 50,
         status: BookStatus.ENABLE,
         publishedDate: '1925-04-10',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/The_Great_Gatsby_Cover_1925_Retouched.jpg',
         pin: true,
-        author: mockAuthors[0], // JK Rowling (placeholder)
-        publisher: mockPublishers[0],
-        series: undefined,
-        creator: admin,
-        categories: [mockCategories[0]], // Fiction
+        authorId: mockAuthors[0].id,
+        authorName: mockAuthors[0].name,
+        publisherId: mockPublishers[0].id,
+        publisherName: mockPublishers[0].name,
+        seriesId: undefined,
+        seriesName: undefined,
+        categoryIds: [mockCategories[0].id],
         createdAt: '2023-01-01T10:00:00Z',
         updatedAt: '2023-01-10T10:00:00Z'
     },
@@ -31,16 +34,19 @@ export const mockBooks: Book[] = [
         description: 'A Handbook of Agile Software Craftsmanship.',
         originalCost: 500000,
         sale: 10,
+        finalPrice: 450000,
         stock: 20,
         status: BookStatus.ENABLE,
         publishedDate: '2008-08-01',
         bookImageUrl: 'https://m.media-amazon.com/images/I/41xShlnTZTL._SX376_BO1,204,203,200_.jpg',
         pin: false,
-        author: mockAuthors[2], // Uncle Bob
-        publisher: mockPublishers[2], // Prentice Hall
-        series: mockSeries[2], // Clean Code Collection
-        creator: admin,
-        categories: [mockCategories[2], mockCategories[4]], // Business, Tech
+        authorId: mockAuthors[2].id,
+        authorName: mockAuthors[2].name,
+        publisherId: mockPublishers[2].id,
+        publisherName: mockPublishers[2].name,
+        seriesId: mockSeries[2].id,
+        seriesName: mockSeries[2].name,
+        categoryIds: [mockCategories[2].id, mockCategories[4].id],
         createdAt: '2023-01-05T10:00:00Z'
     },
     {
@@ -49,16 +55,19 @@ export const mockBooks: Book[] = [
         description: 'First book in the Harry Potter series.',
         originalCost: 150000,
         sale: 0,
+        finalPrice: 150000,
         stock: 100,
         status: BookStatus.ENABLE,
         publishedDate: '1997-06-26',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/6/6b/Harry_Potter_and_the_Philosopher%27s_Stone_Book_Cover.jpg',
         pin: true,
-        author: mockAuthors[0],
-        publisher: mockPublishers[0],
-        series: mockSeries[0],
-        creator: admin,
-        categories: [mockCategories[0], mockCategories[5]], // Fiction, Children
+        authorId: mockAuthors[0].id,
+        authorName: mockAuthors[0].name,
+        publisherId: mockPublishers[0].id,
+        publisherName: mockPublishers[0].name,
+        seriesId: mockSeries[0].id,
+        seriesName: mockSeries[0].name,
+        categoryIds: [mockCategories[0].id, mockCategories[5].id],
         createdAt: '2023-02-01T10:00:00Z'
     },
     {
@@ -67,16 +76,19 @@ export const mockBooks: Book[] = [
         description: 'First book of A Song of Ice and Fire.',
         originalCost: 180000,
         sale: 5,
+        finalPrice: 171000,
         stock: 40,
         status: BookStatus.ENABLE,
         publishedDate: '1996-08-06',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/9/93/AGameOfThrones.jpg',
         pin: false,
-        author: mockAuthors[1],
-        publisher: mockPublishers[1],
-        series: mockSeries[1],
-        creator: admin,
-        categories: [mockCategories[0], mockCategories[1]], // Fiction, SciFi
+        authorId: mockAuthors[1].id,
+        authorName: mockAuthors[1].name,
+        publisherId: mockPublishers[1].id,
+        publisherName: mockPublishers[1].name,
+        seriesId: mockSeries[1].id,
+        seriesName: mockSeries[1].name,
+        categoryIds: [mockCategories[0].id, mockCategories[1].id],
         createdAt: '2023-02-05T10:00:00Z'
     },
     {
@@ -85,35 +97,40 @@ export const mockBooks: Book[] = [
         description: 'Comprehensive textbook on algorithms.',
         originalCost: 800000,
         sale: 0,
+        finalPrice: 800000,
         stock: 10,
         status: BookStatus.ENABLE,
         publishedDate: '2009-07-31',
         bookImageUrl: 'https://m.media-amazon.com/images/I/41T0iTbWJEL._SX218_BO1,204,203,200_QL40_FMwebp_.jpg',
         pin: false,
-        author: mockAuthors[3], // Asimov (Using as placeholder tech author)
-        publisher: mockPublishers[3], // OReilly
-        series: undefined,
-        creator: admin,
-        categories: [mockCategories[4]], // Tech
+        authorId: mockAuthors[3].id,
+        authorName: mockAuthors[3].name,
+        publisherId: mockPublishers[3].id,
+        publisherName: mockPublishers[3].name,
+        seriesId: undefined,
+        seriesName: undefined,
+        categoryIds: [mockCategories[4].id],
         createdAt: '2023-03-01T10:00:00Z'
     },
-    // NEW BOOKS
     {
         id: 6,
         name: 'Foundation',
         description: 'The first novel in Isaac Asimov\'s Foundation Series.',
         originalCost: 220000,
         sale: 0,
+        finalPrice: 220000,
         stock: 35,
         status: BookStatus.ENABLE,
         publishedDate: '1951-05-01',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/2/25/Foundation_gnome.jpg',
         pin: true,
-        author: mockAuthors[3], // Isaac Asimov
-        publisher: mockPublishers[1], // Bantam
-        series: mockSeries[3], // Foundation
-        categories: [mockCategories[0], mockCategories[1]], // Fiction, SciFi
-        creator: admin,
+        authorId: mockAuthors[3].id,
+        authorName: mockAuthors[3].name,
+        publisherId: mockPublishers[1].id,
+        publisherName: mockPublishers[1].name,
+        seriesId: mockSeries[3].id,
+        seriesName: mockSeries[3].name,
+        categoryIds: [mockCategories[0].id, mockCategories[1].id],
         createdAt: '2023-04-10T11:00:00Z'
     },
     {
@@ -122,16 +139,19 @@ export const mockBooks: Book[] = [
         description: 'The exclusive biography of Steve Jobs.',
         originalCost: 350000,
         sale: 15, // 15%
+        finalPrice: 297500,
         stock: 60,
         status: BookStatus.ENABLE,
         publishedDate: '2011-10-24',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/e/e5/Steve_Jobs_Book_cover.jpg',
         pin: true,
-        author: mockAuthors[6], // Walter Isaacson
-        publisher: mockPublishers[4], // Simon & Schuster (mapped to 5 Penguin RH for now or add new)
-        series: undefined,
-        categories: [mockCategories[6], mockCategories[4], mockCategories[2]], // Biography, Tech, Business
-        creator: admin,
+        authorId: mockAuthors[6].id,
+        authorName: mockAuthors[6].name,
+        publisherId: mockPublishers[4].id,
+        publisherName: mockPublishers[4].name,
+        seriesId: undefined,
+        seriesName: undefined,
+        categoryIds: [mockCategories[6].id, mockCategories[4].id, mockCategories[2].id],
         createdAt: '2023-04-15T09:00:00Z'
     },
     {
@@ -140,16 +160,19 @@ export const mockBooks: Book[] = [
         description: 'A horror novel by American author Stephen King.',
         originalCost: 190000,
         sale: 0,
+        finalPrice: 190000,
         stock: 25,
         status: BookStatus.ENABLE,
         publishedDate: '1977-01-28',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/commons/0/09/The_Shining_%281977%29_front_cover%2C_first_edition.jpg',
         pin: false,
-        author: mockAuthors[4], // Stephen King
-        publisher: mockPublishers[1], // Bantam
-        series: undefined,
-        categories: [mockCategories[0], mockCategories[9]], // Fiction, Thriller
-        creator: admin,
+        authorId: mockAuthors[4].id,
+        authorName: mockAuthors[4].name,
+        publisherId: mockPublishers[1].id,
+        publisherName: mockPublishers[1].name,
+        seriesId: undefined,
+        seriesName: undefined,
+        categoryIds: [mockCategories[0].id, mockCategories[9].id],
         createdAt: '2023-05-01T10:00:00Z'
     },
     {
@@ -158,16 +181,19 @@ export const mockBooks: Book[] = [
         description: 'A detective novel by Agatha Christie.',
         originalCost: 160000,
         sale: 0,
+        finalPrice: 160000,
         stock: 45,
         status: BookStatus.ENABLE,
         publishedDate: '1934-01-01',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/c/c0/Murder_on_the_Orient_Express_First_Edition_Cover_1934.jpg',
         pin: false,
-        author: mockAuthors[5], // Agatha Christie
-        publisher: mockPublishers[0], // Bloomsbury
-        series: mockSeries[4], // Poirot
-        categories: [mockCategories[0], mockCategories[9]], // Fiction, Thriller/Mystery
-        creator: admin,
+        authorId: mockAuthors[5].id,
+        authorName: mockAuthors[5].name,
+        publisherId: mockPublishers[0].id,
+        publisherName: mockPublishers[0].name,
+        seriesId: mockSeries[4].id,
+        seriesName: mockSeries[4].name,
+        categoryIds: [mockCategories[0].id, mockCategories[9].id],
         createdAt: '2023-05-20T14:00:00Z'
     },
     {
@@ -176,16 +202,19 @@ export const mockBooks: Book[] = [
         description: 'Classic cookbook for American cooks.',
         originalCost: 550000,
         sale: 0,
+        finalPrice: 550000,
         stock: 15,
         status: BookStatus.ENABLE,
         publishedDate: '1961-01-01',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/b/b2/Mastering_the_Art_of_French_Cooking_cover.jpg',
         pin: false,
-        author: mockAuthors[7], // Gordon Ramsay (Placeholder for Julia Child really)
-        publisher: mockPublishers[4], // Penguin
-        series: undefined,
-        categories: [mockCategories[10]], // Cookbooks
-        creator: admin,
+        authorId: mockAuthors[7].id,
+        authorName: mockAuthors[7].name,
+        publisherId: mockPublishers[4].id,
+        publisherName: mockPublishers[4].name,
+        seriesId: undefined,
+        seriesName: undefined,
+        categoryIds: [mockCategories[10].id],
         createdAt: '2023-06-05T16:00:00Z'
     },
     {
@@ -194,16 +223,19 @@ export const mockBooks: Book[] = [
         description: 'The major work of nobel laureate Daniel Kahneman.',
         originalCost: 280000,
         sale: 20,
+        finalPrice: 224000,
         stock: 80,
         status: BookStatus.ENABLE,
         publishedDate: '2011-10-25',
         bookImageUrl: 'https://upload.wikimedia.org/wikipedia/en/c/c1/Thinking%2C_Fast_and_Slow.jpg',
         pin: true,
-        author: mockAuthors[6], // Walter (placeholder)
-        publisher: mockPublishers[4], // Penguin
-        series: undefined,
-        categories: [mockCategories[7], mockCategories[2]], // Self-Help, Business
-        creator: admin,
+        authorId: mockAuthors[6].id,
+        authorName: mockAuthors[6].name,
+        publisherId: mockPublishers[4].id,
+        publisherName: mockPublishers[4].name,
+        seriesId: undefined,
+        seriesName: undefined,
+        categoryIds: [mockCategories[7].id, mockCategories[2].id],
         createdAt: '2023-06-10T09:30:00Z'
     },
     {
@@ -212,16 +244,19 @@ export const mockBooks: Book[] = [
         description: 'From Journeyman to Master.',
         originalCost: 480000,
         sale: 0,
+        finalPrice: 480000,
         stock: 30,
         status: BookStatus.ENABLE,
         publishedDate: '1999-10-20',
         bookImageUrl: 'https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1401432508i/4099.jpg',
         pin: false,
-        author: mockAuthors[2], // Uncle Bob (placeholder for Dave Thomas)
-        publisher: mockPublishers[3], // OReilly (Addison-Wesley)
-        series: undefined,
-        categories: [mockCategories[4]], // Tech
-        creator: admin,
+        authorId: mockAuthors[2].id,
+        authorName: mockAuthors[2].name,
+        publisherId: mockPublishers[3].id,
+        publisherName: mockPublishers[3].name,
+        seriesId: undefined,
+        seriesName: undefined,
+        categoryIds: [mockCategories[4].id],
         createdAt: '2023-07-01T10:00:00Z'
     }
 ];
@@ -237,8 +272,8 @@ export const getBookById = (id: string | number) => {
 export const getRelatedBooks = (book: Book) => {
     return mockBooks.filter(b => 
         b.id !== book.id && 
-        (b.author.id === book.author.id || 
-         b.categories?.some(c => book.categories?.some(bc => bc.id === c.id)))
+        (b.authorId === book.authorId || 
+         b.categoryIds?.some(id => book.categoryIds?.includes(id)))
     ).slice(0, 4);
 };
 

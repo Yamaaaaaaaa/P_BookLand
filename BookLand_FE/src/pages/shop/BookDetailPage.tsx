@@ -72,9 +72,9 @@ const BookDetailPage = () => {
 
                     {/* Info Section */}
                     <div className="book-detail__info">
-                        <span className="book-detail__category">{book.categories?.[0]?.name}</span>
+                        <span className="book-detail__category">{book.seriesName}</span>
                         <h1 className="book-detail__title">{book.name}</h1>
-                        <p className="book-detail__author">by <strong>{book.author?.name}</strong></p>
+                        <p className="book-detail__author">by <strong>{book.authorName}</strong></p>
 
                         {/* Rating */}
                         <div className="book-detail__rating">

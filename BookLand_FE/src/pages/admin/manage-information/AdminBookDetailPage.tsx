@@ -1,23 +1,36 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Save, ArrowLeft } from 'lucide-react';
-import { getBookById } from '../../../data/mockBooks';
-import { mockAuthors, mockPublishers, mockCategories, mockSeries } from '../../../data/mockMasterData';
+import { Save, ArrowLeft, Loader2 } from 'lucide-react';
 import { BookStatus } from '../../../types/Book';
-import type { Book } from '../../../types/Book';
+import type { Book, BookRequest } from '../../../types/Book';
 import type { Author } from '../../../types/Author';
 import type { Publisher } from '../../../types/Publisher';
+import type { Category } from '../../../types/Category';
 import type { Serie } from '../../../types/Serie';
+import bookService from '../../../api/bookService';
+import authorService from '../../../api/authorService';
+import publisherService from '../../../api/publisherService';
+import categoryService from '../../../api/categoryService';
+import serieService from '../../../api/serieService';
 import '../../../styles/components/buttons.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/pages/admin-management.css';
+import { toast } from 'react-toastify';
 
 const AdminBookDetailPage = () => {
     const { id } = useParams();
     const navigate = useNavigate();
     const isNew = id === 'new';
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
 
-    const [formData, setFormData] = useState<Partial<Book>>({
+    // Dropdown Options
+    const [authors, setAuthors] = useState<Author[]>([]);
+    const [publishers, setPublishers] = useState<Publisher[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [series, setSeries] = useState<Serie[]>([]);
+
+    const [formData, setFormData] = useState<BookRequest>({
         name: '',
         description: '',
         originalCost: 0,
@@ -27,21 +40,70 @@ const AdminBookDetailPage = () => {
         publishedDate: new Date().toISOString().split('T')[0],
         bookImageUrl: '',
         pin: false,
-        author: undefined,
-        publisher: undefined,
-        series: undefined,
-        categories: []
+        authorId: 0,
+        publisherId: 0,
+        seriesId: undefined,
+        categoryIds: []
     });
 
+    // Fetch Options on Mount
+    useEffect(() => {
+        const fetchOptions = async () => {
+            try {
+                const [authRes, pubRes, catRes, serRes] = await Promise.all([
+                    authorService.getAllAuthors({ size: 100 }),
+                    publisherService.getAllPublishers({ size: 100 }),
+                    categoryService.getAll({ size: 100 }),
+                    serieService.getAllSeries({ size: 100 })
+                ]);
+
+                if (authRes.result?.content) setAuthors(authRes.result.content);
+                if (pubRes.result) setPublishers(pubRes.result.content); // Check response structure for publishers
+                if (catRes.result?.content) setCategories(catRes.result.content);
+                if (serRes.result?.content) setSeries(serRes.result.content);
+
+            } catch (error) {
+                console.error('Error fetching options:', error);
+                toast.error('Failed to load form options');
+            }
+        };
+        fetchOptions();
+    }, []);
+
+    // Fetch Book Data if Edit Mode
     useEffect(() => {
         if (!isNew && id) {
-            const book = getBookById(Number(id));
-            if (book) {
-                setFormData(book);
-            } else {
-                alert('Book not found');
-                navigate('/admin/manage-information/book');
-            }
+            const fetchBook = async () => {
+                setIsLoading(true);
+                try {
+                    const response = await bookService.getBookById(Number(id));
+                    if (response.result) {
+                        const book = response.result;
+                        setFormData({
+                            name: book.name,
+                            description: book.description || '',
+                            originalCost: book.originalCost,
+                            sale: book.sale,
+                            stock: book.stock,
+                            status: book.status,
+                            publishedDate: book.publishedDate ? book.publishedDate.split('T')[0] : new Date().toISOString().split('T')[0],
+                            bookImageUrl: book.bookImageUrl || '',
+                            pin: book.pin,
+                            authorId: book.authorId,
+                            publisherId: book.publisherId,
+                            seriesId: book.seriesId,
+                            categoryIds: book.categoryIds || []
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching book:', error);
+                    toast.error('Failed to load book details');
+                    navigate('/admin/manage-information/book');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchBook();
         }
     }, [id, isNew, navigate]);
 
@@ -58,29 +120,45 @@ const AdminBookDetailPage = () => {
         }
     };
 
-    const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>, type: 'author' | 'publisher' | 'series') => {
-        const id = Number(e.target.value);
-        let selectedItem: Author | Publisher | Serie | undefined;
-
-        if (type === 'author') selectedItem = mockAuthors.find(a => a.id === id);
-        if (type === 'publisher') selectedItem = mockPublishers.find(p => p.id === id);
-        if (type === 'series') selectedItem = mockSeries.find(s => s.id === id);
-
-        setFormData(prev => ({ ...prev, [type]: selectedItem }));
-    };
-
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const selectedOptions = Array.from(e.target.selectedOptions, option => Number(option.value));
-        const selectedCategories = mockCategories.filter(c => selectedOptions.includes(c.id));
-        setFormData(prev => ({ ...prev, categories: selectedCategories }));
+        setFormData(prev => ({ ...prev, categoryIds: selectedOptions }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Saving book:', formData);
-        alert('Book saved successfully! (Mock Action)');
-        navigate('/admin/manage-information/book');
+
+        // Basic Validation
+        if (!formData.name || !formData.authorId || !formData.publisherId) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            if (isNew) {
+                await bookService.createBook(formData);
+                toast.success('Book created successfully');
+            } else {
+                await bookService.updateBook(Number(id), formData);
+                toast.success('Book updated successfully');
+            }
+            navigate('/admin/manage-information/book');
+        } catch (error) {
+            console.error('Error saving book:', error);
+            toast.error('Failed to save book');
+        } finally {
+            setIsSaving(false);
+        }
     };
+
+    if (isLoading) {
+        return (
+            <div className="admin-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                <Loader2 className="animate-spin" size={48} />
+            </div>
+        );
+    }
 
     return (
         <div className="admin-container">
@@ -94,9 +172,9 @@ const AdminBookDetailPage = () => {
                         <p className="admin-subtitle">{isNew ? 'Create a new book entry' : `Editing #${id}`}</p>
                     </div>
                 </div>
-                <button className="btn-primary" onClick={handleSubmit}>
-                    <Save size={20} />
-                    Save Book
+                <button className="btn-primary" onClick={handleSubmit} disabled={isSaving}>
+                    {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
+                    {isSaving ? 'Saving...' : 'Save Book'}
                 </button>
             </div>
 
@@ -104,7 +182,7 @@ const AdminBookDetailPage = () => {
                 {/* Left Column: Main Info */}
                 <div className="card" style={{ padding: '1.5rem', backgroundColor: 'var(--shop-bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
                     <div className="form-group margin-bottom">
-                        <label className="form-label">Book Name</label>
+                        <label className="form-label">Book Name *</label>
                         <input
                             type="text"
                             name="name"
@@ -121,20 +199,21 @@ const AdminBookDetailPage = () => {
                             name="description"
                             className="form-textarea"
                             rows={5}
-                            value={formData.description}
+                            value={formData.description || ''}
                             onChange={handleChange}
                         />
                     </div>
 
                     <div className="grid-2 margin-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div className="form-group">
-                            <label className="form-label">Original Price (VND)</label>
+                            <label className="form-label">Original Price (VND) *</label>
                             <input
                                 type="number"
                                 name="originalCost"
                                 className="form-input"
                                 value={formData.originalCost}
                                 onChange={handleChange}
+                                min={0}
                             />
                         </div>
                         <div className="form-group">
@@ -145,6 +224,8 @@ const AdminBookDetailPage = () => {
                                 className="form-input"
                                 value={formData.sale}
                                 onChange={handleChange}
+                                min={0}
+                                max={100}
                             />
                         </div>
                     </div>
@@ -158,6 +239,7 @@ const AdminBookDetailPage = () => {
                                 className="form-input"
                                 value={formData.stock}
                                 onChange={handleChange}
+                                min={0}
                             />
                         </div>
                         <div className="form-group">
@@ -166,7 +248,7 @@ const AdminBookDetailPage = () => {
                                 type="date"
                                 name="publishedDate"
                                 className="form-input"
-                                value={formData.publishedDate?.toString().split('T')[0]}
+                                value={formData.publishedDate || ''}
                                 onChange={handleChange}
                             />
                         </div>
@@ -208,43 +290,47 @@ const AdminBookDetailPage = () => {
                         <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>Classification</h3>
 
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Author</label>
+                            <label className="form-label">Author *</label>
                             <select
+                                name="authorId"
                                 className="form-select"
-                                value={formData.author?.id || ''}
-                                onChange={(e) => handleSelectChange(e, 'author')}
+                                value={formData.authorId}
+                                onChange={handleChange}
+                                required
                             >
-                                <option value="">Select Author</option>
-                                {mockAuthors.map(a => (
+                                <option value={0}>Select Author</option>
+                                {authors.map(a => (
                                     <option key={a.id} value={a.id}>{a.name}</option>
                                 ))}
                             </select>
                         </div>
 
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Publisher</label>
+                            <label className="form-label">Publisher *</label>
                             <select
+                                name="publisherId"
                                 className="form-select"
-                                value={formData.publisher?.id || ''}
-                                onChange={(e) => handleSelectChange(e, 'publisher')}
+                                value={formData.publisherId}
+                                onChange={handleChange}
+                                required
                             >
-                                <option value="">Select Publisher</option>
-                                {mockPublishers.map(p => (
+                                <option value={0}>Select Publisher</option>
+                                {publishers.map(p => (
                                     <option key={p.id} value={p.id}>{p.name}</option>
                                 ))}
                             </select>
                         </div>
 
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Category</label>
+                            <label className="form-label">Categories (Ctrl + Select for Multi Select)</label>
                             <select
                                 multiple
                                 className="form-select"
                                 style={{ height: '100px' }}
-                                value={formData.categories?.map(c => String(c.id)) || []}
+                                value={formData.categoryIds.map(String)}
                                 onChange={handleCategoryChange}
                             >
-                                {mockCategories.map(c => (
+                                {categories.map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
                             </select>
@@ -254,12 +340,13 @@ const AdminBookDetailPage = () => {
                         <div className="form-group">
                             <label className="form-label">Series (Optional)</label>
                             <select
+                                name="seriesId"
                                 className="form-select"
-                                value={formData.series?.id || ''}
-                                onChange={(e) => handleSelectChange(e, 'series')}
+                                value={formData.seriesId || ''}
+                                onChange={handleChange}
                             >
                                 <option value="">None</option>
-                                {mockSeries.map(s => (
+                                {series.map(s => (
                                     <option key={s.id} value={s.id}>{s.name}</option>
                                 ))}
                             </select>
@@ -274,7 +361,7 @@ const AdminBookDetailPage = () => {
                                 type="text"
                                 name="bookImageUrl"
                                 className="form-input"
-                                value={formData.bookImageUrl}
+                                value={formData.bookImageUrl || ''}
                                 onChange={handleChange}
                                 placeholder="https://..."
                             />

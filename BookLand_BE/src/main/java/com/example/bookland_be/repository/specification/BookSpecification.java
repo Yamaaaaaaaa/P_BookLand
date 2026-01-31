@@ -24,24 +24,40 @@ public class BookSpecification extends BaseSpecification {
         return hasFieldEqual("status", status);
     }
 
-    public static Specification<Book> hasAuthor(Long authorId) {
-        return hasNestedFieldEqual("author", "id", authorId);
-    }
-
-    public static Specification<Book> hasPublisher(Long publisherId) {
-        return hasNestedFieldEqual("publisher", "id", publisherId);
-    }
-
-    public static Specification<Book> hasSeries(Long seriesId) {
-        return hasNestedFieldEqual("series", "id", seriesId);
-    }
-
-    public static Specification<Book> hasCategory(Long categoryId) {
+    public static Specification<Book> hasAuthors(java.util.List<Long> authorIds) {
         return (root, query, cb) -> {
-            if (categoryId == null) {
+            if (authorIds == null || authorIds.isEmpty()) {
                 return cb.conjunction();
             }
-            return cb.equal(root.join("categories").get("id"), categoryId);
+            return root.get("author").get("id").in(authorIds);
+        };
+    }
+
+    public static Specification<Book> hasPublishers(java.util.List<Long> publisherIds) {
+        return (root, query, cb) -> {
+            if (publisherIds == null || publisherIds.isEmpty()) {
+                return cb.conjunction();
+            }
+            return root.get("publisher").get("id").in(publisherIds);
+        };
+    }
+
+    public static Specification<Book> hasSeries(java.util.List<Long> seriesIds) {
+        return (root, query, cb) -> {
+            if (seriesIds == null || seriesIds.isEmpty()) {
+                return cb.conjunction();
+            }
+            return root.get("series").get("id").in(seriesIds);
+        };
+    }
+
+    public static Specification<Book> hasCategories(java.util.List<Long> categoryIds) {
+        return (root, query, cb) -> {
+            if (categoryIds == null || categoryIds.isEmpty()) {
+                return cb.conjunction();
+            }
+            query.distinct(true);
+            return root.join("categories").get("id").in(categoryIds);
         };
     }
 

@@ -1,13 +1,4 @@
-import type { Author } from './Author';
-import type { Publisher } from './Publisher';
-import type { Serie } from './Serie';
-import type { Category } from './Category';
-import type { CartItem } from './CartItem';
-import type { BillBook } from './BillBook';
-import type { Wishlist } from './Wishlist';
-import type { BookComment } from './BookComment';
-import type { PurchaseInvoiceBook } from './PurchaseInvoiceBook';
-import type { User } from './User';
+
 
 export const BookStatus = {
     ENABLE: 'ENABLE',
@@ -22,25 +13,21 @@ export interface Book {
     description?: string;
     originalCost: number;
     sale: number;
+    finalPrice: number;
     stock: number;
     status: BookStatus;
     publishedDate?: string;
     bookImageUrl?: string;
     pin: boolean;
-    author: Author;
-    publisher: Publisher;
-    series?: Serie;
-    creator?: User;
+    authorId: number;
+    authorName: string;
+    publisherId: number;
+    publisherName: string;
+    seriesId?: number;
+    seriesName?: string;
+    categoryIds: number[];
     createdAt?: string;
     updatedAt?: string;
-    categories?: Category[];
-    cartItems?: CartItem[];
-    billBooks?: BillBook[];
-    wishlists?: Wishlist[];
-    comments?: BookComment[];
-    purchaseInvoiceBooks?: PurchaseInvoiceBook[];
-    // Helper method from backend is not part of the interface usually, 
-    // but if we used a class it would be. For now, interfaces only.
 }
 
 export interface BookRequest {

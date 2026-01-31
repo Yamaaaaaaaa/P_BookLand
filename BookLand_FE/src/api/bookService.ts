@@ -5,10 +5,10 @@ import type { Book, BookRequest } from '../types/Book';
 interface BookQueryParams {
     keyword?: string;
     status?: string;
-    authorId?: number;
-    publisherId?: number;
-    seriesId?: number;
-    categoryId?: number;
+    authorIds?: number[];
+    publisherIds?: number[];
+    seriesIds?: number[];
+    categoryIds?: number[];
     pinned?: boolean;
     minPrice?: number;
     maxPrice?: number;

@@ -52,9 +52,9 @@ const BookCard = ({ book }: BookCardProps) => {
             </div>
 
             <div className="book-card__content">
-                <span className="book-card__category">{book.categories?.[0]?.name || 'General'}</span>
+                <span className="book-card__category">{book.seriesName || 'General'}</span>
                 <h3 className="book-card__title">{book.name}</h3>
-                <p className="book-card__author">by {book.author?.name}</p>
+                <p className="book-card__author">by {book.authorName}</p>
 
                 <div className="book-card__footer">
                     <div className="book-card__price">

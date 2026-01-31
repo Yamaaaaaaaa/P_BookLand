@@ -83,7 +83,7 @@ const CartPage = () => {
 
                                     <div className="cart-item__details">
                                         <h3 className="cart-item__title">{item.book.name}</h3>
-                                        <p className="cart-item__author">by {item.book.author.name}</p>
+                                        <p className="cart-item__author">by {item.book.authorName}</p>
                                         <p className="cart-item__price">{formatCurrency(item.book.originalCost)}</p>
                                     </div>
 

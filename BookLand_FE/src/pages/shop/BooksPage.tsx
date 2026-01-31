@@ -21,13 +21,14 @@ const BooksPage = () => {
             result = result.filter(
                 (book) =>
                     book.name.toLowerCase().includes(query) ||
-                    book.author.name.toLowerCase().includes(query)
+                    book.authorName.toLowerCase().includes(query)
             );
         }
 
         // Filter by category
         if (selectedCategory !== 'All') {
-            result = result.filter((book) => book.categories?.[0]?.name === selectedCategory);
+            // result = result.filter((book) => book.categories?.[0]?.name === selectedCategory);
+            // TODO: Update filtering logic to use categoryIds
         }
 
         // Filter by price range

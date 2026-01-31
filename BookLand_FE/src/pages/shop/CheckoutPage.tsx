@@ -275,7 +275,7 @@ const CheckoutPage = () => {
                                         </div>
                                         <div className="checkout-item__details">
                                             <div className="checkout-item__title">{item.book.name}</div>
-                                            <div className="checkout-item__author">{item.book.author.name}</div>
+                                            <div className="checkout-item__author">{item.book.authorName}</div>
                                         </div>
                                         <div className="checkout-item__price">
                                             {formatCurrency(item.book.originalCost * item.quantity)}

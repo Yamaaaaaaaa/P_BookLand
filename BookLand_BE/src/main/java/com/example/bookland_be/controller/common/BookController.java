@@ -25,10 +25,10 @@ public class BookController {
     public ApiResponse<Page<BookDTO>> getAllBooks(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) BookStatus status,
-            @RequestParam(required = false) Long authorId,
-            @RequestParam(required = false) Long publisherId,
-            @RequestParam(required = false) Long seriesId,
-            @RequestParam(required = false) Long categoryId,
+            @RequestParam(required = false) java.util.List<Long> authorIds,
+            @RequestParam(required = false) java.util.List<Long> publisherIds,
+            @RequestParam(required = false) java.util.List<Long> seriesIds,
+            @RequestParam(required = false) java.util.List<Long> categoryIds,
             @RequestParam(required = false) Boolean pinned,
             @RequestParam(required = false) Double minPrice,
             @RequestParam(required = false) Double maxPrice,
@@ -42,8 +42,8 @@ public class BookController {
                 : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<BookDTO> books = bookService.getAllBooks(keyword, status, authorId,
-                publisherId, seriesId, categoryId, pinned, minPrice, maxPrice, pageable);
+        Page<BookDTO> books = bookService.getAllBooks(keyword, status, authorIds,
+                publisherIds, seriesIds, categoryIds, pinned, minPrice, maxPrice, pageable);
         return ApiResponse.<Page<BookDTO>>builder().result(books).build();
     }
 

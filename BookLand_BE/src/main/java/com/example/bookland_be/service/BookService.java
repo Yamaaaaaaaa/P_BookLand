@@ -29,16 +29,16 @@ public class BookService {
     private final CategoryRepository categoryRepository;
 
     @Transactional(readOnly = true)
-    public Page<BookDTO> getAllBooks(String keyword, BookStatus status, Long authorId,
-                                     Long publisherId, Long seriesId, Long categoryId,
+    public Page<BookDTO> getAllBooks(String keyword, BookStatus status, java.util.List<Long> authorIds,
+                                     java.util.List<Long> publisherIds, java.util.List<Long> seriesIds, java.util.List<Long> categoryIds,
                                      Boolean pinned, Double minPrice, Double maxPrice,
                                      Pageable pageable) {
         Specification<Book> spec = BookSpecification.searchByKeyword(keyword)
                 .and(BookSpecification.hasStatus(status))
-                .and(BookSpecification.hasAuthor(authorId))
-                .and(BookSpecification.hasPublisher(publisherId))
-                .and(BookSpecification.hasSeries(seriesId))
-                .and(BookSpecification.hasCategory(categoryId))
+                .and(BookSpecification.hasAuthors(authorIds))
+                .and(BookSpecification.hasPublishers(publisherIds))
+                .and(BookSpecification.hasSeries(seriesIds))
+                .and(BookSpecification.hasCategories(categoryIds))
                 .and(BookSpecification.isPinned(pinned))
                 .and(BookSpecification.priceBetween(minPrice, maxPrice));
 

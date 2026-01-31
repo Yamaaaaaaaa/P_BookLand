@@ -1,6 +1,6 @@
 import axiosClient from './axiosClient';
 import type { ApiResponse, Page } from '../types/api';
-import type { Event, EventRequest } from '../types/Event';
+import type { Event, EventPayload } from '../types/Event';
 
 interface EventQueryParams {
     keyword?: string;
@@ -27,10 +27,10 @@ const eventService = {
     getEventById: (id: number) => {
         return axiosClient.get<any, ApiResponse<Event>>(`/api/events/${id}`);
     },
-    createEvent: (data: EventRequest) => {
+    createEvent: (data: EventPayload) => {
         return axiosClient.post<any, ApiResponse<Event>>('/api/events', data);
     },
-    updateEvent: (id: number, data: EventRequest) => {
+    updateEvent: (id: number, data: EventPayload) => {
         return axiosClient.put<any, ApiResponse<Event>>(`/api/events/${id}`, data);
     },
     deleteEvent: (id: number) => {

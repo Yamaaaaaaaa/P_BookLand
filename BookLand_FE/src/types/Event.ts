@@ -47,3 +47,19 @@ export interface EventRequest {
     rules?: Omit<EventRule, 'id' | 'event'>[];
     actions?: Omit<EventAction, 'id' | 'event'>[];
 }
+
+export interface EventPayload {
+    name: string;
+    description?: string;
+    type: EventType;
+    startTime: string;
+    endTime: string;
+    status: EventStatus;
+    priority: number;
+    createdById: number;
+    mainImageUrls: string[];
+    subImageUrls: string[];
+    targets?: Omit<EventTarget, 'id' | 'event'>[];
+    rules?: Omit<EventRule, 'id' | 'event'>[];
+    actions?: Omit<EventAction, 'id' | 'event'>[];
+}

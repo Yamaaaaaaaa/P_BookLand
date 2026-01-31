@@ -228,7 +228,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         JWSHeader header = new JWSHeader(JWSAlgorithm.HS512);
 
         JWTClaimsSet claimsSet = new JWTClaimsSet.Builder()
-                .subject(user.getUsername())
+                .subject(user.getEmail())
                 .issuer("kaita")
                 .issueTime(new Date())
                 .expirationTime(

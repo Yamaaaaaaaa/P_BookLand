@@ -1,19 +1,21 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2, Loader2, Upload, X } from 'lucide-react';
+import { ArrowLeft, Save, Plus, Trash2, X, ImageIcon, Loader2 } from 'lucide-react';
+import GalleryModal from '../../../components/admin/GalleryModal';
 import { EventStatus } from '../../../types/Event';
 import { EventType } from '../../../types/EventType';
 import { EventRuleType } from '../../../types/EventRuleType';
 import { EventTargetType } from '../../../types/EventTargetType';
 import { EventActionType } from '../../../types/EventActionType';
 import { ImageType } from '../../../types/EventImage';
-import type { EventRequest } from '../../../types/Event';
+import type { EventRequest, EventPayload } from '../../../types/Event';
 import type { Category } from '../../../types/Category';
 import type { PaymentMethod } from '../../../types/PaymentMethod';
+import { jwtDecode } from 'jwt-decode';
 import eventService from '../../../api/eventService';
 import categoryService from '../../../api/categoryService';
 import paymentMethodService from '../../../api/paymentMethodService';
-import uploadService from '../../../api/uploadService';
+import userService from '../../../api/userService';
 import '../../../styles/components/forms.css';
 import '../../../styles/components/buttons.css';
 import { toast } from 'react-toastify';
@@ -25,11 +27,15 @@ const EventFormPage = () => {
 
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
-    const [isUploading, setIsUploading] = useState(false);
 
     // Dropdown options
     const [categories, setCategories] = useState<Category[]>([]);
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+
+    // Auth / Creator info
+    const [currentUserId, setCurrentUserId] = useState<number>(0);
+    const [creatorName, setCreatorName] = useState<string>('');
 
     const [formData, setFormData] = useState<EventRequest>({
         name: '',
@@ -62,6 +68,28 @@ const EventFormPage = () => {
             }
         };
         fetchOptions();
+
+        // Fetch current user info from token
+        const fetchCurrentUser = async () => {
+            const token = localStorage.getItem('adminToken');
+            if (token) {
+                try {
+                    const decoded: any = jwtDecode(token);
+                    const email = decoded.sub; // Assuming 'sub' holds the email based on user info
+                    if (email) {
+                        const userRes = await userService.getAllUsers({ keyword: email });
+                        if (userRes.result?.content && userRes.result.content.length > 0) {
+                            const user = userRes.result.content[0];
+                            setCurrentUserId(user.id);
+                            setCreatorName(`${user.firstName || ''} ${user.lastName || ''} (${user.username || user.email})`.trim());
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching current user:', error);
+                }
+            }
+        };
+        fetchCurrentUser();
     }, []);
 
     useEffect(() => {
@@ -72,6 +100,24 @@ const EventFormPage = () => {
                     const response = await eventService.getEventById(Number(id));
                     if (response.result) {
                         const event = response.result;
+                        // If editing, try to show the original creator if available, otherwise fallback or just show who is editing?
+                        // Requirement: "Display a field of the person who created the event". 
+                        // If the event has a createdBy field (User object), use it.
+                        if (event.createdBy) {
+                            setCreatorName(`${event.createdBy.firstName || ''} ${event.createdBy.lastName || ''} (${event.createdBy.username || event.createdBy.email})`.trim());
+                            // Note: We might NOT want to overwrite currentUserId if we want to track who is *updating* it, 
+                            // but usually CreatedBy is static. The BE DTO requires 'createdById' which implying setting the owner.
+                            // If we are just updating, we probably should keep the original owner OR update it to the current editor.
+                            // User requirement: "Person updating appends API from Token". 
+                            // This implies the 'updatedBy' concept, but the DTO only has 'createdById'. 
+                            // If 'createdById' implies ownership, we should probably keep it as the original creator unless we want to change ownership.
+                            // HOWEVER, user said: "Ng cập nhật/ người tạo thì gửi API sẽ lấy từ Token". 
+                            // This suggests ensuring the payload always has the *current* user's ID as 'createdById' or similar? 
+                            // Actually, typically 'createdById' shouldn't change on update. 
+                            // Let's assume for now we use the *current logged in user* as the actor. 
+                            // But for DISPLAY, we show the original creator from the event details.
+                        }
+
                         setFormData({
                             name: event.name,
                             description: event.description,
@@ -98,37 +144,23 @@ const EventFormPage = () => {
         }
     }, [id, isNew, navigate]);
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (e.target.files && e.target.files.length > 0) {
-            setIsUploading(true);
-            try {
-                const file = e.target.files[0];
-                const response = await uploadService.uploadImage(file);
-                if (response.cloudStorageLocation || response.url) { // Assuming response structure
-                    const url = response.cloudStorageLocation || response.url || response; // Adjust based on actual upload response
-                    // Actually, let's assume it returns the URL string directly or inside a result object
-                    // Based on UploadService: return axiosClient.post(...)
-                    // And usually our API returns ApiResponse<string> for URL? Or object? 
-                    // Let's assume it's `response.result` if it follows standard wrapped response, or just `response` if pure.
-                    // Checking `uploadService.ts`: it returns `any`.
+    const handleGallerySelect = (selectedImages: { id: string; name: string; url: string }[]) => {
+        const newImages = selectedImages.map(img => ({
+            imageUrl: img.url,
+            imageType: ImageType.SUB // Default to SUB
+        }));
 
-                    const imageUrl = typeof response === 'string' ? response : (response.result || response.url || URL.createObjectURL(file));
+        setFormData(prev => {
+            // Filter out duplicates based on imageUrl
+            const existingUrls = new Set(prev.images?.map(i => i.imageUrl));
+            const uniqueNewImages = newImages.filter(i => !existingUrls.has(i.imageUrl));
 
-                    setFormData(prev => ({
-                        ...prev,
-                        images: [...(prev.images || []), { imageUrl: imageUrl, imageType: ImageType.SUB }]
-                    }));
-                    toast.success('Image uploaded successfully');
-                }
-            } catch (error) {
-                console.error('Upload failed:', error);
-                toast.error('Failed to upload image');
-            } finally {
-                setIsUploading(false);
-                // Reset input
-                e.target.value = '';
-            }
-        }
+            return {
+                ...prev,
+                images: [...(prev.images || []), ...uniqueNewImages]
+            };
+        });
+        toast.success(`Added ${newImages.length} images`);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -141,10 +173,32 @@ const EventFormPage = () => {
 
         setIsSaving(true);
         try {
-            const submitData = {
-                ...formData,
+            // Get user ID from state (fetched on mount)
+            let createdById = currentUserId;
+
+            if (!createdById) {
+                toast.error('User information missing. Please login again.');
+                setIsSaving(false);
+                return;
+            }
+
+            const mainImageUrls = formData.images?.filter(i => i.imageType === ImageType.MAIN).map(i => i.imageUrl) || [];
+            const subImageUrls = formData.images?.filter(i => i.imageType === ImageType.SUB).map(i => i.imageUrl) || [];
+
+            const submitData: EventPayload = {
+                name: formData.name,
+                description: formData.description,
+                type: formData.type,
                 startTime: new Date(formData.startTime).toISOString(),
-                endTime: new Date(formData.endTime).toISOString()
+                endTime: new Date(formData.endTime).toISOString(),
+                status: formData.status,
+                priority: formData.priority,
+                createdById: Number(createdById),
+                mainImageUrls: mainImageUrls,
+                subImageUrls: subImageUrls,
+                targets: formData.targets,
+                rules: formData.rules,
+                actions: formData.actions
             };
 
             if (isNew) {
@@ -204,6 +258,16 @@ const EventFormPage = () => {
                             onChange={handleChange}
                             required
                         />
+                    </div>
+
+                    {/* Creator Display */}
+                    <div className="form-group">
+                        <label className="form-label" style={{ color: 'var(--shop-text-muted)', fontSize: '0.85rem' }}>
+                            Created/Modified By
+                        </label>
+                        <div style={{ padding: '0.5rem', background: '#f3f4f6', borderRadius: '4px', color: '#374151' }}>
+                            {creatorName || 'Loading...'}
+                        </div>
                     </div>
 
                     <div className="form-row">
@@ -289,26 +353,12 @@ const EventFormPage = () => {
                     <div className="form-section">
                         <div className="section-header">
                             <h3 className="section-title">Event Images</h3>
-                            <div style={{ display: 'flex', gap: '0.5rem' }}>
-                                <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                                    {isUploading ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
-                                    Upload Image
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        hidden
-                                        onChange={handleImageUpload}
-                                        disabled={isUploading}
-                                    />
-                                </label>
-                                <button type="button" className="btn-secondary" onClick={() => {
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        images: [...(prev.images || []), { imageUrl: '', imageType: ImageType.SUB }]
-                                    }));
-                                }}>
-                                    <Plus size={16} /> Add URL
-                                </button>
+                            <h3 className="section-title">Event Images</h3>
+                            <button type="button" className="btn-secondary" onClick={() => setIsGalleryOpen(true)}>
+                                <ImageIcon size={16} /> Select from Gallery
+                            </button>
+                            <div style={{ display: 'none' }}>
+                                {/* Hidden inputs or other controls if needed */}
                             </div>
                         </div>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem' }}>
@@ -384,14 +434,16 @@ const EventFormPage = () => {
                     <div className="form-section">
                         <div className="section-header">
                             <h3 className="section-title">Event Rules</h3>
-                            <button type="button" className="btn-secondary" onClick={() => {
-                                setFormData(prev => ({
-                                    ...prev,
-                                    rules: [...(prev.rules || []), { ruleType: EventRuleType.MIN_ORDER_VALUE, ruleValue: '' }]
-                                }));
-                            }}>
-                                <Plus size={16} /> Add Rule
-                            </button>
+                            {(!formData.rules || formData.rules.length === 0) && (
+                                <button type="button" className="btn-secondary" onClick={() => {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        rules: [...(prev.rules || []), { ruleType: EventRuleType.MIN_ORDER_VALUE, ruleValue: '' }]
+                                    }));
+                                }}>
+                                    <Plus size={16} /> Add Rule
+                                </button>
+                            )}
                         </div>
                         {formData.rules?.map((rule, index) => (
                             <div key={index} className="dynamic-row">
@@ -613,14 +665,16 @@ const EventFormPage = () => {
                     <div className="form-section">
                         <div className="section-header">
                             <h3 className="section-title">Event Actions</h3>
-                            <button type="button" className="btn-secondary" onClick={() => {
-                                setFormData(prev => ({
-                                    ...prev,
-                                    actions: [...(prev.actions || []), { actionType: EventActionType.DISCOUNT_PERCENT, actionValue: '' }]
-                                }));
-                            }}>
-                                <Plus size={16} /> Add Action
-                            </button>
+                            {(!formData.actions || formData.actions.length === 0) && (
+                                <button type="button" className="btn-secondary" onClick={() => {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        actions: [...(prev.actions || []), { actionType: EventActionType.DISCOUNT_PERCENT, actionValue: '' }]
+                                    }));
+                                }}>
+                                    <Plus size={16} /> Add Action
+                                </button>
+                            )}
                         </div>
                         {formData.actions?.map((action, index) => (
                             <div key={index} className="dynamic-row">
@@ -684,6 +738,13 @@ const EventFormPage = () => {
                     </div>
                 </form>
             </div>
+            <GalleryModal
+                isOpen={isGalleryOpen}
+                onClose={() => setIsGalleryOpen(false)}
+                onSelect={handleGallerySelect}
+                multiple={true}
+                title="Select Event Images"
+            />
         </div>
     );
 };

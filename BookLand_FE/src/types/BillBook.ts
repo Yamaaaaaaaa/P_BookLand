@@ -1,11 +1,9 @@
-import type { Bill } from "./Bill";
-import type { Book } from "./Book";
-
-
 export interface BillBook {
-    bill: Bill;
-    book: Book;
+    bookId: number;
+    bookName: string;
+    bookImageUrl?: string;
     priceSnapshot: number;
     quantity: number;
+    subtotal?: number;
 }
     

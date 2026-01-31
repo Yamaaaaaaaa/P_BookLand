@@ -48,62 +48,102 @@ mockCartItems2.forEach(item => item.cart = mockCart2);
 // --- BILL ---
 // Bill 1: Pending
 export const mockBillBooks1: BillBook[] = [
-    { book: book1, quantity: 1, priceSnapshot: 200000, bill: {} as any },
-    { book: book2, quantity: 1, priceSnapshot: 450000, bill: {} as any }
+    { 
+        bookId: book1.id, 
+        bookName: book1.name, 
+        bookImageUrl: book1.bookImageUrl, 
+        quantity: 1, 
+        priceSnapshot: 200000,
+        subtotal: 200000 
+    },
+    { 
+        bookId: book2.id, 
+        bookName: book2.name, 
+        bookImageUrl: book2.bookImageUrl, 
+        quantity: 1, 
+        priceSnapshot: 450000,
+        subtotal: 450000
+    }
 ];
 
 // Bill 2: Completed
 export const mockBillBooks2: BillBook[] = [
-    { book: book3, quantity: 1, priceSnapshot: 150000, bill: {} as any }
+    { 
+        bookId: book3.id, 
+        bookName: book3.name, 
+        bookImageUrl: book3.bookImageUrl, 
+        quantity: 1, 
+        priceSnapshot: 150000,
+        subtotal: 150000
+    }
 ];
 
 // Bill 3: Canceled
 export const mockBillBooks3: BillBook[] = [
-    { book: book4, quantity: 2, priceSnapshot: 180000, bill: {} as any }
+    { 
+        bookId: book4.id, 
+        bookName: book4.name, 
+        bookImageUrl: book4.bookImageUrl, 
+        quantity: 2, 
+        priceSnapshot: 180000,
+        subtotal: 360000
+    }
 ];
 
 
 export const mockBills: Bill[] = [
     {
         id: 1,
-        user: customer,
-        paymentMethod: mockPaymentMethods[0], // COD
-        shippingMethod: mockShippingMethods[0], // Standard
+        userId: customer.id,
+        userName: customer.username,
+        paymentMethodId: mockPaymentMethods[0].id,
+        paymentMethodName: mockPaymentMethods[0].name,
+        shippingMethodId: mockShippingMethods[0].id,
+        shippingMethodName: mockShippingMethods[0].name,
+        shippingCost: mockShippingMethods[0].price,
         totalCost: 665000, 
         status: BillStatus.PENDING,
         createdAt: '2023-09-02T10:00:00Z',
-        billBooks: mockBillBooks1,
+        books: mockBillBooks1,
         transactions: [],
         eventLogs: []
     },
     {
         id: 2,
-        user: customer,
-        paymentMethod: mockPaymentMethods[1], // VNPay
-        shippingMethod: mockShippingMethods[1], // Express
+        userId: customer.id,
+        userName: customer.username,
+        paymentMethodId: mockPaymentMethods[1].id,
+        paymentMethodName: mockPaymentMethods[1].name,
+        shippingMethodId: mockShippingMethods[1].id,
+        shippingMethodName: mockShippingMethods[1].name,
+        shippingCost: mockShippingMethods[1].price,
         totalCost: 185000, 
         status: BillStatus.COMPLETED,
         createdAt: '2023-08-15T09:00:00Z',
         approvedAt: '2023-08-15T09:30:00Z',
-        billBooks: mockBillBooks2,
+        books: mockBillBooks2,
         transactions: [],
         eventLogs: []
     },
     {
         id: 3,
-        user: customer2,
-        paymentMethod: mockPaymentMethods[0], 
-        shippingMethod: mockShippingMethods[0], 
+        userId: customer2.id,
+        userName: customer2.username,
+        paymentMethodId: mockPaymentMethods[0].id,
+        paymentMethodName: mockPaymentMethods[0].name,
+        shippingMethodId: mockShippingMethods[0].id,
+        shippingMethodName: mockShippingMethods[0].name,
+        shippingCost: mockShippingMethods[0].price,
         totalCost: 375000, 
         status: BillStatus.CANCELED,
         createdAt: '2023-09-01T14:00:00Z',
-        billBooks: mockBillBooks3,
+        books: mockBillBooks3,
         transactions: [],
         eventLogs: []
     }
 ];
 
 // Fix circular ref for Bill
-mockBillBooks1.forEach(item => item.bill = mockBills[0]);
-mockBillBooks2.forEach(item => item.bill = mockBills[1]);
-mockBillBooks3.forEach(item => item.bill = mockBills[2]);
+// mockBillBooks1.forEach(item => item.bill = mockBills[0]);
+// mockBillBooks2.forEach(item => item.bill = mockBills[1]);
+// mockBillBooks3.forEach(item => item.bill = mockBills[2]);

@@ -62,7 +62,7 @@ const AuthorPage = () => {
 
     const fieldConfig: FieldConfig[] = [
         { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Author Name' },
-        { name: 'authorImage', label: 'Author Image URL', type: 'text', placeholder: 'https://...' },
+        { name: 'authorImage', label: 'Author Image URL', type: 'image', placeholder: 'https://...' },
         { name: 'description', label: 'Description', type: 'textarea', placeholder: 'About the author...' }
     ];
 

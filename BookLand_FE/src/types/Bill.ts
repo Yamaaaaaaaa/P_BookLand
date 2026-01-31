@@ -1,6 +1,3 @@
-import type { User } from './User.ts';
-import type { PaymentMethod } from './PaymentMethod.ts';
-import type { ShippingMethod } from './ShippingMethod.ts';
 import type { BillBook } from './BillBook.ts';
 import type { PaymentTransaction } from './PaymentTransaction.ts';
 import type { EventLog } from './EventLog.ts';
@@ -18,18 +15,23 @@ export type BillStatus = (typeof BillStatus)[keyof typeof BillStatus];
 
 export interface Bill {
     id: number;
-    user: User;
-    paymentMethod: PaymentMethod;
-    shippingMethod: ShippingMethod;
+    userId: number;
+    userName: string;
+    paymentMethodId: number;
+    paymentMethodName: string;
+    shippingMethodId: number;
+    shippingMethodName: string;
+    shippingCost: number;
     totalCost: number;
-    approvedBy?: User;
+    approvedById?: number;
+    approvedByName?: string;
     status: BillStatus;
     createdAt?: string;
     updatedAt?: string;
     approvedAt?: string;
-    billBooks?: BillBook[];
-    transactions?: PaymentTransaction[];
-    eventLogs?: EventLog[];
+    books?: BillBook[]; // Note: API might return 'books' as BillBookDTO[]
+    transactions?: PaymentTransaction[]; // Not in DTO but might be useful if API adds it later, keeping optional
+    eventLogs?: EventLog[]; // Not in DTO
 }
 
 export interface CreateBillRequest {

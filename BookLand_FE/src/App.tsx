@@ -29,6 +29,7 @@ import CategoryPage from './pages/admin/manage-information/CategoryPage';
 import AuthorPage from './pages/admin/manage-information/AuthorPage';
 import SeriePage from './pages/admin/manage-information/SeriePage';
 import AdminBookDetailPage from './pages/admin/manage-information/AdminBookDetailPage';
+import AdminUserDetailPage from './pages/admin/manage-information/AdminUserDetailPage';
 import WishList from './pages/shop/WishList';
 import EventPage from './pages/admin/manage-business/EventPage';
 import EventFormPage from './pages/admin/manage-business/EventFormPage';
@@ -75,6 +76,7 @@ function App() {
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="manage-user" element={<ManageUserPage />} />
               <Route path="gallery" element={<Gallery />} />
+              <Route path="manage-user/:id" element={<AdminUserDetailPage />} />
 
               {/* Manage Business */}
               <Route path="manage-business">

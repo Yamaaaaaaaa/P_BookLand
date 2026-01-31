@@ -32,7 +32,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
     const [isLoading, setIsLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
     const [page, setPage] = useState(0);
-    const [size] = useState(12); // Slightly larger page size for modal grid
+    const [size] = useState(10); // Slightly larger page size for modal grid
     const [totalPages, setTotalPages] = useState(0);
 
     const [selectedImages, setSelectedImages] = useState<GalleryImage[]>([]);

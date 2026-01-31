@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save } from 'lucide-react';
+import { X, Save, Image as ImageIcon } from 'lucide-react';
+import GalleryModal from './GalleryModal';
+import { toast } from 'react-toastify';
 import '../../styles/components/buttons.css';
 import '../../styles/components/forms.css';
 import '../../styles/pages/admin-management.css';
@@ -34,6 +36,8 @@ const AdminModal: React.FC<AdminModalProps> = ({
     initialData
 }) => {
     const [formData, setFormData] = useState<any>({});
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+    const [activeField, setActiveField] = useState<string | null>(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -60,6 +64,19 @@ const AdminModal: React.FC<AdminModalProps> = ({
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         onSubmit(formData);
+    };
+
+    const handleOpenGallery = (fieldName: string) => {
+        if (isViewMode) return;
+        setActiveField(fieldName);
+        setIsGalleryOpen(true);
+    };
+
+    const handleGallerySelect = (selectedImages: { id: string; name: string; url: string }[]) => {
+        if (selectedImages && selectedImages.length > 0 && activeField) {
+            handleChange(activeField, selectedImages[0].url);
+            toast.success('Image selected');
+        }
     };
 
     const isViewMode = mode === 'view';
@@ -119,15 +136,27 @@ const AdminModal: React.FC<AdminModalProps> = ({
                                 </div>
                             ) : field.type === 'image' ? (
                                 <div>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={formData[field.name] || ''}
-                                        onChange={(e) => handleChange(field.name, e.target.value)}
-                                        placeholder={field.placeholder || "https://..."}
-                                        disabled={isViewMode || field.disabled}
-                                        required={field.required}
-                                    />
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={formData[field.name] || ''}
+                                            onChange={(e) => handleChange(field.name, e.target.value)}
+                                            placeholder={field.placeholder || "https://..."}
+                                            disabled={isViewMode || field.disabled}
+                                            required={field.required}
+                                        />
+                                        {!isViewMode && !field.disabled && (
+                                            <button
+                                                type="button"
+                                                className="btn-secondary"
+                                                onClick={() => handleOpenGallery(field.name)}
+                                                title="Select from Gallery"
+                                            >
+                                                <ImageIcon size={18} />
+                                            </button>
+                                        )}
+                                    </div>
                                     {formData[field.name] && (
                                         <div style={{ marginTop: '0.5rem', display: 'flex', justifyContent: 'center' }}>
                                             <img
@@ -171,7 +200,15 @@ const AdminModal: React.FC<AdminModalProps> = ({
                     )}
                 </form>
             </div>
-        </div>
+
+            <GalleryModal
+                isOpen={isGalleryOpen}
+                onClose={() => setIsGalleryOpen(false)}
+                onSelect={handleGallerySelect}
+                multiple={false}
+                title={`Select ${activeField ? fields.find(f => f.name === activeField)?.label : 'Image'}`}
+            />
+        </div >
     );
 };
 

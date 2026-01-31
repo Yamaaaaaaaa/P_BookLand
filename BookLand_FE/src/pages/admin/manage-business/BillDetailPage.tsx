@@ -1,19 +1,44 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { mockBills } from '../../../data/mockOrders';
 import { ArrowLeft, Printer, CreditCard, User, MapPin, RefreshCw } from 'lucide-react';
 import { formatCurrency } from '../../../utils/formatters';
 import AdminModal, { type FieldConfig } from '../../../components/admin/AdminModal';
-import { BillStatus } from '../../../types/Bill';
+import { BillStatus, type Bill } from '../../../types/Bill';
+import billService from '../../../api/billService';
+import { toast } from 'react-toastify';
 import '../../../styles/components/buttons.css';
 
 const BillDetailPage = () => {
     const { id } = useParams<{ id: string }>();
-    const bill = mockBills.find(b => b.id.toString() === id);
+    const [bill, setBill] = useState<Bill | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [statusOptions, setStatusOptions] = useState<{ value: string; label: string }[]>([]);
+
+    useEffect(() => {
+        const fetchBill = async () => {
+            if (!id) return;
+            setIsLoading(true);
+            try {
+                const response = await billService.getBillById(Number(id));
+                if (response.result) {
+                    console.log("Bill Detail: ", response.result);
+
+                    setBill(response.result);
+                }
+            } catch (error) {
+                console.error('Error fetching bill details:', error);
+                toast.error('Failed to load bill details');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchBill();
+    }, [id]);
+
 
     const getAvailableNextStatuses = (currentStatus: BillStatus): BillStatus[] => {
         switch (currentStatus) {
@@ -37,7 +62,7 @@ const BillDetailPage = () => {
         if (!bill) return;
         const nextStatuses = getAvailableNextStatuses(bill.status);
         if (nextStatuses.length === 0) {
-            alert(`Cannot update status from ${bill.status}`);
+            toast.info(`Cannot update status from ${bill.status}`);
             return;
         }
 
@@ -48,15 +73,29 @@ const BillDetailPage = () => {
         setIsModalOpen(true);
     };
 
-    const handleModalSubmit = (formData: any) => {
-        // In a real app, this would make an API call
-        console.log('Updating status to:', formData.status);
+    const handleModalSubmit = async (formData: any) => {
+        if (!bill || !id) return;
 
-        // Mock update for display
-        if (bill) {
-            bill.status = formData.status;
+        try {
+            // Note: API might require approvedById if changing to APPROVED, need to handle that?
+            // Existing types say approvedById is in response, maybe not required in request unless specific logic needed.
+            // UpdateBillStatusRequest only asks for status and note (optional).
+            // But we should likely check if we need to send current user ID as approver?
+            // Let's assume backend handles 'approvedBy' from token if needed, or we just send status.
+
+            await billService.updateBillStatus(Number(id), { status: formData.status });
+            toast.success('Bill status updated successfully');
+
+            // Refresh bill
+            const response = await billService.getBillById(Number(id));
+            if (response.result) {
+                setBill(response.result);
+            }
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error('Error updating bill status:', error);
+            toast.error('Failed to update bill status');
         }
-        setIsModalOpen(false);
     };
 
     const modalFields: FieldConfig[] = [
@@ -69,12 +108,16 @@ const BillDetailPage = () => {
         }
     ];
 
+    if (isLoading) {
+        return <div className="admin-container"><div style={{ padding: '2rem', textAlign: 'center' }}>Loading bill details...</div></div>;
+    }
+
     if (!bill) {
         return (
             <div className="admin-container">
                 <div className="error-state">
                     <h2>Bill not found</h2>
-                    <Link to="/admin/manage-business/bills" className="btn-primary">Back to Bills</Link>
+                    <Link to="/admin/manage-business/all-bills" className="btn-primary">Back to Bills</Link>
                 </div>
             </div>
         );
@@ -97,7 +140,7 @@ const BillDetailPage = () => {
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="btn-secondary">
+                    <button className="btn-secondary" onClick={() => window.print()}>
                         <Printer size={18} />
                         Print Invoice
                     </button>
@@ -128,20 +171,20 @@ const BillDetailPage = () => {
                                 </tr>
                             </thead>
                             <tbody>
-                                {bill.billBooks?.map((item, index) => (
+                                {bill.books?.map((item, index) => (
                                     <tr key={index}>
                                         <td>
                                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                                {item.book.bookImageUrl && (
+                                                {item.bookImageUrl && (
                                                     <img
-                                                        src={item.book.bookImageUrl}
-                                                        alt={item.book.name}
+                                                        src={item.bookImageUrl}
+                                                        alt={item.bookName}
                                                         style={{ width: '40px', height: '60px', objectFit: 'cover', borderRadius: '4px' }}
                                                     />
                                                 )}
                                                 <div>
-                                                    <div style={{ fontWeight: 500 }}>{item.book.name}</div>
-                                                    <div style={{ fontSize: '0.85rem', color: 'var(--shop-text-muted)' }}>ID: {item.book.id}</div>
+                                                    <div style={{ fontWeight: 500 }}>{item.bookName}</div>
+                                                    <div style={{ fontSize: '0.85rem', color: 'var(--shop-text-muted)' }}>ID: {item.bookId}</div>
                                                 </div>
                                             </div>
                                         </td>
@@ -159,13 +202,13 @@ const BillDetailPage = () => {
                                     <td style={{ textAlign: 'right', paddingTop: '1rem', fontWeight: 600 }}>{formatCurrency(bill.totalCost)}</td>
                                 </tr>
                                 <tr>
-                                    <td colSpan={3} style={{ textAlign: 'right', paddingTop: '0.5rem', color: 'var(--shop-text-secondary)' }}>Shipping</td>
-                                    <td style={{ textAlign: 'right', paddingTop: '0.5rem', fontWeight: 600 }}>{formatCurrency(bill.shippingMethod?.price || 0)}</td>
+                                    <td colSpan={3} style={{ textAlign: 'right', paddingTop: '0.5rem', color: 'var(--shop-text-secondary)' }}>Shipping ({bill.shippingMethodName})</td>
+                                    <td style={{ textAlign: 'right', paddingTop: '0.5rem', fontWeight: 600 }}>{formatCurrency(bill.shippingCost || 0)}</td>
                                 </tr>
                                 <tr>
                                     <td colSpan={3} style={{ textAlign: 'right', paddingTop: '1rem', fontSize: '1.1rem', fontWeight: 700 }}>Total</td>
                                     <td style={{ textAlign: 'right', paddingTop: '1rem', fontSize: '1.1rem', fontWeight: 700, color: 'var(--shop-accent-primary)' }}>
-                                        {formatCurrency(bill.totalCost + (bill.shippingMethod?.price || 0))}
+                                        {formatCurrency(bill.totalCost + (bill.shippingCost || 0))}
                                     </td>
                                 </tr>
                             </tfoot>
@@ -188,33 +231,33 @@ const BillDetailPage = () => {
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 fontWeight: 700, fontSize: '1.2rem', color: 'var(--shop-accent-primary)'
                             }}>
-                                {bill.user.firstName?.[0]}{bill.user.lastName?.[0]}
+                                <User size={24} />
                             </div>
                             <div>
-                                <div style={{ fontWeight: 600 }}>{bill.user.firstName} {bill.user.lastName}</div>
-                                <div style={{ fontSize: '0.9rem', color: 'var(--shop-text-muted)' }}>{bill.user.email}</div>
-                                <div style={{ fontSize: '0.9rem', color: 'var(--shop-text-muted)' }}>{bill.user.phone}</div>
+                                <div style={{ fontWeight: 600 }}>{bill.userName}</div>
+                                <div style={{ fontSize: '0.9rem', color: 'var(--shop-text-muted)' }}>ID: {bill.userId}</div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Shipping Address */}
+                    {/* Shipping Address - Note: Address might not be in BillDTO flat structure, user might need to query User details if address is needed deeply */}
+                    {/* For now we only have shippingMethodName and Cost. Real shipping address isn't in the BillDTO based on current Bill.ts update. 
+                        If we need address we might need to fetch User details or Bill should return address snapshot.
+                        Based on API doc, CreateBillRequest has address, but BillDTO/Bill entity might not expose it directly or it's in a different field.
+                        Let's check if 'CreateBillRequest' fields (address, etc.) are saved? Yes likely.
+                        But BillDTO doesn't show them.
+                        Let's Hide Shipping Address block for now or show minimal info if available.
+                    */}
                     <div className="admin-card" style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
                         <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <MapPin size={18} />
-                            Shipping
+                            Shipping Method
                         </h3>
                         <div>
-                            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{bill.shippingMethod?.name}</div>
+                            <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{bill.shippingMethodName}</div>
                             <div style={{ fontSize: '0.9rem', color: 'var(--shop-text-muted)', marginBottom: '1rem' }}>
-                                Details: {bill.shippingMethod?.description}
+                                Cost: {formatCurrency(bill.shippingCost)}
                             </div>
-                            {bill.user.addresses && bill.user.addresses.length > 0 && (
-                                <div style={{ fontSize: '0.9rem', lineHeight: '1.5' }}>
-                                    <div>{bill.user.addresses[0].addressDetail}</div>
-                                    <div>{bill.user.addresses[0].contactPhone}</div>
-                                </div>
-                            )}
                         </div>
                     </div>
 
@@ -226,7 +269,7 @@ const BillDetailPage = () => {
                         </h3>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                             <span style={{ color: 'var(--shop-text-secondary)' }}>Method:</span>
-                            <span style={{ fontWeight: 500 }}>{bill.paymentMethod?.name}</span>
+                            <span style={{ fontWeight: 500 }}>{bill.paymentMethodName}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <span style={{ color: 'var(--shop-text-secondary)' }}>Status:</span>

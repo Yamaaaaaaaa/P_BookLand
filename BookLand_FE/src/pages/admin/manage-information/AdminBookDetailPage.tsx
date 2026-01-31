@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { Save, ArrowLeft, Loader2 } from 'lucide-react';
+import { Save, ArrowLeft, Loader2, Image as ImageIcon } from 'lucide-react';
+import GalleryModal from '../../../components/admin/GalleryModal';
 import { BookStatus } from '../../../types/Book';
 import type { Book, BookRequest } from '../../../types/Book';
 import type { Author } from '../../../types/Author';
@@ -23,6 +24,7 @@ const AdminBookDetailPage = () => {
     const isNew = id === 'new';
     const [isLoading, setIsLoading] = useState(false);
     const [isSaving, setIsSaving] = useState(false);
+    const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
     // Dropdown Options
     const [authors, setAuthors] = useState<Author[]>([]);
@@ -149,6 +151,13 @@ const AdminBookDetailPage = () => {
             toast.error('Failed to save book');
         } finally {
             setIsSaving(false);
+        }
+    };
+
+    const handleGallerySelect = (selectedImages: { id: string; name: string; url: string }[]) => {
+        if (selectedImages && selectedImages.length > 0) {
+            setFormData(prev => ({ ...prev, bookImageUrl: selectedImages[0].url }));
+            toast.success('Image selected successfully');
         }
     };
 
@@ -356,7 +365,18 @@ const AdminBookDetailPage = () => {
                     <div className="card" style={{ padding: '1.5rem', backgroundColor: 'var(--shop-bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
                         <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>Book Image</h3>
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Image URL</label>
+                            <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                <span>Image URL</span>
+                                <button
+                                    type="button"
+                                    className="btn-secondary"
+                                    onClick={() => setIsGalleryOpen(true)}
+                                    style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem', height: 'auto', minHeight: 'auto' }}
+                                >
+                                    <ImageIcon size={14} style={{ marginRight: '0.25rem' }} />
+                                    Select from Gallery
+                                </button>
+                            </label>
                             <input
                                 type="text"
                                 name="bookImageUrl"
@@ -375,6 +395,14 @@ const AdminBookDetailPage = () => {
                     </div>
                 </div>
             </div>
+
+            <GalleryModal
+                isOpen={isGalleryOpen}
+                onClose={() => setIsGalleryOpen(false)}
+                onSelect={handleGallerySelect}
+                multiple={false}
+                title="Select Book Image"
+            />
         </div>
     );
 };

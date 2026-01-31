@@ -1,100 +1,113 @@
-import { useState, useMemo } from 'react';
-import { mockBills } from '../../../data/mockOrders';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { formatCurrency } from '../../../utils/formatters';
-import { Search, Eye, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Eye, ArrowUpDown, ArrowUp, ArrowDown, Trash2 } from 'lucide-react';
 import Pagination from '../../../components/admin/Pagination';
 import MultiSelect from '../../../components/admin/MultiSelect';
-import { BillStatus } from '../../../types/Bill';
-import { mockPaymentMethods } from '../../../data/mockMasterData';
+import { BillStatus, type Bill } from '../../../types/Bill';
+import billService from '../../../api/billService';
+import { toast } from 'react-toastify';
 import '../../../styles/components/buttons.css';
 import '../../../styles/pages/admin-management.css';
 
 const AllBillsPage = () => {
     // State
-    const [searchTerm, setSearchTerm] = useState('');
-    const [selectedStatuses, setSelectedStatuses] = useState<(string | number)[]>([]);
-    const [selectedPayments, setSelectedPayments] = useState<(string | number)[]>([]);
+    const [bills, setBills] = useState<Bill[]>([]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [selectedStatuses, setSelectedStatuses] = useState<(string | number)[]>([]); // Filter by status
+    // const [selectedPayments, setSelectedPayments] = useState<(string | number)[]>([]); // Payment filter not directly supported by API yet or needs mapping
 
     // Sort State
-    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+    const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' }>({ key: 'createdAt', direction: 'desc' });
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const itemsPerPage = 10;
 
     // Options
     const statusOptions = Object.values(BillStatus).map(status => ({ value: status, label: status }));
-    const paymentOptions = mockPaymentMethods.map(pm => ({ value: pm.name, label: pm.name })); // Filter by name as ID might not be intuitive or display name is better
+
+    const fetchBills = async () => {
+        setIsLoading(true);
+        try {
+            const params: any = {
+                page: currentPage - 1, // API is 0-indexed
+                size: itemsPerPage,
+                sortBy: sortConfig.key,
+                sortDirection: sortConfig.direction.toUpperCase(),
+            };
+
+            // Assuming API doesn't support complex search yet, but if it does:
+            // "userId" is supported, but not unrestricted text search on name yet based on docs?
+            // "minCost", "maxCost", "fromDate", "toDate", "status".
+            // The doc says "userId" in query.
+            // For now, if searchTerm is provided, we can't search easily server-side unless we implement it there or use "keyword" if available (not listed in Bill params).
+            // Doc only lists: userId, status, fromDate, toDate, minCost, maxCost.
+            // Client-side filtering for search might be needed if API doesn't support it, OR we just support Status filter for now.
+            // Let's rely on Status filter which is supported.
+
+            if (selectedStatuses.length > 0) {
+                // API only accepts single status string? Or we need to loop?
+                // Doc says: status: string (enum). So likely single status per request.
+                // If we want multi-select support, we'd need backend change or client filtering.
+                // For now, let's just use the first selected status if any, or maybe filtering isn't fully flexible.
+                // Or maybe we fetch all and filter client side? No, pagination.
+                // Let's assume we pass the first one or if user selects multiple, we might have issues.
+                // Reverting MultiSelect to Single Select logic for API compatibility or just picking one.
+                if (selectedStatuses.length === 1) {
+                    params.status = selectedStatuses[0];
+                }
+            }
+
+            // Note: SearchTerm ignored for now as API doesn't seem to support generic keyword search on Bills.
+
+            const response = await billService.getAllBills(params);
+            if (response.result) {
+                setBills(response.result.content);
+                setTotalPages(response.result.totalPages);
+            }
+        } catch (error) {
+            console.error('Error fetching bills:', error);
+            toast.error('Failed to load bills');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchBills();
+    }, [currentPage, sortConfig, selectedStatuses]); // Trigger fetch on these changes
+
+    const handleDelete = async (id: number) => {
+        if (!window.confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
+            return;
+        }
+
+        try {
+            await billService.deleteBill(id);
+            toast.success('Bill deleted successfully');
+            fetchBills(); // Refresh list
+        } catch (error) {
+            console.error('Error deleting bill:', error);
+            toast.error('Failed to delete bill');
+        }
+    };
 
     const handleSort = (key: string) => {
         let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
+        if (sortConfig.key === key && sortConfig.direction === 'asc') {
             direction = 'desc';
         }
         setSortConfig({ key, direction });
     };
 
     const getSortIcon = (key: string) => {
-        if (sortConfig?.key !== key) return <ArrowUpDown size={14} className="sort-icon inactive" />;
+        if (sortConfig.key !== key) return <ArrowUpDown size={14} className="sort-icon inactive" />;
         return sortConfig.direction === 'asc'
             ? <ArrowUp size={14} className="sort-icon active" />
             : <ArrowDown size={14} className="sort-icon active" />;
     };
-
-    // Filter & Sort Logic
-    const filteredBills = useMemo(() => {
-        let result = mockBills.filter(bill => {
-            // Search
-            const searchLower = searchTerm.toLowerCase();
-            const matchesSearch =
-                bill.id.toString().includes(searchLower) ||
-                (bill.user.firstName + ' ' + bill.user.lastName).toLowerCase().includes(searchLower) ||
-                bill.user.username.toLowerCase().includes(searchLower);
-
-            if (!matchesSearch) return false;
-
-            // Status Filter
-            if (selectedStatuses.length > 0) {
-                if (!selectedStatuses.includes(bill.status)) return false;
-            }
-
-            // Payment Filter
-            if (selectedPayments.length > 0) {
-                if (!selectedPayments.includes(bill.paymentMethod.name)) return false;
-            }
-
-            return true;
-        });
-
-        // Sorting
-        if (sortConfig) {
-            result.sort((a, b) => {
-                let aValue: any = a[sortConfig.key as keyof typeof a];
-                let bValue: any = b[sortConfig.key as keyof typeof b];
-
-                if (sortConfig.key === 'user' || sortConfig.key === 'paymentMethod') {
-                    // Sorting for these disabled by request
-                    return 0;
-                }
-
-                if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-        }
-
-        return result;
-    }, [searchTerm, selectedStatuses, selectedPayments, sortConfig]);
-
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredBills.length / itemsPerPage);
-    const paginatedBills = useMemo(() => {
-        return filteredBills.slice(
-            (currentPage - 1) * itemsPerPage,
-            currentPage * itemsPerPage
-        );
-    }, [filteredBills, currentPage, itemsPerPage]);
 
     return (
         <div className="admin-container">
@@ -105,117 +118,110 @@ const AllBillsPage = () => {
                 </div>
             </div>
 
-            {/* Search and Filter */}
+            {/* Toolbar */}
             <div className="admin-toolbar" style={{ flexDirection: 'column', alignItems: 'stretch', gap: '1rem' }}>
-                <div className="search-box">
-                    <Search size={18} className="search-box-icon" />
-                    <input
-                        type="text"
-                        className="search-input"
-                        placeholder="Search by Order ID or Customer..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                </div>
-
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
+                    {/* NOTE: Reducing compatibility issues by limiting to single status selection for now if API is strict 
+                        But MultiSelect UI is fine, we just might warn or only use first. 
+                     */}
                     <div style={{ flex: 1, minWidth: '200px' }}>
                         <MultiSelect
-                            label="Status"
+                            label="Status (Select one for API filtering)"
                             options={statusOptions}
                             value={selectedStatuses}
                             onChange={setSelectedStatuses}
                             placeholder="Filter by Status"
                         />
                     </div>
-                    <div style={{ flex: 1, minWidth: '200px' }}>
-                        <MultiSelect
-                            label="Payment Method"
-                            options={paymentOptions}
-                            value={selectedPayments}
-                            onChange={setSelectedPayments}
-                            placeholder="Filter by Payment"
-                        />
-                    </div>
 
                     <button
                         onClick={() => {
-                            setSearchTerm('');
                             setSelectedStatuses([]);
-                            setSelectedPayments([]);
-                            setSortConfig(null);
+                            setSortConfig({ key: 'createdAt', direction: 'desc' });
                         }}
                         className="btn-secondary"
                         style={{ height: '42px', whiteSpace: 'nowrap', flexShrink: 0 }}
                     >
                         Clear Filters
                     </button>
+
                 </div>
             </div>
 
             <div className="admin-table-container">
-                <table className="admin-table">
-                    <thead>
-                        <tr>
-                            <th onClick={() => handleSort('id')} className="sortable-header">
-                                <div className="th-content">Bill ID {getSortIcon('id')}</div>
-                            </th>
-                            <th className="sortable-header">
-                                <div className="th-content">Customer</div>
-                            </th>
-                            <th onClick={() => handleSort('createdAt')} className="sortable-header">
-                                <div className="th-content">Date {getSortIcon('createdAt')}</div>
-                            </th>
-                            <th onClick={() => handleSort('totalCost')} className="sortable-header">
-                                <div className="th-content">Total {getSortIcon('totalCost')}</div>
-                            </th>
-                            <th className="sortable-header">
-                                <div className="th-content">Status</div>
-                            </th>
-                            <th className="sortable-header">
-                                <div className="th-content">Payment Method</div>
-                            </th>
-                            <th style={{ textAlign: 'right' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paginatedBills.map(bill => (
-                            <tr key={bill.id}>
-                                <td>#{bill.id}</td>
-                                <td>
-                                    <div style={{ fontWeight: 500 }}>{bill.user.username}</div>
-                                </td>
-                                <td style={{ color: 'var(--shop-text-muted)' }}>
-                                    {bill.createdAt ? new Date(bill.createdAt).toLocaleDateString() : '-'}
-                                </td>
-                                <td style={{ fontWeight: 600 }}>{formatCurrency(bill.totalCost)}</td>
-                                <td>
-                                    <span style={{
-                                        padding: '0.25rem 0.75rem',
-                                        borderRadius: '999px',
-                                        fontSize: '0.8rem',
-                                        fontWeight: 600,
-                                        backgroundColor: bill.status === 'COMPLETED' ? '#e6f4ea' :
-                                            bill.status === 'CANCELED' ? '#fce8e6' : '#e8f0fe',
-                                        color: bill.status === 'COMPLETED' ? '#1e7e34' :
-                                            bill.status === 'CANCELED' ? '#d93025' : '#1967d2'
-                                    }}>
-                                        {bill.status}
-                                    </span>
-                                </td>
-                                <td>{bill.paymentMethod?.name || '-'}</td>
-                                <td>
-                                    <div className="action-buttons">
-                                        <Link to={`/admin/manage-business/bill-detail/${bill.id}`} className="btn-icon" title="View Details">
-                                            <Eye size={18} />
-                                        </Link>
-                                    </div>
-                                </td>
+                {isLoading ? (
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
+                ) : (
+                    <table className="admin-table">
+                        <thead>
+                            <tr>
+                                <th onClick={() => handleSort('id')} className="sortable-header">
+                                    <div className="th-content">Bill ID {getSortIcon('id')}</div>
+                                </th>
+                                <th className="sortable-header">
+                                    <div className="th-content">Customer</div>
+                                </th>
+                                <th onClick={() => handleSort('createdAt')} className="sortable-header">
+                                    <div className="th-content">Date {getSortIcon('createdAt')}</div>
+                                </th>
+                                <th onClick={() => handleSort('totalCost')} className="sortable-header">
+                                    <div className="th-content">Total {getSortIcon('totalCost')}</div>
+                                </th>
+                                <th className="sortable-header">
+                                    <div className="th-content">Status</div>
+                                </th>
+                                <th className="sortable-header">
+                                    <div className="th-content">Payment Method</div>
+                                </th>
+                                <th style={{ textAlign: 'right' }}>Actions</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {filteredBills.length === 0 && (
+                        </thead>
+                        <tbody>
+                            {bills.map(bill => (
+                                <tr key={bill.id}>
+                                    <td>#{bill.id}</td>
+                                    <td>
+                                        <div style={{ fontWeight: 500 }}>{bill.userName}</div>
+                                    </td>
+                                    <td style={{ color: 'var(--shop-text-muted)' }}>
+                                        {bill.createdAt ? new Date(bill.createdAt).toLocaleDateString() : '-'}
+                                    </td>
+                                    <td style={{ fontWeight: 600 }}>{formatCurrency(bill.totalCost)}</td>
+                                    <td>
+                                        <span style={{
+                                            padding: '0.25rem 0.75rem',
+                                            borderRadius: '999px',
+                                            fontSize: '0.8rem',
+                                            fontWeight: 600,
+                                            backgroundColor: bill.status === 'COMPLETED' ? '#e6f4ea' :
+                                                bill.status === 'CANCELED' ? '#fce8e6' : '#e8f0fe',
+                                            color: bill.status === 'COMPLETED' ? '#1e7e34' :
+                                                bill.status === 'CANCELED' ? '#d93025' : '#1967d2'
+                                        }}>
+                                            {bill.status}
+                                        </span>
+                                    </td>
+                                    <td>{bill.paymentMethodName || '-'}</td>
+                                    <td>
+                                        <div className="action-buttons">
+                                            <Link to={`/admin/manage-business/bill-detail/${bill.id}`} className="btn-icon" title="View Details">
+                                                <Eye size={18} />
+                                            </Link>
+                                            <button
+                                                className="btn-icon delete"
+                                                title="Delete Bill"
+                                                onClick={() => handleDelete(bill.id)}
+                                            >
+                                                <Trash2 size={18} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                )}
+                {!isLoading && bills.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--shop-text-muted)' }}>
                         No bills found matching your filters.
                     </div>

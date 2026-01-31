@@ -34,10 +34,13 @@ public enum ErrorCode {
     SERIE_NOT_FOUND(2301, "Serie not found", HttpStatus.NOT_FOUND),
     SERIE_NAME_EXISTED(2302, "Serie name already exists", HttpStatus.BAD_REQUEST),
     SERIE_HAS_BOOKS(2303, "Cannot delete serie with existing books", HttpStatus.BAD_REQUEST),
-    
-    // Category errors
+
+
+    // Category errors (2401-2410)
     CATEGORY_NOT_FOUND(2401, "Category not found", HttpStatus.NOT_FOUND),
-    
+    CATEGORY_NAME_EXISTED(2402, "Category name already exists", HttpStatus.BAD_REQUEST),
+    CATEGORY_HAS_BOOKS(2403, "Cannot delete category with existing books", HttpStatus.BAD_REQUEST),
+
     // Supplier errors
     SUPPLIER_NOT_FOUND(2501, "Supplier not found", HttpStatus.NOT_FOUND),
     SUPPLIER_NAME_EXISTED(2502, "Supplier name already exists", HttpStatus.BAD_REQUEST),

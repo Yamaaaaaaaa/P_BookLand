@@ -1,24 +1,69 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { mockCategories } from '../../../data/mockMasterData';
 import type { Category } from '../../../types/Category';
+import categoryService from '../../../api/categoryService';
 import AdminModal, { type FieldConfig } from '../../../components/admin/AdminModal';
 import Pagination from '../../../components/admin/Pagination';
 import '../../../styles/components/buttons.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/pages/admin-management.css';
+import { toast } from 'react-toastify';
 
 const CategoryPage = () => {
-    const [categories, setCategories] = useState<Category[]>(mockCategories);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Server-side Pagination & Sort State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [itemsPerPage] = useState(5);
+    const [sortConfig, setSortConfig] = useState<{ key: keyof Category; direction: 'asc' | 'desc' } | null>({ key: 'id', direction: 'asc' });
+
+    // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'update' | 'view'>('create');
     const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
-    const [sortConfig, setSortConfig] = useState<{ key: keyof Category; direction: 'asc' | 'desc' } | null>(null);
 
-    // Pagination State
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const fetchCategories = async () => {
+        try {
+            const params: any = {
+                page: currentPage - 1, // API usually 0-indexed
+                size: itemsPerPage,
+                keyword: searchTerm || undefined, // Only send if not empty
+            };
+
+            if (sortConfig) {
+                params.sortBy = sortConfig.key;
+                params.sortDirection = sortConfig.direction.toUpperCase();
+            }
+
+            const response = await categoryService.getAll(params);
+
+            if (response.result) {
+                // Check if result is a Page object (has content and totalPages)
+                if (response.result.content && typeof response.result.totalPages === 'number') {
+                    setCategories(response.result.content);
+                    setTotalPages(response.result.totalPages);
+                } else if (Array.isArray(response.result)) {
+                    // Fallback for non-paged response (unlikely given requirement but safe)
+                    setCategories(response.result);
+                    setTotalPages(1);
+                }
+            }
+        } catch (error) {
+            console.error("Error fetching categories:", error);
+            toast.error("Failed to load categories");
+        }
+    };
+
+    // Refetch when page, sort, or search changes
+    // Debounce search could be added here or assuming user presses Enter (simple effect for now)
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchCategories();
+        }, 300); // 300ms debounce for search
+        return () => clearTimeout(timer);
+    }, [currentPage, sortConfig, searchTerm]);
 
     const fieldConfig: FieldConfig[] = [
         { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Category Name' },
@@ -26,45 +71,25 @@ const CategoryPage = () => {
     ];
 
     const handleSort = (key: keyof Category) => {
-        let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
+        setSortConfig(current => {
+            let direction: 'asc' | 'desc' = 'asc';
+            if (current && current.key === key && current.direction === 'asc') {
+                direction = 'desc';
+            }
+            return { key, direction };
+        });
+        // Reset to page 1 on sort change usually? Or keep page? 
+        // Keeping page is fine, or reset. Let's keep page for now.
     };
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
-    const filteredCategories = categories
-        .filter(category =>
-            category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (category.description && category.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        )
-        .sort((a, b) => {
-            if (!sortConfig) return 0;
-            const { key, direction } = sortConfig;
-
-            const aValue = a[key] ?? '';
-            const bValue = b[key] ?? '';
-
-            if (aValue < bValue) {
-                return direction === 'asc' ? -1 : 1;
-            }
-            if (aValue > bValue) {
-                return direction === 'asc' ? 1 : -1;
-            }
-            return 0;
-        });
-
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
-    const paginatedCategories = filteredCategories.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
-
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1); // Reset to page 1 on search
+    };
 
     const openModal = (mode: 'create' | 'update' | 'view', category?: Category) => {
         setModalMode(mode);
@@ -72,21 +97,33 @@ const CategoryPage = () => {
         setIsModalOpen(true);
     };
 
-    const handleModalSubmit = (data: any) => {
-        if (modalMode === 'update' && selectedCategory) {
-            setCategories(prev => prev.map(c =>
-                c.id === selectedCategory.id ? { ...c, ...data } : c
-            ));
-        } else if (modalMode === 'create') {
-            const newId = Math.max(...categories.map(c => c.id)) + 1;
-            setCategories(prev => [...prev, { id: newId, ...data }]);
+    const handleModalSubmit = async (data: any) => {
+        try {
+            if (modalMode === 'update' && selectedCategory) {
+                await categoryService.update(selectedCategory.id, data);
+                toast.success("Category updated successfully");
+            } else if (modalMode === 'create') {
+                await categoryService.create(data);
+                toast.success("Category created successfully");
+            }
+            fetchCategories();
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            toast.error("Action failed");
         }
-        setIsModalOpen(false);
     };
 
-    const handleDelete = (id: number) => {
+    const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this category?')) {
-            setCategories(prev => prev.filter(c => c.id !== id));
+            try {
+                await categoryService.delete(id);
+                toast.success("Category deleted successfully");
+                fetchCategories();
+            } catch (error) {
+                console.error(error);
+                toast.error("Delete failed");
+            }
         }
     };
 
@@ -118,7 +155,7 @@ const CategoryPage = () => {
                         className="search-input"
                         placeholder="Search categories by name or description..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={handleSearchChange}
                     />
                 </div>
             </div>
@@ -149,7 +186,7 @@ const CategoryPage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {paginatedCategories.map(category => (
+                        {categories.map(category => (
                             <tr key={category.id}>
                                 <td>#{category.id}</td>
                                 <td style={{ fontWeight: 500 }}>{category.name}</td>
@@ -169,6 +206,13 @@ const CategoryPage = () => {
                                 </td>
                             </tr>
                         ))}
+                        {categories.length === 0 && (
+                            <tr>
+                                <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
+                                    No categories found.
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

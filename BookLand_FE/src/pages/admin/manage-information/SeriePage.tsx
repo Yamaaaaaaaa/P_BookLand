@@ -1,24 +1,64 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, Edit, Trash2, Eye, Search, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
-import { mockSeries } from '../../../data/mockMasterData';
 import type { Serie } from '../../../types/Serie';
+import serieService from '../../../api/serieService';
 import AdminModal, { type FieldConfig } from '../../../components/admin/AdminModal';
 import Pagination from '../../../components/admin/Pagination';
 import '../../../styles/components/buttons.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/pages/admin-management.css';
+import { toast } from 'react-toastify';
 
 const SeriePage = () => {
-    const [series, setSeries] = useState<Serie[]>(mockSeries);
+    const [series, setSeries] = useState<Serie[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+
+    // Server-side Pagination & Sort State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [itemsPerPage] = useState(5);
+    const [sortConfig, setSortConfig] = useState<{ key: keyof Serie; direction: 'asc' | 'desc' } | null>({ key: 'id', direction: 'asc' });
+
+    // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'update' | 'view'>('create');
     const [selectedSerie, setSelectedSerie] = useState<Serie | null>(null);
-    const [sortConfig, setSortConfig] = useState<{ key: keyof Serie; direction: 'asc' | 'desc' } | null>(null);
 
-    // Pagination State
-    const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 5;
+    const fetchSeries = async () => {
+        try {
+            const params: any = {
+                page: currentPage - 1,
+                size: itemsPerPage,
+                keyword: searchTerm || undefined
+            };
+
+            if (sortConfig) {
+                params.sortBy = sortConfig.key;
+                params.sortDirection = sortConfig.direction.toUpperCase();
+            }
+
+            const response = await serieService.getAllSeries(params);
+            if (response.result) {
+                if (response.result.content && typeof response.result.totalPages === 'number') {
+                    setSeries(response.result.content);
+                    setTotalPages(response.result.totalPages);
+                } else if (Array.isArray(response.result)) {
+                    setSeries(response.result);
+                    setTotalPages(1);
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to load series");
+        }
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchSeries();
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [currentPage, sortConfig, searchTerm]);
 
     const fieldConfig: FieldConfig[] = [
         { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Series Name' },
@@ -26,44 +66,23 @@ const SeriePage = () => {
     ];
 
     const handleSort = (key: keyof Serie) => {
-        let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
+        setSortConfig(current => {
+            let direction: 'asc' | 'desc' = 'asc';
+            if (current && current.key === key && current.direction === 'asc') {
+                direction = 'desc';
+            }
+            return { key, direction };
+        });
     };
 
     const handlePageChange = (page: number) => {
         setCurrentPage(page);
     };
 
-    const filteredSeries = series
-        .filter(serie =>
-            serie.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (serie.description && serie.description.toLowerCase().includes(searchTerm.toLowerCase()))
-        )
-        .sort((a, b) => {
-            if (!sortConfig) return 0;
-            const { key, direction } = sortConfig;
-
-            const aValue = a[key] ?? '';
-            const bValue = b[key] ?? '';
-
-            if (aValue < bValue) {
-                return direction === 'asc' ? -1 : 1;
-            }
-            if (aValue > bValue) {
-                return direction === 'asc' ? 1 : -1;
-            }
-            return 0;
-        });
-
-    // Pagination Logic
-    const totalPages = Math.ceil(filteredSeries.length / itemsPerPage);
-    const paginatedSeries = filteredSeries.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
+    };
 
     const openModal = (mode: 'create' | 'update' | 'view', serie?: Serie) => {
         setModalMode(mode);
@@ -71,21 +90,33 @@ const SeriePage = () => {
         setIsModalOpen(true);
     };
 
-    const handleModalSubmit = (data: any) => {
-        if (modalMode === 'update' && selectedSerie) {
-            setSeries(prev => prev.map(s =>
-                s.id === selectedSerie.id ? { ...s, ...data } : s
-            ));
-        } else if (modalMode === 'create') {
-            const newId = Math.max(...series.map(s => s.id)) + 1;
-            setSeries(prev => [...prev, { id: newId, ...data }]);
+    const handleModalSubmit = async (data: any) => {
+        try {
+            if (modalMode === 'update' && selectedSerie) {
+                await serieService.updateSerie(selectedSerie.id, data);
+                toast.success("Series updated successfully");
+            } else if (modalMode === 'create') {
+                await serieService.createSerie(data);
+                toast.success("Series created successfully");
+            }
+            fetchSeries();
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            toast.error("Action failed");
         }
-        setIsModalOpen(false);
     };
 
-    const handleDelete = (id: number) => {
+    const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this series?')) {
-            setSeries(prev => prev.filter(s => s.id !== id));
+            try {
+                await serieService.deleteSerie(id);
+                toast.success("Series deleted successfully");
+                fetchSeries();
+            } catch (error) {
+                console.error(error);
+                toast.error("Delete failed");
+            }
         }
     };
 
@@ -117,7 +148,7 @@ const SeriePage = () => {
                         className="search-input"
                         placeholder="Search series by name or description..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={handleSearchChange}
                     />
                 </div>
             </div>
@@ -148,7 +179,7 @@ const SeriePage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {paginatedSeries.map(serie => (
+                        {series.map(serie => (
                             <tr key={serie.id}>
                                 <td>#{serie.id}</td>
                                 <td style={{ fontWeight: 500 }}>{serie.name}</td>
@@ -168,6 +199,13 @@ const SeriePage = () => {
                                 </td>
                             </tr>
                         ))}
+                        {series.length === 0 && (
+                            <tr>
+                                <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
+                                    No series found.
+                                </td>
+                            </tr>
+                        )}
                     </tbody>
                 </table>
             </div>

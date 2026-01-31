@@ -1,31 +1,73 @@
-import { useState, useMemo } from 'react';
-import { mockShippingMethods } from '../../../data/mockMasterData';
+import { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
 import { formatCurrency } from '../../../utils/formatters';
 import Pagination from '../../../components/admin/Pagination';
 import AdminModal, { type FieldConfig } from '../../../components/admin/AdminModal';
 import type { ShippingMethod } from '../../../types/ShippingMethod';
+import shippingMethodService from '../../../api/shippingMethodService';
 import '../../../styles/components/buttons.css';
 import '../../../styles/pages/admin-management.css';
+import { toast } from 'react-toastify';
 
 const ShippingMethodPage = () => {
-    const [methods, setMethods] = useState<ShippingMethod[]>(mockShippingMethods);
+    const [methods, setMethods] = useState<ShippingMethod[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
+
+    // Server-side Pagination State
     const [currentPage, setCurrentPage] = useState(1);
-    const itemsPerPage = 10;
+    const [totalPages, setTotalPages] = useState(1);
+    const [itemsPerPage] = useState(5);
 
     // Modal State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMode, setModalMode] = useState<'create' | 'update'>('create');
     const [selectedMethod, setSelectedMethod] = useState<ShippingMethod | null>(null);
 
-    const handleSort = (key: string) => {
-        let direction: 'asc' | 'desc' = 'asc';
-        if (sortConfig && sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
+    const fetchShippingMethods = async () => {
+        try {
+            const params: any = {
+                page: currentPage - 1,
+                size: itemsPerPage,
+                keyword: searchTerm || undefined
+            };
+
+            if (sortConfig) {
+                params.sortBy = sortConfig.key;
+                params.sortDirection = sortConfig.direction.toUpperCase();
+            }
+
+            const response = await shippingMethodService.getAllShippingMethods(params);
+            if (response.result) {
+                if (response.result.content && typeof response.result.totalPages === 'number') {
+                    setMethods(response.result.content);
+                    setTotalPages(response.result.totalPages);
+                } else if (Array.isArray(response.result)) {
+                    setMethods(response.result);
+                    setTotalPages(1);
+                }
+            }
+        } catch (error) {
+            console.error(error);
+            toast.error("Failed to load shipping methods");
         }
-        setSortConfig({ key, direction });
+    };
+
+    useEffect(() => {
+        const timer = setTimeout(() => {
+            fetchShippingMethods();
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [currentPage, sortConfig, searchTerm]);
+
+    const handleSort = (key: string) => {
+        setSortConfig(current => {
+            let direction: 'asc' | 'desc' = 'asc';
+            if (current && current.key === key && current.direction === 'asc') {
+                direction = 'desc';
+            }
+            return { key, direction };
+        });
     };
 
     const getSortIcon = (key: string) => {
@@ -35,9 +77,16 @@ const ShippingMethodPage = () => {
             : <ArrowDown size={14} className="sort-icon active" />;
     };
 
-    const handleDelete = (id: number) => {
+    const handleDelete = async (id: number) => {
         if (window.confirm('Are you sure you want to delete this shipping method?')) {
-            setMethods(prev => prev.filter(m => m.id !== id));
+            try {
+                await shippingMethodService.deleteShippingMethod(id);
+                toast.success("Shipping method deleted successfully");
+                fetchShippingMethods();
+            } catch (error) {
+                console.error(error);
+                toast.error("Delete failed");
+            }
         }
     };
 
@@ -53,51 +102,34 @@ const ShippingMethodPage = () => {
         setIsModalOpen(true);
     };
 
-    const handleModalSubmit = (formData: any) => {
-        if (modalMode === 'create') {
-            const newMethod: ShippingMethod = {
-                id: Math.max(...methods.map(m => m.id)) + 1,
-                name: formData.name,
-                price: parseFloat(formData.price),
-                description: formData.description
-            };
-            setMethods([...methods, newMethod]);
-        } else {
-            setMethods(methods.map(m => m.id === selectedMethod?.id ? {
-                ...m,
-                ...formData,
-                price: parseFloat(formData.price)
-            } : m));
-        }
-        setIsModalOpen(false);
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        setCurrentPage(1);
     };
 
-    const filteredMethods = useMemo(() => {
-        let result = methods.filter(method =>
-            method.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+    const handleModalSubmit = async (formData: any) => {
+        try {
+            const dataToSubmit = {
+                ...formData,
+                price: parseFloat(formData.price)
+            };
 
-        if (sortConfig) {
-            result.sort((a, b) => {
-                const aValue = a[sortConfig.key as keyof ShippingMethod];
-                const bValue = b[sortConfig.key as keyof ShippingMethod];
-
-                if (aValue === undefined || bValue === undefined) return 0;
-
-                if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
-                if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
-                return 0;
-            });
+            if (modalMode === 'create') {
+                await shippingMethodService.createShippingMethod(dataToSubmit);
+                toast.success("Shipping method created successfully");
+            } else {
+                if (selectedMethod) {
+                    await shippingMethodService.updateShippingMethod(selectedMethod.id, dataToSubmit);
+                    toast.success("Shipping method updated successfully");
+                }
+            }
+            fetchShippingMethods();
+            setIsModalOpen(false);
+        } catch (error) {
+            console.error(error);
+            toast.error("Action failed");
         }
-
-        return result;
-    }, [methods, searchTerm, sortConfig]);
-
-    const totalPages = Math.ceil(filteredMethods.length / itemsPerPage);
-    const paginatedMethods = filteredMethods.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    };
 
     const modalFields: FieldConfig[] = [
         { name: 'name', label: 'Method Name', type: 'text', required: true },
@@ -129,7 +161,7 @@ const ShippingMethodPage = () => {
                         className="search-input"
                         placeholder="Search shipping methods..."
                         value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+                        onChange={handleSearchChange}
                     />
                 </div>
             </div>
@@ -152,7 +184,7 @@ const ShippingMethodPage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {paginatedMethods.map(method => (
+                        {methods.map(method => (
                             <tr key={method.id}>
                                 <td>#{method.id}</td>
                                 <td style={{ fontWeight: 500 }}>{method.name}</td>
@@ -182,7 +214,7 @@ const ShippingMethodPage = () => {
                         ))}
                     </tbody>
                 </table>
-                {filteredMethods.length === 0 && (
+                {methods.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--shop-text-muted)' }}>
                         No shipping methods found.
                     </div>

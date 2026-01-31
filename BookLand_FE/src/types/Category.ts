@@ -1,8 +1,11 @@
-import type { Book } from './Book';
-
 export interface Category {
     id: number;
     name: string;
     description?: string;
-    books?: Book[];
+    bookCount?: number;
+}
+
+export interface CategoryRequest {
+    name: string;
+    description?: string;
 }

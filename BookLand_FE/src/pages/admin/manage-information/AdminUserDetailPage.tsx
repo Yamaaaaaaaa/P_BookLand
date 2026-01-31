@@ -30,8 +30,8 @@ const AdminUserDetailPage = () => {
     // START: Temporary Role fetching/definition since we don't have roleService yet
     // In a real app, you'd fetch this from via roleService.getAllRoles()
     const [availableRoles, setAvailableRoles] = useState<Role[]>([
-        { id: 1, name: 'ADMIN', description: 'Administrator' },
-        { id: 2, name: 'USER', description: 'Standard User' }
+        { id: 2, name: 'ADMIN', description: 'Administrator' },
+        { id: 1, name: 'USER', description: 'Standard User' }
     ]);
     // END: Temporary Role fetching
 

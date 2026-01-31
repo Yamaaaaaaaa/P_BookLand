@@ -7,3 +7,9 @@ export interface Author {
     authorImage?: string;
     books?: Book[];
 }
+
+export interface AuthorRequest {
+    name: string;
+    description?: string;
+    authorImage?: string;
+}

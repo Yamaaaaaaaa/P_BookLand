@@ -16,3 +16,11 @@ export interface Supplier {
     status: SupplierStatus;
     purchaseInvoices?: PurchaseInvoice[];
 }
+
+export interface SupplierRequest {
+    name: string;
+    phone?: string;
+    email?: string;
+    address?: string;
+    status: SupplierStatus;
+}

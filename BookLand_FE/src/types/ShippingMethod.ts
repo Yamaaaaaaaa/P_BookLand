@@ -7,3 +7,9 @@ export interface ShippingMethod {
     price: number;
     bills?: Bill[];
 }
+
+export interface ShippingMethodRequest {
+    name: string;
+    description?: string;
+    price: number;
+}

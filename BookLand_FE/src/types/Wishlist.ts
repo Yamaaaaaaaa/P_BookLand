@@ -7,3 +7,7 @@ export interface Wishlist {
     book: Book;
     createdAt?: string;
 }
+
+export interface AddToWishlistRequest {
+    bookId: number;
+}

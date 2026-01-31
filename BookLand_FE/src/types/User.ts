@@ -32,3 +32,25 @@ export interface User {
     comments?: BookComment[];
     receivedNotifications?: Notification[];
 }
+
+export interface UserRequest {
+    username: string;
+    firstName?: string;
+    lastName?: string;
+    dob?: string;
+    email: string;
+    password?: string;
+    phone?: string;
+    roleIds?: number[];
+}
+
+export interface UserUpdateRequest {
+    firstName?: string;
+    lastName?: string;
+    dob?: string;
+    email?: string;
+    password?: string;
+    phone?: string;
+    status?: UserStatus;
+    roleIds?: number[];
+}

@@ -31,3 +31,24 @@ export interface Bill {
     transactions?: PaymentTransaction[];
     eventLogs?: EventLog[];
 }
+
+export interface CreateBillRequest {
+    fullName: string;
+    email: string;
+    phone: string;
+    address: string;
+    city: string;
+    postalCode?: string;
+    notes?: string;
+    paymentMethodId: number;
+    shippingMethodId: number;
+    books: {
+        bookId: number;
+        quantity: number;
+    }[];
+}
+
+export interface UpdateBillStatusRequest {
+    status: BillStatus;
+    note?: string;
+}

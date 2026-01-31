@@ -16,3 +16,12 @@ export interface Cart {
     updatedAt?: string;
     items?: CartItem[];
 }
+
+export interface AddToCartRequest {
+    bookId: number;
+    quantity: number;
+}
+
+export interface UpdateCartItemRequest {
+    quantity: number;
+}

@@ -6,3 +6,8 @@ export interface Publisher {
     description?: string;
     books?: Book[];
 }
+
+export interface PublisherRequest {
+    name: string;
+    description?: string;
+}

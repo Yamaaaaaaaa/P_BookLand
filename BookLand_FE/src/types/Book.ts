@@ -42,3 +42,19 @@ export interface Book {
     // Helper method from backend is not part of the interface usually, 
     // but if we used a class it would be. For now, interfaces only.
 }
+
+export interface BookRequest {
+    name: string;
+    description?: string;
+    originalCost: number;
+    sale: number;
+    stock: number;
+    status: BookStatus;
+    publishedDate?: string;
+    bookImageUrl?: string;
+    pin: boolean;
+    authorId: number;
+    publisherId: number;
+    seriesId?: number;
+    categoryIds: number[];
+}

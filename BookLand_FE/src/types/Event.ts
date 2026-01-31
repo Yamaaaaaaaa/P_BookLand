@@ -33,3 +33,17 @@ export interface Event {
     actions?: EventAction[];
     logs?: EventLog[];
 }
+
+export interface EventRequest {
+    name: string;
+    description?: string;
+    type: EventType;
+    startTime: string;
+    endTime: string;
+    status: EventStatus;
+    priority: number;
+    images?: Omit<EventImage, 'id' | 'event'>[];
+    targets?: Omit<EventTarget, 'id' | 'event'>[];
+    rules?: Omit<EventRule, 'id' | 'event'>[];
+    actions?: Omit<EventAction, 'id' | 'event'>[];
+}

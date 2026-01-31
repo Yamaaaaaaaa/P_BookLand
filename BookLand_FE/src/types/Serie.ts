@@ -6,3 +6,8 @@ export interface Serie {
     description?: string;
     books?: Book[];
 }
+
+export interface SerieRequest {
+    name: string;
+    description?: string;
+}

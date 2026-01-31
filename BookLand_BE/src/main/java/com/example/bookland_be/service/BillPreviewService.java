@@ -29,35 +29,53 @@ public class BillPreviewService {
         ShippingMethod shippingMethod = shippingMethodRepository.findById(request.getShippingMethodId())
                 .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_METHOD_NOT_FOUND));
 
-        // Lấy event có priority cao nhất
+        // 1. Tính toán trước tổng tiền và số lượng
+        double tempTotalCost = 0.0;
+        int totalQuantity = 0;
+        List<BillBookRequest> bookRequests = request.getBooks();
+        Map<Long, Book> bookMap = new HashMap<>();
+
+        for (BillBookRequest br : bookRequests) {
+            Book book = bookRepository.findById(br.getBookId())
+                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+            
+            if (book.getStock() < br.getQuantity()) {
+                throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
+            }
+            
+            tempTotalCost += book.getFinalPrice() * br.getQuantity();
+            totalQuantity += br.getQuantity();
+            bookMap.put(book.getId(), book);
+        }
+
+        // 2. Lấy Event và Check Rule
         Optional<Event> activeEventOpt = eventApplicationService.getHighestPriorityActiveEvent();
+        Event appliedEvent = null;
+        
+        if (activeEventOpt.isPresent()) {
+            Event event = activeEventOpt.get();
+            // User = null vì preview chưa có user context đầy đủ hoặc có thể truyền nếu cần
+            boolean isEligible = eventApplicationService.checkEventRule(event, null, tempTotalCost, totalQuantity);
+            if (isEligible) {
+                appliedEvent = event;
+            }
+        }
 
 
+        // 3. Build kết quả
         List<BookPreviewDTO> bookPreviews = new ArrayList<>();
         double originalTotal = 0.0;
         double discountedTotal = 0.0;
-        Event appliedEvent = null;
 
-        for (BillBookRequest bookRequest : request.getBooks()) {
-            Book book = bookRepository.findById(bookRequest.getBookId())
-                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-
-            if (book.getStock() < bookRequest.getQuantity()) {
-                throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
-            }
-
+        for (BillBookRequest br : bookRequests) {
+            Book book = bookMap.get(br.getBookId());
             Double originalPrice = book.getFinalPrice();
             Double finalPrice = originalPrice;
             boolean hasDiscount = false;
 
-            // Kiểm tra và áp dụng event
-            if (activeEventOpt.isPresent()) {
-                Event event = activeEventOpt.get();
-                if (eventApplicationService.isBookInEventTarget(event, book)) {
-                    finalPrice = eventApplicationService.calculateDiscountedPrice(event, originalPrice);
-                    hasDiscount = true;
-                    appliedEvent = event;
-                }
+            if (appliedEvent != null && eventApplicationService.isBookInEventTarget(appliedEvent, book)) {
+                finalPrice = eventApplicationService.calculateDiscountedPrice(appliedEvent, originalPrice);
+                hasDiscount = true;
             }
 
             BookPreviewDTO bookPreview = BookPreviewDTO.builder()
@@ -67,15 +85,14 @@ public class BillPreviewService {
                     .originalPrice(originalPrice)
                     .eventDiscountedPrice(hasDiscount ? finalPrice : null)
                     .finalPrice(finalPrice)
-                    .quantity(bookRequest.getQuantity())
-                    .subtotal(finalPrice * bookRequest.getQuantity())
+                    .quantity(br.getQuantity())
+                    .subtotal(finalPrice * br.getQuantity())
                     .hasEventDiscount(hasDiscount)
                     .build();
 
             bookPreviews.add(bookPreview);
-
-            originalTotal += originalPrice * bookRequest.getQuantity();
-            discountedTotal += finalPrice * bookRequest.getQuantity();
+            originalTotal += originalPrice * br.getQuantity();
+            discountedTotal += finalPrice * br.getQuantity();
         }
 
         double shippingCost = shippingMethod.getPrice();

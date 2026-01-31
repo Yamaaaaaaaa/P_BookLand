@@ -1,5 +1,4 @@
-
-// BillService.java (Updated with Event Logic)
+// BillService.java (Updated with Simplified Event Rules Check)
 package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.*;
@@ -80,56 +79,64 @@ public class BillService {
         ShippingMethod shippingMethod = shippingMethodRepository.findById(request.getShippingMethodId())
                 .orElseThrow(() -> new AppException(ErrorCode.SHIPPING_METHOD_NOT_FOUND));
 
-        // ========== LẤY EVENT CÓ PRIORITY CAO NHẤT ==========
-        Optional<Event> activeEventOpt = eventApplicationService.getHighestPriorityActiveEvent();
+        // 1. Tính toán giá trị đơn hàng tạm thời (chưa giảm giá) để check rule
+        double tempTotalCost = 0.0;
+        int totalQuantity = 0;
+        List<Book> books = new ArrayList<>();
+        Map<Long, Integer> quantities = new HashMap<>();
 
+        for (BillBookRequest bookRequest : request.getBooks()) {
+            Book book = bookRepository.findById(bookRequest.getBookId())
+                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
+            
+            if (book.getStock() < bookRequest.getQuantity()) {
+                throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
+            }
+
+            tempTotalCost += book.getFinalPrice() * bookRequest.getQuantity();
+            totalQuantity += bookRequest.getQuantity();
+            books.add(book);
+            quantities.put(book.getId(), bookRequest.getQuantity());
+        }
+
+        // 2. Lấy Event và Check Rule
+        Optional<Event> activeEventOpt = eventApplicationService.getHighestPriorityActiveEvent();
         Event appliedEvent = null;
         Map<Long, Double> eventDiscountedPrices = new HashMap<>();
         int totalDiscountValue = 0;
 
         if (activeEventOpt.isPresent()) {
             Event event = activeEventOpt.get();
+            
+            // Validate Rule
+            boolean isEligible = eventApplicationService.checkEventRule(event, user, tempTotalCost, totalQuantity);
+            
+            if (isEligible) {
+                // Áp dụng giảm giá
+                for (Book book : books) {
+                    if (eventApplicationService.isBookInEventTarget(event, book)) {
+                        Double originalPrice = book.getFinalPrice();
+                        Double discountedPrice = eventApplicationService.calculateDiscountedPrice(event, originalPrice);
+                        int qty = quantities.get(book.getId());
 
-            // Lọc các sản phẩm mà Event hướng đến và tính giá giảm
-            for (BillBookRequest bookRequest : request.getBooks()) {
-                Book book = bookRepository.findById(bookRequest.getBookId())
-                        .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-
-                // Kiểm tra xem book có nằm trong target của event không
-                if (eventApplicationService.isBookInEventTarget(event, book)) {
-                    // Tính giá sau khi áp dụng event
-                    Double originalPrice = book.getFinalPrice();
-                    Double discountedPrice = eventApplicationService.calculateDiscountedPrice(event, originalPrice);
-
-                    eventDiscountedPrices.put(book.getId(), discountedPrice);
-
-                    // Tính tổng giá trị giảm
-                    totalDiscountValue += (int)((originalPrice - discountedPrice) * bookRequest.getQuantity());
-
-                    appliedEvent = event;
+                        eventDiscountedPrices.put(book.getId(), discountedPrice);
+                        totalDiscountValue += (int)((originalPrice - discountedPrice) * qty);
+                        appliedEvent = event;
+                    }
                 }
             }
         }
 
-        // ========== TÍNH TỔNG GIÁ TRỊ ĐỚN HÀNG ==========
-        double booksCost = 0.0;
-        for (BillBookRequest bookRequest : request.getBooks()) {
-            Book book = bookRepository.findById(bookRequest.getBookId())
-                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-
-            // Kiểm tra tồn kho
-            if (book.getStock() < bookRequest.getQuantity()) {
-                throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
-            }
-
-            // Sử dụng giá đã giảm nếu có event, không thì dùng giá gốc
-            Double finalPrice = eventDiscountedPrices.getOrDefault(book.getId(), book.getFinalPrice());
-            booksCost += finalPrice * bookRequest.getQuantity();
+        // 3. Tính lại tổng tiền sau khi có (hoặc không) giảm giá
+        double finalBooksCost = 0.0;
+        for (Book book : books) {
+            Double price = eventDiscountedPrices.getOrDefault(book.getId(), book.getFinalPrice());
+            finalBooksCost += price * quantities.get(book.getId());
         }
 
-        double totalCost = booksCost + shippingMethod.getPrice();
+        double totalCost = finalBooksCost + shippingMethod.getPrice();
 
-        // ========== TẠO BILL ==========
+        // 4. Lưu Bill
         Bill bill = Bill.builder()
                 .user(user)
                 .paymentMethod(paymentMethod)
@@ -140,29 +147,26 @@ public class BillService {
 
         Bill savedBill = billRepository.save(bill);
 
-        // ========== TẠO BILL BOOKS VÀ CẬP NHẬT TỒN KHO ==========
-        for (BillBookRequest bookRequest : request.getBooks()) {
-            Book book = bookRepository.findById(bookRequest.getBookId())
-                    .orElseThrow(() -> new AppException(ErrorCode.BOOK_NOT_FOUND));
-
-            // Lưu giá đã áp dụng event (nếu có)
+        // 5. Lưu BillBooks
+        for (Book book : books) {
             Double priceToSave = eventDiscountedPrices.getOrDefault(book.getId(), book.getFinalPrice());
+            int qty = quantities.get(book.getId());
 
             BillBook billBook = BillBook.builder()
                     .bill(savedBill)
                     .book(book)
                     .priceSnapshot(priceToSave)
-                    .quantity(bookRequest.getQuantity())
+                    .quantity(qty)
                     .build();
 
             billBookRepository.save(billBook);
 
-            // Cập nhật tồn kho
-            book.setStock(book.getStock() - bookRequest.getQuantity());
+            // Giảm tồn kho
+            book.setStock(book.getStock() - qty);
             bookRepository.save(book);
         }
 
-        // ========== LƯU EVENT LOG ==========
+        // 6. Lưu Log
         if (appliedEvent != null) {
             eventApplicationService.logEventApplication(appliedEvent, user, savedBill, totalDiscountValue);
         }
@@ -189,7 +193,6 @@ public class BillService {
             bill.setApprovedAt(LocalDateTime.now());
         }
 
-        // Nếu hủy đơn, hoàn lại tồn kho
         if (newStatus == BillStatus.CANCELED) {
             for (BillBook billBook : bill.getBillBooks()) {
                 try {
@@ -201,7 +204,6 @@ public class BillService {
                         });
                     }
                 } catch (Exception e) {
-                    // Book không tồn tại, bỏ qua
                 }
             }
         }
@@ -219,7 +221,6 @@ public class BillService {
             throw new RuntimeException("Can only delete pending or cancelled bills");
         }
 
-        // Hoàn lại tồn kho nếu bill đang PENDING
         if (bill.getStatus() == BillStatus.PENDING) {
             for (BillBook billBook : bill.getBillBooks()) {
                 try {
@@ -231,7 +232,6 @@ public class BillService {
                         });
                     }
                 } catch (Exception e) {
-                    // Book không tồn tại, bỏ qua
                 }
             }
         }

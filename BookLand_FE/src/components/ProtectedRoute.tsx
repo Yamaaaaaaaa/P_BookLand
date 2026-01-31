@@ -2,12 +2,12 @@ import { Navigate, Outlet } from 'react-router-dom';
 
 interface ProtectedRouteProps {
     children?: React.ReactNode;
-    isAuthenticated: boolean;
+    checkAuth: () => boolean;
     redirectPath: string;
 }
 
-const ProtectedRoute = ({ children, isAuthenticated, redirectPath }: ProtectedRouteProps) => {
-    if (!isAuthenticated) {
+const ProtectedRoute = ({ children, checkAuth, redirectPath }: ProtectedRouteProps) => {
+    if (!checkAuth()) {
         return <Navigate to={redirectPath} replace />;
     }
 

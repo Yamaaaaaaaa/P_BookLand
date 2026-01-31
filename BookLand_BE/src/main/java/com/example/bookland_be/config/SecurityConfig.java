@@ -28,6 +28,7 @@ public class SecurityConfig {
             "/auth/logout",
             "/auth/register",
             "/auth/login",
+            "/auth/admin/login",
             "/auth/logout-keycloak",
             "/home"};
 

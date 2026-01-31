@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Mail, Lock, Shield, ArrowRight } from 'lucide-react';
-import { mockAdminLogin } from '../../../utils/auth';
+import { setAdminToken, setAdminRefreshToken } from '../../../utils/auth';
+import authService from '../../../api/authService';
 import '../../../styles/pages/auth.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/components/buttons.css';
@@ -17,10 +18,16 @@ const AdminLoginPage = () => {
         setError('');
 
         try {
-            await mockAdminLogin(email, password);
+            const response = await authService.adminLogin({ email, password });
+            const { accessToken, refreshToken } = response.result;
+
+            setAdminToken(accessToken);
+            setAdminRefreshToken(refreshToken);
+
             navigate('/admin/dashboard');
         } catch (err) {
-            setError('Login failed. Please try again.');
+            console.error("Login Error:", err);
+            setError('Login failed. Please check your credentials.');
         }
     };
 

@@ -1,10 +1,16 @@
 import axiosClient from './axiosClient';
 import type { ApiResponse } from '../types/api';
-import type { AuthenticationResponse, LoginRequest, LoginResponse, RefreshRequest, LogoutRequest } from '../types/Auth';
+import type { AuthenticationResponse, LoginRequest, LoginResponse, RefreshRequest, LogoutRequest, RegisterRequest } from '../types/Auth';
 
 const authService = {
     login: (data: LoginRequest) => {
         return axiosClient.post<any, ApiResponse<LoginResponse>>('/auth/login', data);
+    },
+    adminLogin: (data: LoginRequest) => {
+        return axiosClient.post<any, ApiResponse<LoginResponse>>('/auth/admin/login', data);
+    },
+    register: (data: RegisterRequest) => {
+        return axiosClient.post<any, ApiResponse<void>>('/auth/register', data);
     },
     logout: (data: LogoutRequest) => {
         return axiosClient.post<any, ApiResponse<void>>('/auth/logout', data);

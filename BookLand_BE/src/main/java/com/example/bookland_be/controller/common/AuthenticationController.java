@@ -26,7 +26,7 @@ public class AuthenticationController {
     // API Lấy Token mới bằng RefreshToken
     @PostMapping("/refresh")
     public ApiResponse<AuthenticationResponse> getNewAccessTokenByRefreshToken(@RequestBody RefreshRequest refreshRequest) throws ParseException, JOSEException {
-        var result = authenticationService.refreshToken(refreshRequest);
+        var result = authenticationService.getTokenByRefresh(refreshRequest);
         return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
 
@@ -34,6 +34,18 @@ public class AuthenticationController {
     public ApiResponse<LoginResponse> login(@RequestBody LoginRequest request) throws JOSEException, ParseException {
         var result = authenticationService.login(request);
         return ApiResponse.<LoginResponse>builder().result(result).build();
+    }
+
+    @PostMapping("/admin/login")
+    public ApiResponse<LoginResponse> adminlogin(@RequestBody LoginRequest request) throws JOSEException, ParseException {
+        var result = authenticationService.adminlogin(request);
+        return ApiResponse.<LoginResponse>builder().result(result).build();
+    }
+
+    @PostMapping("/register")
+    public ApiResponse<UserResponse> register(@RequestBody RegisterRequest request) throws JOSEException, ParseException {
+        var result = authenticationService.register(request);
+        return ApiResponse.<UserResponse>builder().result(result).build();
     }
 
     @PostMapping("/logout")

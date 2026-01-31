@@ -1,5 +1,6 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
-import { logoutAdmin } from '../utils/auth';
+import { logoutAdmin, getAdminRefreshToken } from '../utils/auth';
+import authService from '../api/authService';
 import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt, ImageIcon } from 'lucide-react';
 import '../styles/layouts/admin.css';
 
@@ -7,7 +8,15 @@ const AdminLayout = () => {
     const navigate = useNavigate();
     const location = useLocation();
 
-    const handleLogout = () => {
+    const handleLogout = async () => {
+        const refreshToken = getAdminRefreshToken();
+        if (refreshToken) {
+            try {
+                await authService.logout({ token: refreshToken });
+            } catch (error) {
+                console.error("Logout failed", error);
+            }
+        }
         logoutAdmin();
         navigate('/admin/login');
     };

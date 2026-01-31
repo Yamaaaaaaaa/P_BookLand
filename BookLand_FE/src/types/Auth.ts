@@ -22,3 +22,9 @@ export interface AuthenticationResponse {
 export interface LogoutRequest {
     token: string;
 }
+
+export interface RegisterRequest {
+    username: string;
+    email: string;
+    password?: string;
+}

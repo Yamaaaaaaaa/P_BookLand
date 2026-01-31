@@ -45,12 +45,12 @@ function App() {
         {/* Public Routes */}
         <Route path="login" element={<LoginPage />} />
         <Route path="register" element={<RegisterPage />} />
+        <Route path="home" element={<HomePage />} />
+        <Route path="books" element={<BooksPage />} />
+        <Route path="book-detail/:id" element={<BookDetailPage />} />
 
         {/* Protected Customer Routes */}
-        <Route element={<ProtectedRoute isAuthenticated={isCustomerAuthenticated()} redirectPath="/shop/login" />}>
-          <Route path="home" element={<HomePage />} />
-          <Route path="books" element={<BooksPage />} />
-          <Route path="book-detail/:id" element={<BookDetailPage />} />
+        <Route element={<ProtectedRoute checkAuth={isCustomerAuthenticated} redirectPath="/shop/login" />}>
           <Route path="cart" element={<CartPage />} />
           <Route path="wishlist" element={<WishList />} />
           <Route path="checkout" element={<CheckoutPage />} />
@@ -65,7 +65,7 @@ function App() {
         <Route path="login" element={<AdminLoginPage />} />
 
         {/* Protected Admin Routes */}
-        <Route element={<ProtectedRoute isAuthenticated={isAdminAuthenticated()} redirectPath="/admin/login" />}>
+        <Route element={<ProtectedRoute checkAuth={isAdminAuthenticated} redirectPath="/admin/login" />}>
           <Route element={<AdminLayout />}>
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="manage-user" element={<ManageUserPage />} />

@@ -7,9 +7,10 @@ import { mainNavLinks } from '../data/mockNavigation';
 interface HeaderProps {
     onLogout: () => void;
     cartItemCount?: number;
+    isAuthenticated: boolean;
 }
 
-const Header = ({ onLogout, cartItemCount = 3 }: HeaderProps) => {
+const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) => {
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
     const toggleMobileMenu = () => {
@@ -58,9 +59,15 @@ const Header = ({ onLogout, cartItemCount = 3 }: HeaderProps) => {
                         <Link to="/shop/profile" className="shop-header__icon-btn" aria-label="Account">
                             <User size={20} />
                         </Link>
-                        <button onClick={onLogout} className="shop-header__logout-btn">
-                            Logout
-                        </button>
+                        {isAuthenticated ? (
+                            <button onClick={onLogout} className="shop-header__logout-btn">
+                                Logout
+                            </button>
+                        ) : (
+                            <Link to="/shop/login" className="shop-header__logout-btn">
+                                Login
+                            </Link>
+                        )}
                     </div>
 
                     {/* Mobile Menu Button */}

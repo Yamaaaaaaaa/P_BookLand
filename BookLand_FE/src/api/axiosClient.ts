@@ -9,12 +9,49 @@ const axiosClient = axios.create({
 
 // Request Interceptor
 axiosClient.interceptors.request.use(
-    (config) => {
+    async (config) => {
         // Determine if we are in admin area or shop area to use appropriate token
-        // This is a simple check based on URL, adjust if route structure differs
         const isAdminCallback = window.location.pathname.startsWith('/admin');
         const tokenKey = isAdminCallback ? 'adminToken' : 'customerToken';
-        const token = localStorage.getItem(tokenKey);
+        let token = localStorage.getItem(tokenKey);
+
+        // Auto Refresh Token for Customer (Shop)
+        if (!isAdminCallback && token) {
+            try {
+                const { jwtDecode } = await import('jwt-decode');
+                const decoded: any = jwtDecode(token);
+                const now = Date.now() / 1000;
+                
+                // If token is about to expire (less than 5 minutes)
+                if (decoded.exp && decoded.exp - now < 300) {
+                     const refreshToken = localStorage.getItem('customerRefreshToken');
+                     if (refreshToken) {
+                         try {
+                            // Call refresh API directly to avoid circular dependency with authService
+                             const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {
+                                 token: refreshToken
+                             });
+
+                             if (response.data && response.data.result) {
+                                 const { accessToken, refreshToken: newRefreshToken } = response.data.result;
+                                 
+                                 localStorage.setItem('customerToken', accessToken);
+                                 localStorage.setItem('customerRefreshToken', newRefreshToken);
+                                 token = accessToken; // Use new token for this request
+                             }
+                         } catch (refreshError) {
+                             console.error('Failed to refresh token', refreshError);
+                             // Optionally logout or clear tokens
+                             // localStorage.removeItem('customerToken');
+                             // localStorage.removeItem('customerRefreshToken');
+                             // window.location.href = '/login';
+                         }
+                     }
+                }
+            } catch (error) {
+                console.error('Error decoding token or refreshing', error);
+            }
+        }
 
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;

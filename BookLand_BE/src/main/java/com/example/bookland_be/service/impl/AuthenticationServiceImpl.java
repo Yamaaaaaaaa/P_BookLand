@@ -4,12 +4,15 @@ import com.example.bookland_be.dto.request.*;
 import com.example.bookland_be.dto.response.AuthenticationResponse;
 import com.example.bookland_be.dto.response.IntrospectResponse;
 import com.example.bookland_be.dto.response.LoginResponse;
+import com.example.bookland_be.dto.response.UserResponse;
 import com.example.bookland_be.entity.InvalidatedToken;
+import com.example.bookland_be.entity.Role;
 import com.example.bookland_be.entity.User;
 import com.example.bookland_be.exception.AppException;
 import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.mapper.UserMapper;
 import com.example.bookland_be.repository.InvalidatedTokenRepository;
+import com.example.bookland_be.repository.RoleRepository;
 import com.example.bookland_be.repository.UserRepository;
 import com.example.bookland_be.service.AuthenticationService;
 import com.nimbusds.jose.*;
@@ -27,15 +30,13 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import java.text.ParseException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.Objects;
-import java.util.StringJoiner;
-import java.util.UUID;
+import java.util.*;
 
 enum TokenType {
     ACCESS,
@@ -49,6 +50,9 @@ enum TokenType {
 public class AuthenticationServiceImpl implements AuthenticationService {
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
 
     @Autowired
     InvalidatedTokenRepository invalidatedTokenRepository;
@@ -90,6 +94,36 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 .build();
     }
 
+    @Override
+    public LoginResponse adminlogin(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+        System.out.println("role: "+ user.getRoles());
+        // Kiểm tra xem user có role ADMIN không
+        boolean isAdmin = user.getRoles().stream()
+                .anyMatch(role -> "ADMIN".equals(role.getName()));
+
+        if (!isAdmin) {
+            throw new AppException(ErrorCode.UNAUTHORIZED);
+        }
+
+        String accessToken = generateToken(user, TokenType.ACCESS);
+        String refreshToken = generateToken(user, TokenType.REFRESH);
+
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .expiresIn((int) VALID_DURATION)
+                .tokenType("Bearer")
+                .build();
+    }
+
+
+
     // --- Service trả lại AccessToken cho người dùng nhờ Refresh Token
         // Hướng làm 1:
         // Bên Client phải check nếu AccessToken gần hết hạn thì gửi 1 API (/refresh) để lấy Access mới
@@ -126,6 +160,30 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         } catch (AppException exception) {
             log.info("Token already expired");
         }
+    }
+
+    @Override
+    @Transactional
+    public UserResponse register(RegisterRequest request) {
+        if (userRepository.existsByUsername(request.getUsername())) {
+            throw new AppException(ErrorCode.USER_EXISTED);
+        }
+        if (userRepository.existsByEmail(request.getEmail())) {
+            throw new AppException(ErrorCode.EMAIL_EXISTED);
+        }
+
+        Role userRole = roleRepository.findByName("USER");
+
+        User user = User.builder()
+                .username(request.getUsername())
+                .email(request.getEmail())
+                .password(passwordEncoder.encode(request.getPassword()))
+                .status(User.UserStatus.ENABLE)
+                .roles(Set.of(userRole))  // Thêm role USER mặc định
+                .build();
+
+        User savedUser = userRepository.save(user);
+        return UserResponse.fromEntity(savedUser);
     }
 
 

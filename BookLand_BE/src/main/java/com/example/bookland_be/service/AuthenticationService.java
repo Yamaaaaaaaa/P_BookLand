@@ -10,9 +10,17 @@ import com.nimbusds.jose.JOSEException;
 import java.text.ParseException;
 
 public interface AuthenticationService {
-    public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException ;
-    public LoginResponse login(LoginRequest request) throws JOSEException, ParseException ;
-    public AuthenticationResponse getTokenByRefresh(RefreshRequest refreshRequest) throws ParseException, JOSEException ;
+    public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException;
+
+    public LoginResponse login(LoginRequest request) throws JOSEException, ParseException;
+
+    public LoginResponse adminlogin(LoginRequest request) throws JOSEException, ParseException;
+
+    public AuthenticationResponse getTokenByRefresh(RefreshRequest refreshRequest) throws ParseException, JOSEException;
+
     public void logout(LogoutRequest logoutRequest) throws JOSEException, ParseException;
-    public AuthenticationResponse refreshToken(RefreshRequest refreshRequest)  throws JOSEException, ParseException;
+
+    public AuthenticationResponse refreshToken(RefreshRequest refreshRequest) throws JOSEException, ParseException;
+
+    public UserResponse register(RegisterRequest request);
 }

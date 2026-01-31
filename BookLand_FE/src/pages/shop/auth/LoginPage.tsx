@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, BookOpen, ArrowRight } from 'lucide-react';
-import { mockCustomerLogin } from '../../../utils/auth';
+import { setCustomerToken, setCustomerRefreshToken } from '../../../utils/auth';
+import authService from '../../../api/authService';
 import '../../../styles/pages/auth.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/components/buttons.css';
@@ -17,10 +18,15 @@ const LoginPage = () => {
         setError('');
 
         try {
-            await mockCustomerLogin(email, password);
-            navigate('/shop/home');
+            const response = await authService.login({ email, password });
+            if (response.result) {
+                setCustomerToken(response.result.accessToken);
+                setCustomerRefreshToken(response.result.refreshToken);
+                navigate('/shop/home');
+            }
         } catch (err) {
-            setError('Login failed. Please try again.');
+            console.error(err);
+            setError('Login failed. Please check your credentials.');
         }
     };
 

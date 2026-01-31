@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Mail, Lock, BookOpen, ArrowRight, User } from 'lucide-react';
-import { mockCustomerLogin } from '../../../utils/auth';
+import authService from '../../../api/authService';
 import '../../../styles/pages/auth.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/components/buttons.css';
 
 const RegisterPage = () => {
-    const [name, setName] = useState('');
+    const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -24,10 +24,15 @@ const RegisterPage = () => {
         }
 
         try {
-            // Mock registration - in real app, call registration API first
-            await mockCustomerLogin(email, password);
-            navigate('/shop/home');
+            await authService.register({
+                username,
+                email,
+                password
+            });
+            // Redirect to login on success
+            navigate('/shop/login');
         } catch (err) {
+            console.error(err);
             setError('Registration failed. Please try again.');
         }
     };
@@ -56,14 +61,14 @@ const RegisterPage = () => {
                             <div className="form-group">
                                 <label className="form-group__label">
                                     <User size={18} />
-                                    Full Name
+                                    Username
                                 </label>
                                 <input
                                     type="text"
                                     className="form-group__input"
-                                    placeholder="Enter your full name"
-                                    value={name}
-                                    onChange={(e) => setName(e.target.value)}
+                                    placeholder="johndoe123"
+                                    value={username}
+                                    onChange={(e) => setUsername(e.target.value)}
                                     required
                                 />
                             </div>
@@ -76,7 +81,7 @@ const RegisterPage = () => {
                                 <input
                                     type="email"
                                     className="form-group__input"
-                                    placeholder="Enter your email"
+                                    placeholder="john@example.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required

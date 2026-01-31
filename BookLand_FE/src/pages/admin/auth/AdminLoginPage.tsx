@@ -25,8 +25,8 @@ const AdminLoginPage = () => {
             setAdminRefreshToken(refreshToken);
 
             navigate('/admin/dashboard');
-        } catch (err) {
-            console.error("Login Error:", err);
+        } catch (err: any) {
+            console.error(err);
             setError('Login failed. Please check your credentials.');
         }
     };

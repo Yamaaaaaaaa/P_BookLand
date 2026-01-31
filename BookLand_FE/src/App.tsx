@@ -34,73 +34,79 @@ import EventPage from './pages/admin/manage-business/EventPage';
 import EventFormPage from './pages/admin/manage-business/EventFormPage';
 import Gallery from './pages/admin/Gallery';
 
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
 function App() {
   return (
-    <Routes>
-      {/* Defaults redirect to Shop Home */}
-      <Route path="/" element={<Navigate to="/shop/home" replace />} />
+    <>
+      <ToastContainer position="top-right" autoClose={3000} />
+      <Routes>
+        {/* Defaults redirect to Shop Home */}
+        <Route path="/" element={<Navigate to="/shop/home" replace />} />
 
-      {/* SHOP ROUTES */}
-      <Route path="/shop" element={<ShopLayout />}>
-        {/* Public Routes */}
-        <Route path="login" element={<LoginPage />} />
-        <Route path="register" element={<RegisterPage />} />
-        <Route path="home" element={<HomePage />} />
-        <Route path="books" element={<BooksPage />} />
-        <Route path="book-detail/:id" element={<BookDetailPage />} />
+        {/* SHOP ROUTES */}
+        <Route path="/shop" element={<ShopLayout />}>
+          {/* Public Routes */}
+          <Route path="login" element={<LoginPage />} />
+          <Route path="register" element={<RegisterPage />} />
+          <Route path="home" element={<HomePage />} />
+          <Route path="books" element={<BooksPage />} />
+          <Route path="book-detail/:id" element={<BookDetailPage />} />
 
-        {/* Protected Customer Routes */}
-        <Route element={<ProtectedRoute checkAuth={isCustomerAuthenticated} redirectPath="/shop/login" />}>
-          <Route path="cart" element={<CartPage />} />
-          <Route path="wishlist" element={<WishList />} />
-          <Route path="checkout" element={<CheckoutPage />} />
-          <Route path="profile" element={<ProfilePage />} />
+          {/* Protected Customer Routes */}
+          <Route element={<ProtectedRoute checkAuth={isCustomerAuthenticated} redirectPath="/shop/login" />}>
+            <Route path="cart" element={<CartPage />} />
+            <Route path="wishlist" element={<WishList />} />
+            <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="profile" element={<ProfilePage />} />
+          </Route>
         </Route>
-      </Route>
 
-      {/* ADMIN ROUTES */}
-      <Route path="/admin" >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        {/* Public Admin Routes */}
-        <Route path="login" element={<AdminLoginPage />} />
+        {/* ADMIN ROUTES */}
+        <Route path="/admin" >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          {/* Public Admin Routes */}
+          <Route path="login" element={<AdminLoginPage />} />
 
-        {/* Protected Admin Routes */}
-        <Route element={<ProtectedRoute checkAuth={isAdminAuthenticated} redirectPath="/admin/login" />}>
-          <Route element={<AdminLayout />}>
-            <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="manage-user" element={<ManageUserPage />} />
-            <Route path="gallery" element={<Gallery />} />
+          {/* Protected Admin Routes */}
+          <Route element={<ProtectedRoute checkAuth={isAdminAuthenticated} redirectPath="/admin/login" />}>
+            <Route element={<AdminLayout />}>
+              <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="manage-user" element={<ManageUserPage />} />
+              <Route path="gallery" element={<Gallery />} />
 
-            {/* Manage Business */}
-            <Route path="manage-business">
-              <Route path="bills" element={<AllBillsPage />} />
-              <Route path="bill-detail/:id" element={<BillDetailPage />} />
+              {/* Manage Business */}
+              <Route path="manage-business">
+                <Route path="bills" element={<AllBillsPage />} />
+                <Route path="bill-detail/:id" element={<BillDetailPage />} />
 
-              <Route path="payment" element={<Navigate to="payment-method" replace />} />
-              <Route path="payment-method" element={<PaymentMethodPage />} />
+                <Route path="payment" element={<Navigate to="payment-method" replace />} />
+                <Route path="payment-method" element={<PaymentMethodPage />} />
 
-              <Route path="shipping" element={<Navigate to="shipping-method" replace />} />
-              <Route path="shipping-method" element={<ShippingMethodPage />} />
+                <Route path="shipping" element={<Navigate to="shipping-method" replace />} />
+                <Route path="shipping-method" element={<ShippingMethodPage />} />
 
-              <Route path="event" element={<EventPage />} />
-              <Route path="event/:id" element={<EventFormPage />} />
-            </Route>
+                <Route path="event" element={<EventPage />} />
+                <Route path="event/:id" element={<EventFormPage />} />
+              </Route>
 
-            {/* Manage Information */}
-            <Route path="manage-information">
-              <Route path="book" element={<BookManagementPage />} />
-              <Route path="category" element={<CategoryPage />} />
-              <Route path="author" element={<AuthorPage />} />
-              <Route path="serie" element={<SeriePage />} />
-              <Route path="book-detail/:id" element={<AdminBookDetailPage />} />
+              {/* Manage Information */}
+              <Route path="manage-information">
+                <Route path="book" element={<BookManagementPage />} />
+                <Route path="category" element={<CategoryPage />} />
+                <Route path="author" element={<AuthorPage />} />
+                <Route path="serie" element={<SeriePage />} />
+                <Route path="book-detail/:id" element={<AdminBookDetailPage />} />
+              </Route>
             </Route>
           </Route>
         </Route>
-      </Route>
 
-      {/* 404 - Redirect to home */}
-      <Route path="*" element={<Navigate to="/shop/home" replace />} />
-    </Routes>
+        {/* 404 - Redirect to home */}
+        <Route path="*" element={<Navigate to="/shop/home" replace />} />
+      </Routes>
+    </>
   );
 }
 

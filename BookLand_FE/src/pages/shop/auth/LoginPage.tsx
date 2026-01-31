@@ -24,7 +24,7 @@ const LoginPage = () => {
                 setCustomerRefreshToken(response.result.refreshToken);
                 navigate('/shop/home');
             }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
             setError('Login failed. Please check your credentials.');
         }

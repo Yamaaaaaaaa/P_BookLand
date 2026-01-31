@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, Long> {
+public interface PaymentMethodRepository extends JpaRepository<PaymentMethod, Long>, org.springframework.data.jpa.repository.JpaSpecificationExecutor<PaymentMethod> {
 
     Optional<PaymentMethod> findByProviderCode(String providerCode);
 

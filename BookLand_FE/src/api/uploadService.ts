@@ -1,8 +1,8 @@
 import axiosClient from './axiosClient';
 
 const uploadService = {
-    getAllImages: () => {
-        return axiosClient.get<any, any>('/api/uploads/images');
+    getAllImages: (params?: { page?: number; size?: number; sortBy?: string; sortDirection?: string }) => {
+        return axiosClient.get<any, any>('/api/uploads/images', { params });
     },
     uploadImage: (file: File) => {
         const formData = new FormData();
@@ -22,6 +22,11 @@ const uploadService = {
             headers: {
                 'Content-Type': 'multipart/form-data',
             },
+        });
+    },
+    deleteImage: (fileName: string) => {
+        return axiosClient.delete<any, any>('/api/uploads/image', {
+            params: { fileName }
         });
     },
 };

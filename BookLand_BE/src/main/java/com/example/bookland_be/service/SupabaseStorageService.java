@@ -1,12 +1,17 @@
 package com.example.bookland_be.service;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -56,9 +61,9 @@ public class SupabaseStorageService {
 
 
     /**
-     * Lấy danh sách toàn bộ ảnh trong bucket
+     * Lấy danh sách ảnh trong bucket có phân trang
      */
-    public List<Map<String, Object>> listImages() {
+    public Page<Map<String, Object>> listImages(Pageable pageable) {
 
         String listUrl = supabaseUrl
                 + "/storage/v1/object/list/"
@@ -68,10 +73,24 @@ public class SupabaseStorageService {
         headers.setBearerAuth(serviceKey);
         headers.setContentType(MediaType.APPLICATION_JSON);
 
-        // Supabase BẮT BUỘC: Body + Prefix trong Body
-        Map<String, Object> body = Map.of(
-                "prefix", ""
-        );
+        Map<String, Object> body = new HashMap<>();
+        body.put("prefix", "");
+        body.put("limit", pageable.getPageSize());
+        body.put("offset", pageable.getOffset());
+
+        // Handle sorting
+        Map<String, Object> sortBy = new HashMap<>();
+        if (pageable.getSort().isSorted()) {
+            Sort.Order order = pageable.getSort().iterator().next();
+            sortBy.put("column", order.getProperty());
+            sortBy.put("order", order.getDirection().name().toLowerCase());
+        } else {
+             // Default sort by created_at desc if not specified
+             sortBy.put("column", "created_at");
+             sortBy.put("order", "desc");
+        }
+        body.put("sortBy", sortBy);
+
 
         HttpEntity<Map<String, Object>> request =
                 new HttpEntity<>(body, headers);
@@ -94,7 +113,36 @@ public class SupabaseStorageService {
                 file.put("publicUrl", publicUrl);
             });
         }
+        
+        // Estimate total elements: offset + current_page_size + (if full page, assume there is more)
+        long totalEstimate = pageable.getOffset() + (files != null ? files.size() : 0);
+        if (files != null && files.size() == pageable.getPageSize()) {
+             totalEstimate += 1; // Indicate there might be more
+        }
 
-        return files;
+
+        return new PageImpl<>(files != null ? files : List.of(), pageable, totalEstimate);
+    }
+    
+    public void deleteImage(String fileName) {
+        String deleteUrl = supabaseUrl
+                + "/storage/v1/object/"
+                + bucket + "/" + fileName;
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setBearerAuth(serviceKey);
+
+        HttpEntity<Void> request = new HttpEntity<>(headers);
+
+        try {
+            restTemplate.exchange(
+                    deleteUrl,
+                    HttpMethod.DELETE,
+                    request,
+                    String.class
+            );
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to delete image: " + e.getMessage());
+        }
     }
 }

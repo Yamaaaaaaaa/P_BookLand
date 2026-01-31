@@ -10,3 +10,10 @@ export interface PaymentMethod {
     bills?: Bill[];
     transactions?: PaymentTransaction[];
 }
+
+export interface PaymentMethodRequest {
+    name: string;
+    providerCode?: string;
+    isOnline: boolean;
+    description?: string;
+}

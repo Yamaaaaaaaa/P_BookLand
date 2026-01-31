@@ -78,6 +78,12 @@ public enum ErrorCode {
     // Role errors
     ROLE_NOT_FOUND(3101, "Role not found", HttpStatus.NOT_FOUND),
     SOME_ROLES_NOT_FOUND(3102, "Some roles not found", HttpStatus.NOT_FOUND),
+
+    // File errors (4000-4010)
+    FILE_UPLOAD_FAILED(4001, "File upload failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_DELETE_FAILED(4002, "File delete failed", HttpStatus.INTERNAL_SERVER_ERROR),
+    FILE_TOO_LARGE(4003, "File too large", HttpStatus.BAD_REQUEST),
+    FILE_INVALID_FORMAT(4004, "Invalid file format", HttpStatus.BAD_REQUEST),
     ;
 
 

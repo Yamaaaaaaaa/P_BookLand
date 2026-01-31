@@ -1,17 +1,22 @@
 package com.example.bookland_be.controller.common;
 
+import com.example.bookland_be.dto.response.ApiResponse;
+import com.example.bookland_be.exception.AppException;
+import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.service.SupabaseStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -42,28 +47,26 @@ public class UploadController {
     @GetMapping("/images")
     @Operation(
             summary = "Lấy danh sách ảnh đã upload",
-            description = "Trả về toàn bộ ảnh trong Supabase Storage bucket"
+            description = "Trả về toàn bộ ảnh trong Supabase Storage bucket (có phân trang)"
     )
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Lấy danh sách ảnh thành công"),
-            @ApiResponse(responseCode = "401", description = "Chưa đăng nhập"),
-            @ApiResponse(responseCode = "500", description = "Lỗi server")
-    })
-    public ResponseEntity<?> getAllImages() {
-
+    public ApiResponse<Page<Map<String, Object>>> getAllImages(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "created_at") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection
+    ) {
         try {
-            List<Map<String, Object>> images = storageService.listImages();
-            return ResponseEntity.ok(Map.of(
-                    "total", images.size(),
-                    "images", images
-            ));
+            Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC")
+                    ? Sort.Direction.ASC
+                    : Sort.Direction.DESC;
+            Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+            Page<Map<String, Object>> images = storageService.listImages(pageable);
+            return ApiResponse.<Page<Map<String, Object>>>builder()
+                    .result(images)
+                    .build();
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(
-                    Map.of(
-                            "error", "Không thể lấy danh sách ảnh",
-                            "message", e.getMessage()
-                    )
-            );
+             throw new RuntimeException(e.getMessage());
         }
     }
 
@@ -73,7 +76,7 @@ public class UploadController {
             description = "Upload một ảnh lên Supabase Storage. Hỗ trợ: JPG, JPEG, PNG, GIF, WEBP. Tối đa 5MB."
     )
     @ApiResponses(value = {
-            @ApiResponse(
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(
                     responseCode = "200",
                     description = "Upload thành công",
                     content = @Content(
@@ -81,11 +84,11 @@ public class UploadController {
                             schema = @Schema(example = "{\"url\": \"https://supabase.co/storage/v1/object/public/images/abc123.jpg\"}")
                     )
             ),
-            @ApiResponse(responseCode = "400", description = "File không hợp lệ"),
-            @ApiResponse(responseCode = "401", description = "Chưa đăng nhập"),
-            @ApiResponse(responseCode = "500", description = "Lỗi server")
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "File không hợp lệ"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Chưa đăng nhập"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "500", description = "Lỗi server")
     })
-    public ResponseEntity<?> uploadImage(
+    public ApiResponse<Map<String, Object>> uploadImage(
             @Parameter(
                     description = "File ảnh cần upload (JPG, PNG, GIF, WEBP - Max 5MB)",
                     required = true,
@@ -96,31 +99,18 @@ public class UploadController {
 
         // Validate file không null
         if (file == null || file.isEmpty()) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("error", "File không được để trống")
-            );
+             throw new AppException(ErrorCode.FILE_UPLOAD_FAILED);
         }
 
         // Validate loại file
         String contentType = file.getContentType();
         if (contentType == null || !ALLOWED_IMAGE_TYPES.contains(contentType.toLowerCase())) {
-            return ResponseEntity.badRequest().body(
-                    Map.of(
-                            "error", "Định dạng file không được hỗ trợ",
-                            "allowedTypes", ALLOWED_IMAGE_TYPES
-                    )
-            );
+             throw new AppException(ErrorCode.FILE_INVALID_FORMAT);
         }
 
         // Validate kích thước file
         if (file.getSize() > MAX_FILE_SIZE) {
-            return ResponseEntity.badRequest().body(
-                    Map.of(
-                            "error", "File quá lớn. Kích thước tối đa 5MB",
-                            "fileSize", file.getSize(),
-                            "maxSize", MAX_FILE_SIZE
-                    )
-            );
+             throw new AppException(ErrorCode.FILE_TOO_LARGE);
         }
 
         try {
@@ -132,15 +122,10 @@ public class UploadController {
             response.put("fileSize", file.getSize());
             response.put("contentType", file.getContentType());
 
-            return ResponseEntity.ok(response);
+            return ApiResponse.<Map<String, Object>>builder().result(response).build();
 
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(
-                    Map.of(
-                            "error", "Lỗi khi upload file",
-                            "message", e.getMessage()
-                    )
-            );
+             throw new AppException(ErrorCode.FILE_UPLOAD_FAILED);
         }
     }
 
@@ -149,21 +134,17 @@ public class UploadController {
             summary = "Upload nhiều ảnh cùng lúc",
             description = "Upload nhiều ảnh lên Supabase Storage. Tối đa 10 ảnh, mỗi ảnh max 5MB."
     )
-    public ResponseEntity<?> uploadMultipleImages(
+    public ApiResponse<Map<String, Object>> uploadMultipleImages(
             @Parameter(description = "Danh sách file ảnh (Max 10 files, mỗi file max 5MB)")
             @RequestParam("files") List<MultipartFile> files
     ) {
 
         if (files == null || files.isEmpty()) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("error", "Danh sách file không được để trống")
-            );
+             throw new AppException(ErrorCode.FILE_UPLOAD_FAILED);
         }
 
         if (files.size() > 10) {
-            return ResponseEntity.badRequest().body(
-                    Map.of("error", "Tối đa 10 ảnh mỗi lần upload")
-            );
+             throw new AppException(ErrorCode.FILE_UPLOAD_FAILED); // Or a specific error for too many files
         }
 
         try {
@@ -197,12 +178,21 @@ public class UploadController {
                     })
                     .toList();
 
-            return ResponseEntity.ok(Map.of("files", uploadedFiles));
+            return ApiResponse.<Map<String, Object>>builder().result(Map.of("files", uploadedFiles)).build();
 
         } catch (Exception e) {
-            return ResponseEntity.internalServerError().body(
-                    Map.of("error", "Lỗi khi upload files", "message", e.getMessage())
-            );
+             throw new AppException(ErrorCode.FILE_UPLOAD_FAILED);
+        }
+    }
+
+    @DeleteMapping("/image")
+    @Operation(summary = "Xóa ảnh khỏi Supabase Storage")
+    public ApiResponse<Void> deleteImage(@RequestParam String fileName) {
+        try {
+            storageService.deleteImage(fileName);
+            return ApiResponse.<Void>builder().build();
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.FILE_DELETE_FAILED);
         }
     }
 }

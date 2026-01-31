@@ -1,23 +1,37 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Save, Plus, Trash2 } from 'lucide-react';
-import { mockEvents } from '../../../data/mockEvents';
-import { mockPaymentMethods, mockCategories } from '../../../data/mockMasterData';
+import { ArrowLeft, Save, Plus, Trash2, Loader2, Upload, X } from 'lucide-react';
 import { EventStatus } from '../../../types/Event';
 import { EventType } from '../../../types/EventType';
 import { EventRuleType } from '../../../types/EventRuleType';
 import { EventTargetType } from '../../../types/EventTargetType';
 import { EventActionType } from '../../../types/EventActionType';
-import type { Event } from '../../../types/Event';
+import { ImageType } from '../../../types/EventImage';
+import type { EventRequest } from '../../../types/Event';
+import type { Category } from '../../../types/Category';
+import type { PaymentMethod } from '../../../types/PaymentMethod';
+import eventService from '../../../api/eventService';
+import categoryService from '../../../api/categoryService';
+import paymentMethodService from '../../../api/paymentMethodService';
+import uploadService from '../../../api/uploadService';
 import '../../../styles/components/forms.css';
 import '../../../styles/components/buttons.css';
+import { toast } from 'react-toastify';
 
 const EventFormPage = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const isNew = id === 'new';
 
-    const [formData, setFormData] = useState<Partial<Event>>({
+    const [isLoading, setIsLoading] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isUploading, setIsUploading] = useState(false);
+
+    // Dropdown options
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+
+    const [formData, setFormData] = useState<EventRequest>({
         name: '',
         description: '',
         type: EventType.SEASONAL_SALE,
@@ -27,38 +41,143 @@ const EventFormPage = () => {
         priority: 0,
         rules: [],
         actions: [],
-        targets: []
+        targets: [],
+        images: []
     });
 
     useEffect(() => {
+        const fetchOptions = async () => {
+            try {
+                const [catRes, pmRes] = await Promise.all([
+                    categoryService.getAll({ size: 100 }),
+                    paymentMethodService.getAll({ size: 100 })
+                ]);
+
+                if (catRes.result?.content) setCategories(catRes.result.content);
+                if (pmRes.result?.content) setPaymentMethods(pmRes.result.content);
+
+            } catch (error) {
+                console.error('Error fetching options:', error);
+                toast.error('Failed to load form options');
+            }
+        };
+        fetchOptions();
+    }, []);
+
+    useEffect(() => {
         if (!isNew && id) {
-            const event = mockEvents.find(e => e.id === parseInt(id));
-            if (event) {
-                // Convert typical ISO entries to local datetime-local input format if needed, 
-                // but simple string slicing usually works for YYYY-MM-DDTHH:mm
-                setFormData({
-                    ...event,
-                    startTime: event.startTime.slice(0, 16),
-                    endTime: event.endTime.slice(0, 16)
-                });
+            const fetchEvent = async () => {
+                setIsLoading(true);
+                try {
+                    const response = await eventService.getEventById(Number(id));
+                    if (response.result) {
+                        const event = response.result;
+                        setFormData({
+                            name: event.name,
+                            description: event.description,
+                            type: event.type,
+                            startTime: event.startTime.slice(0, 16),
+                            endTime: event.endTime.slice(0, 16),
+                            status: event.status,
+                            priority: event.priority,
+                            rules: event.rules?.map(({ id, event, ...rest }) => rest) || [],
+                            actions: event.actions?.map(({ id, event, ...rest }) => rest) || [],
+                            targets: event.targets?.map(({ id, event, ...rest }) => rest) || [],
+                            images: event.images?.map(({ id, event, ...rest }) => rest) || []
+                        });
+                    }
+                } catch (error) {
+                    console.error('Error fetching event:', error);
+                    toast.error('Failed to load event details');
+                    navigate('/admin/manage-business/event');
+                } finally {
+                    setIsLoading(false);
+                }
+            };
+            fetchEvent();
+        }
+    }, [id, isNew, navigate]);
+
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files.length > 0) {
+            setIsUploading(true);
+            try {
+                const file = e.target.files[0];
+                const response = await uploadService.uploadImage(file);
+                if (response.cloudStorageLocation || response.url) { // Assuming response structure
+                    const url = response.cloudStorageLocation || response.url || response; // Adjust based on actual upload response
+                    // Actually, let's assume it returns the URL string directly or inside a result object
+                    // Based on UploadService: return axiosClient.post(...)
+                    // And usually our API returns ApiResponse<string> for URL? Or object? 
+                    // Let's assume it's `response.result` if it follows standard wrapped response, or just `response` if pure.
+                    // Checking `uploadService.ts`: it returns `any`.
+
+                    const imageUrl = typeof response === 'string' ? response : (response.result || response.url || URL.createObjectURL(file));
+
+                    setFormData(prev => ({
+                        ...prev,
+                        images: [...(prev.images || []), { imageUrl: imageUrl, imageType: ImageType.SUB }]
+                    }));
+                    toast.success('Image uploaded successfully');
+                }
+            } catch (error) {
+                console.error('Upload failed:', error);
+                toast.error('Failed to upload image');
+            } finally {
+                setIsUploading(false);
+                // Reset input
+                e.target.value = '';
             }
         }
-    }, [id, isNew]);
+    };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Saved Event:', formData);
-        alert('Event saved successfully!');
-        navigate('/admin/manage-business/event');
+
+        if (!formData.name || !formData.startTime || !formData.endTime) {
+            toast.error('Please fill in all required fields');
+            return;
+        }
+
+        setIsSaving(true);
+        try {
+            const submitData = {
+                ...formData,
+                startTime: new Date(formData.startTime).toISOString(),
+                endTime: new Date(formData.endTime).toISOString()
+            };
+
+            if (isNew) {
+                await eventService.createEvent(submitData);
+                toast.success('Event created successfully');
+            } else {
+                await eventService.updateEvent(Number(id), submitData);
+                toast.success('Event updated successfully');
+            }
+            navigate('/admin/manage-business/event');
+        } catch (error) {
+            console.error('Error saving event:', error);
+            toast.error('Failed to save event');
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: name === 'priority' ? parseInt(value) : value
+            [name]: name === 'priority' ? Number(value) : value
         }));
     };
+
+    if (isLoading) {
+        return (
+            <div className="admin-container" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+                <Loader2 className="animate-spin" size={48} />
+            </div>
+        );
+    }
 
     return (
         <div className="admin-container">
@@ -76,7 +195,7 @@ const EventFormPage = () => {
             <div className="admin-content-card">
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label className="form-label">Event Name</label>
+                        <label className="form-label">Event Name *</label>
                         <input
                             type="text"
                             name="name"
@@ -119,7 +238,7 @@ const EventFormPage = () => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label className="form-label">Start Time</label>
+                            <label className="form-label">Start Time *</label>
                             <input
                                 type="datetime-local"
                                 name="startTime"
@@ -131,7 +250,7 @@ const EventFormPage = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">End Time</label>
+                            <label className="form-label">End Time *</label>
                             <input
                                 type="datetime-local"
                                 name="endTime"
@@ -166,14 +285,109 @@ const EventFormPage = () => {
                         />
                     </div>
 
+                    {/* Images Section */}
+                    <div className="form-section">
+                        <div className="section-header">
+                            <h3 className="section-title">Event Images</h3>
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <label className="btn-secondary" style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    {isUploading ? <Loader2 className="animate-spin" size={16} /> : <Upload size={16} />}
+                                    Upload Image
+                                    <input
+                                        type="file"
+                                        accept="image/*"
+                                        hidden
+                                        onChange={handleImageUpload}
+                                        disabled={isUploading}
+                                    />
+                                </label>
+                                <button type="button" className="btn-secondary" onClick={() => {
+                                    setFormData(prev => ({
+                                        ...prev,
+                                        images: [...(prev.images || []), { imageUrl: '', imageType: ImageType.SUB }]
+                                    }));
+                                }}>
+                                    <Plus size={16} /> Add URL
+                                </button>
+                            </div>
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginTop: '1rem' }}>
+                            {formData.images?.map((img, index) => (
+                                <div key={index} style={{
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '8px',
+                                    padding: '1rem',
+                                    width: '250px',
+                                    position: 'relative',
+                                    backgroundColor: '#fff'
+                                }}>
+                                    <button
+                                        type="button"
+                                        className="btn-icon delete"
+                                        style={{ position: 'absolute', top: '0.5rem', right: '0.5rem' }}
+                                        onClick={() => {
+                                            const newImages = formData.images?.filter((_, i) => i !== index);
+                                            setFormData(prev => ({ ...prev, images: newImages }));
+                                        }}
+                                    >
+                                        <X size={16} />
+                                    </button>
+
+                                    <div style={{ aspectRatio: '16/9', backgroundColor: '#f3f4f6', marginBottom: '0.5rem', borderRadius: '4px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                        {img.imageUrl ? (
+                                            <img src={img.imageUrl} alt="Event" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                        ) : (
+                                            <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>No Image</span>
+                                        )}
+                                    </div>
+
+                                    <div className="form-group" style={{ marginBottom: '0.5rem' }}>
+                                        <label className="form-label" style={{ fontSize: '0.8rem' }}>URL</label>
+                                        <input
+                                            type="text"
+                                            className="form-input"
+                                            value={img.imageUrl}
+                                            onChange={(e) => {
+                                                const newImages = [...(formData.images || [])];
+                                                newImages[index].imageUrl = e.target.value;
+                                                setFormData(prev => ({ ...prev, images: newImages }));
+                                            }}
+                                            style={{ fontSize: '0.85rem', padding: '0.4rem' }}
+                                        />
+                                    </div>
+
+                                    <div className="form-group" style={{ marginBottom: 0 }}>
+                                        <label className="form-label" style={{ fontSize: '0.8rem' }}>Type</label>
+                                        <select
+                                            className="form-select"
+                                            value={img.imageType}
+                                            onChange={(e) => {
+                                                const newImages = [...(formData.images || [])];
+                                                newImages[index].imageType = e.target.value as any;
+                                                setFormData(prev => ({ ...prev, images: newImages }));
+                                            }}
+                                            style={{ fontSize: '0.85rem', padding: '0.4rem' }}
+                                        >
+                                            {Object.values(ImageType).map(type => (
+                                                <option key={type} value={type}>{type}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
                     {/* Rules Section */}
+                    {/* ... (Previous Rules Section Code remains but I need to include it or rewrite it. I'll include the whole file to be safe) ... */}
+                    {/* REUSING PREVIOUS LOGIC FOR RULES */}
                     <div className="form-section">
                         <div className="section-header">
                             <h3 className="section-title">Event Rules</h3>
                             <button type="button" className="btn-secondary" onClick={() => {
                                 setFormData(prev => ({
                                     ...prev,
-                                    rules: [...(prev.rules || []), { id: Date.now(), ruleType: 'MIN_ORDER_VALUE', ruleValue: '', event: {} as any }]
+                                    rules: [...(prev.rules || []), { ruleType: EventRuleType.MIN_ORDER_VALUE, ruleValue: '' }]
                                 }));
                             }}>
                                 <Plus size={16} /> Add Rule
@@ -279,7 +493,7 @@ const EventFormPage = () => {
                                                     onChange={(e) => handleValueChange(e.target.value)}
                                                 >
                                                     <option value="">Select Payment Method...</option>
-                                                    {mockPaymentMethods.map(pm => (
+                                                    {paymentMethods.map(pm => (
                                                         <option key={pm.id} value={pm.name}>{pm.name}</option>
                                                     ))}
                                                 </select>
@@ -295,8 +509,8 @@ const EventFormPage = () => {
                                                     onChange={(e) => handleValueChange(e.target.value)}
                                                 >
                                                     <option value="">Select Category...</option>
-                                                    {mockCategories.map(cat => (
-                                                        <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                                    {categories.map(cat => (
+                                                        <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
                                                     ))}
                                                 </select>
                                             );
@@ -339,7 +553,7 @@ const EventFormPage = () => {
                             <button type="button" className="btn-secondary" onClick={() => {
                                 setFormData(prev => ({
                                     ...prev,
-                                    targets: [...(prev.targets || []), { id: Date.now(), targetType: 'CATEGORY', targetId: 0, event: {} as any }]
+                                    targets: [...(prev.targets || []), { targetType: EventTargetType.CATEGORY, targetId: 0 }]
                                 }));
                             }}>
                                 <Plus size={16} /> Add Target
@@ -402,7 +616,7 @@ const EventFormPage = () => {
                             <button type="button" className="btn-secondary" onClick={() => {
                                 setFormData(prev => ({
                                     ...prev,
-                                    actions: [...(prev.actions || []), { id: Date.now(), actionType: 'DISCOUNT_PERCENT', actionValue: '', event: {} as any }]
+                                    actions: [...(prev.actions || []), { actionType: EventActionType.DISCOUNT_PERCENT, actionValue: '' }]
                                 }));
                             }}>
                                 <Plus size={16} /> Add Action
@@ -463,9 +677,9 @@ const EventFormPage = () => {
                             Cancel
                         </button>
 
-                        <button type="submit" className="btn-primary">
-                            <Save size={18} />
-                            Save Changes
+                        <button type="submit" className="btn-primary" disabled={isSaving}>
+                            {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
+                            {isSaving ? 'Saving...' : 'Save Changes'}
                         </button>
                     </div>
                 </form>

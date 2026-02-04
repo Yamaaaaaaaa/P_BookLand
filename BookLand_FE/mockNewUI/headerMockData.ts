@@ -132,30 +132,30 @@ export const notifications: Notification[] = [
 
 // User menu items (when logged in)
 export const userMenuItems: UserMenuItem[] = [
-  {
-    id: 'orders',
-    label: 'Đơn hàng của tôi',
-    icon: '📋',
-    href: '/shop/orders'
-  },
+  // {
+  //   id: 'orders',
+  //   label: 'Đơn hàng của tôi',
+  //   icon: '📋',
+  //   href: '/shop/orders'
+  // },
   {
     id: 'wishlist',
     label: 'Sản phẩm yêu thích',
     icon: '❤️',
     href: '/shop/wishlist'
   },
-  {
-    id: 'voucher',
-    label: 'Wallet Voucher',
-    icon: '🎁',
-    href: '/shop/vouchers'
-  },
-  {
-    id: 'fpoint',
-    label: 'Tài khoản F-point',
-    icon: 'F',
-    href: '/shop/fpoint'
-  },
+  // {
+  //   id: 'voucher',
+  //   label: 'Wallet Voucher',
+  //   icon: '🎁',
+  //   href: '/shop/vouchers'
+  // },
+  // {
+  //   id: 'fpoint',
+  //   label: 'Tài khoản F-point',
+  //   icon: 'F',
+  //   href: '/shop/fpoint'
+  // },
   {
     id: 'logout',
     label: 'Thoát tài khoản',

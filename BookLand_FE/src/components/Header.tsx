@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, Bell, User, Menu, X, ChevronDown, LayoutGrid } from 'lucide-react';
 import '../styles/components/header.css';
 import { categories, notifications, userMenuItems, mockUser } from '../../mockNewUI/headerMockData';
@@ -16,6 +16,7 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const navigate = useNavigate();
 
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const notificationRef = useRef<HTMLDivElement>(null);
@@ -38,6 +39,15 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const handleSearchSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/shop/books?keyword=${encodeURIComponent(searchQuery.trim())}`);
+        } else {
+            navigate('/shop/books');
+        }
+    };
 
     const toggleMobileMenu = () => {
         setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -65,7 +75,7 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
 
                     {/* Logo */}
                     <Link to="/shop/home" className="new-header__logo">
-                        Fahasa.c<span className="new-header__logo-om">Ỏ</span>m
+                        Book<span className="new-header__logo-om">Land</span>
                     </Link>
 
                     {/* Search Group (Category + Search) */}
@@ -73,11 +83,10 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                         <div className="new-header__category-wrapper" ref={categoryMenuRef}>
                             <button
                                 className="new-header__category-btn"
-                                onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)}
-                                aria-label="Danh mục sản phẩm"
+                                onClick={() => navigate('/shop/books')}
                             >
                                 <LayoutGrid size={28} color="#7A7E7F" strokeWidth={1.5} />
-                                <ChevronDown size={16} color="#7A7E7F" style={{ marginLeft: 2 }} />
+                                {/* <ChevronDown size={16} color="#7A7E7F" style={{ marginLeft: 2 }} /> */}
                             </button>
 
                             {/* Category Mega Menu */}
@@ -203,7 +212,7 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                             )}
                         </div>
 
-                        <div className="new-header__search">
+                        <form className="new-header__search" onSubmit={handleSearchSubmit}>
                             <input
                                 type="text"
                                 className="new-header__search-input"
@@ -211,10 +220,10 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
                             />
-                            <button className="new-header__search-btn" aria-label="Search">
+                            <button className="new-header__search-btn" type="submit" aria-label="Search">
                                 <Search size={20} color="white" />
                             </button>
-                        </div>
+                        </form>
                     </div>
 
                     {/* Actions */}
@@ -363,9 +372,11 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
             </div>
 
             {/* Mobile Menu Overlay */}
-            {isMobileMenuOpen && (
-                <div className="new-header__mobile-overlay" onClick={closeMobileMenu} />
-            )}
+            {
+                isMobileMenuOpen && (
+                    <div className="new-header__mobile-overlay" onClick={closeMobileMenu} />
+                )
+            }
 
             {/* Mobile Menu */}
             <div className={`new-header__mobile-menu ${isMobileMenuOpen ? 'new-header__mobile-menu--open' : ''}`}>
@@ -392,7 +403,7 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                     ))}
                 </div>
             </div>
-        </header>
+        </header >
     );
 };
 

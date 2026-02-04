@@ -33,6 +33,7 @@ public class BillService {
     private final PaymentMethodRepository paymentMethodRepository;
     private final ShippingMethodRepository shippingMethodRepository;
     private final EventApplicationService eventApplicationService;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public Page<BillDTO> getAllBills(Long userId, BillStatus status,
@@ -209,6 +210,13 @@ public class BillService {
         }
 
         Bill updatedBill = billRepository.save(bill);
+
+        // Send notification to user
+        String title = "Cập nhật trạng thái đơn hàng";
+        String content = String.format("Đơn hàng #%d của bạn đã được chuyển sang trạng thái: %s", 
+                updatedBill.getId(), newStatus.name());
+        notificationService.createNotification(updatedBill.getUser().getId(), "BILL_STATUS", title, content, request.getApprovedById());
+
         return convertToDTO(updatedBill);
     }
 

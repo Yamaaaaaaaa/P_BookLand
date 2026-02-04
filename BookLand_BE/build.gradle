@@ -29,6 +29,7 @@ dependencies {
 
     // Web + REST + Tomcat + Spring MVC
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
     // Thymeleaf (nếu có render HTML)
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'

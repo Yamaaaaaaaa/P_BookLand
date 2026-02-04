@@ -2,7 +2,11 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, Bell, User, Menu, X, ChevronDown, LayoutGrid } from 'lucide-react';
 import '../styles/components/header.css';
-import { categories, notifications, userMenuItems, mockUser } from '../../mockNewUI/headerMockData';
+import { categories, userMenuItems, mockUser } from '../../mockNewUI/headerMockData';
+import notificationService from '../api/notificationService';
+import { getCurrentUserId } from '../utils/auth';
+import type { Notification } from '../types/Notification';
+import { toast } from 'react-toastify';
 
 interface HeaderProps {
     onLogout: () => void;
@@ -16,11 +20,113 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
+    const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
     const navigate = useNavigate();
+    const userId = getCurrentUserId();
 
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const notificationRef = useRef<HTMLDivElement>(null);
     const userMenuRef = useRef<HTMLDivElement>(null);
+
+    // Fetch unread count and set up polling/click logic
+    useEffect(() => {
+        if (userId && isAuthenticated) {
+            fetchUnreadCount();
+        }
+    }, [userId, isAuthenticated]);
+
+    const fetchUnreadCount = async () => {
+        if (!userId) return;
+        try {
+            const response = await notificationService.getUnreadCount(userId);
+            if (response.code === 1000) {
+                setUnreadCount(response.result);
+            }
+        } catch (error) {
+            console.error('Failed to fetch unread count:', error);
+        }
+    };
+
+    const fetchNotifications = async () => {
+        if (!userId || isLoadingNotifications) return;
+        setIsLoadingNotifications(true);
+        try {
+            const response = await notificationService.getNotifications(userId, 0, 100);
+
+            // Log to debug if needed (user reported toast.error even with data)
+            console.log('Notification API Response:', response);
+
+            if (response && response.code === 1000) {
+                if (response.result && response.result.content) {
+                    setNotificationsList(response.result.content);
+                } else {
+                    setNotificationsList([]);
+                }
+            } else {
+                console.error('API returned non-1000 code:', response?.code);
+                toast.error('Không thể tải thông báo');
+            }
+        } catch (error) {
+            console.error('Failed to fetch notifications:', error);
+            toast.error('Không thể tải thông báo');
+        } finally {
+            setIsLoadingNotifications(false);
+        }
+    };
+
+    const handleToggleNotification = () => {
+        const nextState = !isNotificationOpen;
+        setIsNotificationOpen(nextState);
+        if (nextState && isAuthenticated) {
+            fetchNotifications();
+        }
+    };
+
+    const handleMarkAsRead = async (id: number) => {
+        try {
+            const response = await notificationService.markAsRead(id);
+            if (response.code === 1000) {
+                // Update local state to show as read
+                setNotificationsList(prev =>
+                    prev.map(n => n.id === id ? { ...n, status: 'READ' } : n)
+                );
+                // Refresh unread count
+                fetchUnreadCount();
+            }
+        } catch (error) {
+            console.error('Failed to mark as read:', error);
+        }
+    };
+
+    const handleMarkAllAsRead = async () => {
+        if (!userId) return;
+        try {
+            const response = await notificationService.markAllAsRead(userId);
+            if (response.code === 1000) {
+                setNotificationsList(prev => prev.map(n => ({ ...n, status: 'READ' })));
+                setUnreadCount(0);
+                toast.success('Đã đọc tất cả thông báo');
+            }
+        } catch (error) {
+            console.error('Failed to mark all as read:', error);
+        }
+    };
+
+    const handleDeleteAllRead = async () => {
+        if (!userId) return;
+        try {
+            const response = await notificationService.deleteAllReadNotifications(userId);
+            if (response.code === 1000) {
+                setNotificationsList(prev => prev.filter(n => n.status === 'UNREAD'));
+                toast.success('Đã xóa tất cả thông báo đã đọc');
+            }
+        } catch (error) {
+            console.error('Failed to delete all read notifications:', error);
+            toast.error('Không thể xóa thông báo');
+        }
+    };
 
     // Close dropdowns when clicking outside
     useEffect(() => {
@@ -57,7 +163,6 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
         setIsMobileMenuOpen(false);
     };
 
-    const unreadNotifications = notifications.filter(n => !n.read).length;
 
     return (
         <header className="new-header">
@@ -232,12 +337,12 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                         <div className="new-header__notification-wrapper" ref={notificationRef}>
                             <button
                                 className="new-header__icon-btn"
-                                onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+                                onClick={handleToggleNotification}
                                 aria-label="Notifications"
                             >
                                 <Bell size={20} />
-                                {unreadNotifications > 0 && (
-                                    <span className="new-header__badge">{unreadNotifications}</span>
+                                {isAuthenticated && unreadCount > 0 && (
+                                    <span className="new-header__badge">{unreadCount}</span>
                                 )}
                                 <span className="new-header__icon-label">Thông Báo</span>
                             </button>
@@ -246,27 +351,55 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                             {isNotificationOpen && (
                                 <div className="new-header__notification-dropdown">
                                     <div className="new-header__notification-header">
-                                        <h3>Thông báo ({unreadNotifications})</h3>
-                                        <Link to="/shop/notifications" className="new-header__view-all">
-                                            Xem tất cả
-                                        </Link>
+                                        <h3>Thông báo ({isAuthenticated ? unreadCount : 0})</h3>
+                                        <div className="new-header__notification-header-actions">
+                                            {isAuthenticated && unreadCount > 0 && (
+                                                <button onClick={handleMarkAllAsRead} className="new-header__mark-all">
+                                                    Đọc tất cả
+                                                </button>
+                                            )}
+                                            {isAuthenticated && notificationsList.some(n => n.status === 'READ') && (
+                                                <button onClick={handleDeleteAllRead} className="new-header__delete-all">
+                                                    Xóa đã đọc
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                     <div className="new-header__notification-list">
                                         {isAuthenticated ? (
-                                            notifications.map((notification) => (
-                                                <div
-                                                    key={notification.id}
-                                                    className={`new-header__notification-item ${!notification.read ? 'new-header__notification-item--unread' : ''}`}
-                                                >
-                                                    <div className="new-header__notification-icon">
-                                                        <Bell size={16} />
-                                                    </div>
-                                                    <div className="new-header__notification-content">
-                                                        <h4>{notification.title}</h4>
-                                                        <p>{notification.message}</p>
-                                                    </div>
+                                            isLoadingNotifications ? (
+                                                <div className="new-header__notification-loading">
+                                                    <div className="spinner"></div>
+                                                    <p>Đang tải thông báo...</p>
                                                 </div>
-                                            ))
+                                            ) : notificationsList.length > 0 ? (
+                                                notificationsList.map((notification) => (
+                                                    <div
+                                                        key={notification.id}
+                                                        className={`new-header__notification-item ${notification.status === 'UNREAD' ? 'new-header__notification-item--unread' : ''}`}
+                                                        onClick={() => {
+                                                            if (notification.status === 'UNREAD') handleMarkAsRead(notification.id);
+                                                            // Optional: navigate based on notification type
+                                                            // navigate('/some-path');
+                                                        }}
+                                                    >
+                                                        <div className="new-header__notification-icon">
+                                                            <Bell size={16} />
+                                                        </div>
+                                                        <div className="new-header__notification-content">
+                                                            <h4>{notification.title}</h4>
+                                                            <p>{notification.content}</p>
+                                                            <span className="new-header__notification-time">
+                                                                {new Date(notification.createdAt).toLocaleString('vi-VN')}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <div className="new-header__notification-empty">
+                                                    <p>Không có thông báo mới nào</p>
+                                                </div>
+                                            )
                                         ) : (
                                             <div className="new-header__notification-empty">
                                                 <div className="new-header__notification-lock">

@@ -1,21 +1,15 @@
-import type { User } from './User.ts';
-
-export const NotificationStatus = {
-    UNREAD: 'UNREAD',
-    READ: 'READ',
-    ARCHIVED: 'ARCHIVED'
-} as const;
-
-export type NotificationStatus = (typeof NotificationStatus)[keyof typeof NotificationStatus];
+export type NotificationStatus = 'UNREAD' | 'READ' | 'ARCHIVED';
 
 export interface Notification {
     id: number;
-    from?: User;
-    to: User;
+    fromUserId?: number;
+    fromUsername?: string;
+    toUserId: number;
+    toUsername: string;
     type: string;
     title: string;
-    content?: string;
+    content: string;
     status: NotificationStatus;
     readAt?: string;
-    createdAt?: string;
+    createdAt: string;
 }

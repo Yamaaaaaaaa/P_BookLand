@@ -41,10 +41,13 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
             "WHERE n.to.id = :toId AND n.status = 'UNREAD'")
     void markAllAsReadByUserId(@Param("toId") Long toId, @Param("readAt") LocalDateTime readAt);
 
-    // Delete old notifications
     @Modifying
     @Query("DELETE FROM Notification n WHERE n.createdAt < :beforeDate")
     void deleteOldNotifications(@Param("beforeDate") LocalDateTime beforeDate);
+
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.to.id = :toId AND n.status = 'READ'")
+    void deleteAllReadByUserId(@Param("toId") Long toId);
 
     // Find by type
     List<Notification> findByToIdAndType(Long toId, String type);

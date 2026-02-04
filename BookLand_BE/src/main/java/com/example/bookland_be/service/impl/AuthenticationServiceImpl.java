@@ -133,8 +133,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public AuthenticationResponse getTokenByRefresh(RefreshRequest request) throws ParseException, JOSEException {
         SignedJWT signedJWT = verifyToken(request.getToken(), "REFRESH");
 
-        var name = signedJWT.getJWTClaimsSet().getSubject();
-        var user = userRepository.findByUsername(name).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
+        var email = signedJWT.getJWTClaimsSet().getSubject();
+        var user = userRepository.findByEmail(email).orElseThrow(() -> new AppException(ErrorCode.UNAUTHENTICATED));
 
         var token = generateToken(user, TokenType.ACCESS);
 

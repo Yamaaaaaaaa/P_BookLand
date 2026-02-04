@@ -17,6 +17,12 @@ export interface Bill {
     id: number;
     userId: number;
     userName: string;
+    fullName?: string;
+    email?: string;
+    phone?: string;
+    address?: string;
+    city?: string;
+    notes?: string;
     paymentMethodId: number;
     paymentMethodName: string;
     shippingMethodId: number;
@@ -29,9 +35,9 @@ export interface Bill {
     createdAt?: string;
     updatedAt?: string;
     approvedAt?: string;
-    books?: BillBook[]; // Note: API might return 'books' as BillBookDTO[]
-    transactions?: PaymentTransaction[]; // Not in DTO but might be useful if API adds it later, keeping optional
-    eventLogs?: EventLog[]; // Not in DTO
+    books?: BillBook[];
+    transactions?: PaymentTransaction[];
+    eventLogs?: EventLog[];
 }
 
 export interface CreateBillRequest {

@@ -4,10 +4,11 @@ import type { Book } from '../types/Book';
 
 interface BookGridProps {
     books: Book[];
-    columns?: 3 | 4;
+    columns?: number;
+    viewMode?: 'grid' | 'list';
 }
 
-const BookGrid = ({ books, columns = 4 }: BookGridProps) => {
+const BookGrid = ({ books, columns = 4, viewMode = 'grid' }: BookGridProps) => {
     if (books.length === 0) {
         return (
             <div className="book-grid__empty">
@@ -17,10 +18,10 @@ const BookGrid = ({ books, columns = 4 }: BookGridProps) => {
     }
 
     return (
-        <div className={`book-grid book-grid--cols-${columns}`}>
+        <div className={`book-grid book-grid--${viewMode} ${viewMode === 'grid' ? `book-grid--cols-${columns}` : ''}`}>
             {books.map((book) => (
                 <div key={book.id} className="book-grid__link">
-                    <BookCard book={book} />
+                    <BookCard book={book} viewMode={viewMode} />
                 </div>
             ))}
         </div>

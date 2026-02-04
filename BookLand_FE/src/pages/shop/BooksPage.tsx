@@ -1,92 +1,134 @@
 import { useState, useMemo } from 'react';
+import { ChevronRight, Grid, List, Filter as FilterIcon } from 'lucide-react';
 import BookGrid from '../../components/BooksGrid';
-import { allBooks, priceRanges } from '../../data/mockBooks';
+import { allBooks } from '../../data/mockBooks';
 import '../../styles/pages/books.css';
 import '../../styles/components/book-card.css';
 import FilterSidebar from '../../components/FilterSidebar';
-import SearchBar from '../../components/SearchBar';
 
 const BooksPage = () => {
-    const [searchQuery, setSearchQuery] = useState('');
     const [selectedCategory, setSelectedCategory] = useState('All');
-    const [selectedPriceRange, setSelectedPriceRange] = useState('all');
+    const [selectedPriceRange, setSelectedPriceRange] = useState('');
     const [selectedSort, setSelectedSort] = useState('default');
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     const filteredBooks = useMemo(() => {
         let result = [...allBooks];
 
-        // Filter by search query
-        if (searchQuery.trim()) {
-            const query = searchQuery.toLowerCase();
-            result = result.filter(
-                (book) =>
-                    book.name.toLowerCase().includes(query) ||
-                    book.authorName.toLowerCase().includes(query)
-            );
-        }
-
-        // Filter by category
+        // Filter by category (ID)
         if (selectedCategory !== 'All') {
-            // result = result.filter((book) => book.categories?.[0]?.name === selectedCategory);
-            // TODO: Update filtering logic to use categoryIds
+            result = result.filter((book) =>
+                book.categoryIds?.map(String).includes(selectedCategory)
+            );
         }
 
         // Filter by price range
-        const priceRange = priceRanges.find((r) => r.value === selectedPriceRange);
-        if (priceRange && selectedPriceRange !== 'all' && priceRange.min !== undefined && priceRange.max !== undefined) {
-            result = result.filter(
-                (book) => book.originalCost >= priceRange.min! && book.originalCost <= priceRange.max!
-            );
+        if (selectedPriceRange) {
+            if (selectedPriceRange === '700000-up') {
+                result = result.filter(book => book.finalPrice >= 700000);
+            } else {
+                const [min, max] = selectedPriceRange.split('-').map(Number);
+                result = result.filter(book => book.finalPrice >= min && book.finalPrice <= max);
+            }
         }
 
         // Sort
         switch (selectedSort) {
             case 'price-low':
-                result.sort((a, b) => a.originalCost - b.originalCost);
+                result.sort((a, b) => a.finalPrice - b.finalPrice);
                 break;
             case 'price-high':
-                result.sort((a, b) => b.originalCost - a.originalCost);
-                break;
-            case 'rating':
-                // result.sort((a, b) => b.rating - a.rating);
+                result.sort((a, b) => b.finalPrice - a.finalPrice);
                 break;
             case 'newest':
-                // result.sort((a, b) => (b.badge === 'new' ? 1 : 0) - (a.badge === 'new' ? 1 : 0));
+                result.sort((a, b) => new Date(b.createdAt || '').getTime() - new Date(a.createdAt || '').getTime());
                 break;
             default:
                 break;
         }
 
         return result;
-    }, [searchQuery, selectedCategory, selectedPriceRange, selectedSort]);
+    }, [selectedCategory, selectedPriceRange, selectedSort]);
 
     return (
         <div className="books-page">
             <div className="shop-container">
-                {/* Page Header */}
-                <div className="books-page__header">
-                    <div className="books-page__title-section">
-                        <h1 className="books-page__title">All Books</h1>
-                        <p className="books-page__count">{filteredBooks.length} books found</p>
-                    </div>
-                    <SearchBar value={searchQuery} onChange={setSearchQuery} />
+                {/* Breadcrumbs */}
+                <div className="breadcrumb">
+                    <span>Trang chủ</span>
+                    <ChevronRight size={14} />
+                    <span>Sách tiếng Việt</span>
+                    <ChevronRight size={14} />
+                    <span>Văn học</span>
+                    <ChevronRight size={14} />
+                    <span className="current">Tác phẩm kinh điển</span>
                 </div>
 
-                {/* Main Content */}
-                <div className="books-page__content">
+                <div className="books-layout">
+                    {/* Sidebar */}
                     <FilterSidebar
                         selectedCategory={selectedCategory}
                         onCategoryChange={setSelectedCategory}
                         selectedPriceRange={selectedPriceRange}
                         onPriceRangeChange={setSelectedPriceRange}
-                        selectedSort={selectedSort}
-                        onSortChange={setSelectedSort}
+                        isMobileOpen={isSidebarOpen}
+                        onClose={() => setIsSidebarOpen(false)}
                     />
-                    <div className="books-page__grid">
-                        <BookGrid books={filteredBooks} columns={3} />
-                    </div>
+
+                    {/* Main Content */}
+                    <main className="books-content">
+                        {/* Toolbar */}
+                        <div className="books-toolbar">
+                            <div className="toolbar-left">
+                                <span className="sort-label">Sắp xếp theo:</span>
+                                <select
+                                    className="select-sort"
+                                    value={selectedSort}
+                                    onChange={(e) => setSelectedSort(e.target.value)}
+                                >
+                                    <option value="default">Bán Chạy Tuần</option>
+                                    <option value="newest">Mới Nhất</option>
+                                    <option value="price-low">Giá Thấp Đến Cao</option>
+                                    <option value="price-high">Giá Cao Đến Thấp</option>
+                                </select>
+                                <select className="select-limit">
+                                    <option>24 sản phẩm</option>
+                                    <option>48 sản phẩm</option>
+                                </select>
+                            </div>
+                            <div className="toolbar-right">
+                                <div className="view-mode">
+                                    <button
+                                        className={`btn-view ${viewMode === 'grid' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('grid')}
+                                    >
+                                        <Grid size={18} />
+                                    </button>
+                                    <button
+                                        className={`btn-view ${viewMode === 'list' ? 'active' : ''}`}
+                                        onClick={() => setViewMode('list')}
+                                    >
+                                        <List size={18} />
+                                    </button>
+                                </div>
+                                <button className="btn-filter-mobile" onClick={() => setIsSidebarOpen(true)}>
+                                    <FilterIcon size={18} />
+                                    Lọc
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Grid */}
+                        <div className="books-grid-wrapper">
+                            <BookGrid books={filteredBooks} columns={4} viewMode={viewMode} />
+                        </div>
+                    </main>
                 </div>
             </div>
+
+            {/* Mobile Sidebar Overlay */}
+            {isSidebarOpen && <div className="sidebar-overlay" onClick={() => setIsSidebarOpen(false)}></div>}
         </div>
     );
 };

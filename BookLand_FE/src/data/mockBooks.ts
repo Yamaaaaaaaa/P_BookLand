@@ -25,6 +25,9 @@ export const mockBooks: Book[] = [
         seriesId: undefined,
         seriesName: undefined,
         categoryIds: [mockCategories[0].id],
+        rating: 4.5,
+        ratingCount: 124,
+        volume: 8,
         createdAt: '2023-01-01T10:00:00Z',
         updatedAt: '2023-01-10T10:00:00Z'
     },
@@ -47,6 +50,7 @@ export const mockBooks: Book[] = [
         seriesId: mockSeries[2].id,
         seriesName: mockSeries[2].name,
         categoryIds: [mockCategories[2].id, mockCategories[4].id],
+        volume: 2,
         createdAt: '2023-01-05T10:00:00Z'
     },
     {
@@ -68,6 +72,7 @@ export const mockBooks: Book[] = [
         seriesId: mockSeries[0].id,
         seriesName: mockSeries[0].name,
         categoryIds: [mockCategories[0].id, mockCategories[5].id],
+        volume: 12,
         createdAt: '2023-02-01T10:00:00Z'
     },
     {

@@ -1,23 +1,13 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { formatCurrency } from '../../utils/formatters';
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, CreditCard } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, ChevronRight, Info, Gift, Ticket } from 'lucide-react';
 import '../../styles/pages/cart.css';
-import '../../styles/components/buttons.css';
 import { mockCart } from '../../data/mockOrders';
-import { mockPaymentMethods, mockShippingMethods } from '../../data/mockMasterData';
 import type { CartItem } from '../../types/CartItem';
 
-// Helper to keep local state for demo purposes, initialized from mock data
 const CartPage = () => {
-    // In a real app, this would be global state or API data
     const [cartItems, setCartItems] = useState<CartItem[]>(mockCart.items || []);
-
-    const [selectedShipping, setSelectedShipping] = useState<number>(0);
-    const [selectedPayment, setSelectedPayment] = useState<number>(0);
-
-    // const shippingMethods... removed
-    // const paymentMethods... removed
+    const [selectedIds, setSelectedIds] = useState<number[]>(cartItems.map(item => item.book.id));
 
     const updateQuantity = (bookId: number, delta: number) => {
         setCartItems(items =>
@@ -31,222 +21,167 @@ const CartPage = () => {
 
     const removeItem = (bookId: number) => {
         setCartItems(items => items.filter(item => item.book.id !== bookId));
+        setSelectedIds(ids => ids.filter(id => id !== bookId));
     };
 
-    const subtotal = cartItems.reduce((sum, item) => sum + item.book.originalCost * item.quantity, 0);
-
-    // Calculate shipping fee based on selected method
-    const getShippingFee = () => {
-        if (!selectedShipping) return 0;
-        const method = mockShippingMethods.find(m => m.id === selectedShipping);
-        return method ? method.price : 0;
+    const toggleSelect = (bookId: number) => {
+        setSelectedIds(prev =>
+            prev.includes(bookId) ? prev.filter(id => id !== bookId) : [...prev, bookId]
+        );
     };
 
-    const shippingFee = getShippingFee();
-    const tax = subtotal * 0.1;
-    const total = subtotal + shippingFee + tax;
+    const toggleSelectAll = () => {
+        if (selectedIds.length === cartItems.length) {
+            setSelectedIds([]);
+        } else {
+            setSelectedIds(cartItems.map(item => item.book.id));
+        }
+    };
 
-    const canProceedToCheckout = selectedShipping && selectedPayment;
+    const selectedItems = cartItems.filter(item => selectedIds.includes(item.book.id));
+    const subtotal = selectedItems.reduce((sum, item) => sum + item.book.finalPrice * item.quantity, 0);
+    const total = subtotal; // Assuming VAT included or separate calculation for demo
 
     return (
         <div className="cart-page">
             <div className="shop-container">
-                {/* Page Header */}
-                <div className="cart-page__header">
-                    <h1 className="cart-page__title">Shopping Cart</h1>
-                    <p className="cart-page__count">{cartItems.length} items in your cart</p>
+                <div className="cart-header-title">
+                    GIỎ HÀNG <span>({cartItems.length} sản phẩm)</span>
                 </div>
 
                 {cartItems.length === 0 ? (
-                    <div className="cart-page__empty">
-                        <ShoppingBag size={64} />
-                        <h2>Your cart is empty</h2>
-                        <p>Add some books to get started!</p>
-                        <Link to="/shop/books" className="btn-primary btn-primary--large">
-                            Browse Books
-                        </Link>
+                    <div className="cart-empty-state">
+                        <ShoppingBag size={80} color="#ddd" />
+                        <p>Chưa có sản phẩm nào trong giỏ hàng của bạn.</p>
+                        <Link to="/shop/home" className="btn-go-shopping">MUA SẮM NGAY</Link>
                     </div>
                 ) : (
-                    <div className="cart-page__content">
-                        {/* Cart Items */}
-                        <div className="cart-items">
-                            {cartItems.map(item => (
-                                <div key={item.book.id} className="cart-item">
-                                    <div className="cart-item__image-wrapper">
+                    <div className="cart-grid-layout">
+                        {/* Left Column: Items */}
+                        <div className="cart-main-col">
+                            <div className="cart-select-all-bar">
+                                <label className="cart-checkbox-wrapper">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedIds.length === cartItems.length && cartItems.length > 0}
+                                        onChange={toggleSelectAll}
+                                    />
+                                    <span className="checkmark"></span>
+                                    Chọn tất cả ({cartItems.length} sản phẩm)
+                                </label>
+                                <div className="bar-labels">
+                                    <span>Số lượng</span>
+                                    <span>Thành tiền</span>
+                                </div>
+                            </div>
 
-                                        <img
-                                            src={item.book.bookImageUrl}
-                                            alt={item.book.name}
-                                            className="cart-item__image"
-                                        />
-                                    </div>
-
-                                    <div className="cart-item__details">
-                                        <h3 className="cart-item__title">{item.book.name}</h3>
-                                        <p className="cart-item__author">by {item.book.authorName}</p>
-                                        <p className="cart-item__price">{formatCurrency(item.book.originalCost)}</p>
-                                    </div>
-
-                                    <div className="cart-item__actions">
-                                        <div className="cart-item__quantity">
-                                            <button
-                                                className="cart-item__qty-btn"
-                                                onClick={() => updateQuantity(item.book.id, -1)}
-                                                aria-label="Decrease quantity"
-                                            >
-                                                <Minus size={16} />
-                                            </button>
-                                            <span className="cart-item__qty-value">{item.quantity}</span>
-                                            <button
-                                                className="cart-item__qty-btn"
-                                                onClick={() => updateQuantity(item.book.id, 1)}
-                                                aria-label="Increase quantity"
-                                            >
-                                                <Plus size={16} />
+                            <div className="cart-items-list">
+                                {cartItems.map(item => (
+                                    <div key={item.book.id} className="cart-item-card">
+                                        <div className="item-checkbox">
+                                            <label className="cart-checkbox-wrapper">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={selectedIds.includes(item.book.id)}
+                                                    onChange={() => toggleSelect(item.book.id)}
+                                                />
+                                                <span className="checkmark"></span>
+                                            </label>
+                                        </div>
+                                        <div className="item-image">
+                                            <img src={item.book.bookImageUrl} alt={item.book.name} />
+                                        </div>
+                                        <div className="item-info">
+                                            <Link to={`/shop/books/${item.book.id}`} className="item-name">
+                                                {item.book.name}
+                                            </Link>
+                                            <div className="item-price-row">
+                                                <span className="item-current-price">
+                                                    {item.book.finalPrice.toLocaleString('vi-VN')} đ
+                                                </span>
+                                                {item.book.sale > 0 && (
+                                                    <span className="item-old-price">
+                                                        {item.book.originalCost.toLocaleString('vi-VN')} đ
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div className="item-quantity-col">
+                                            <div className="item-quantity-control">
+                                                <button onClick={() => updateQuantity(item.book.id, -1)}><Minus size={14} /></button>
+                                                <input type="text" value={item.quantity} readOnly />
+                                                <button onClick={() => updateQuantity(item.book.id, 1)}><Plus size={14} /></button>
+                                            </div>
+                                        </div>
+                                        <div className="item-subtotal-col">
+                                            <span className="item-subtotal">
+                                                {(item.book.finalPrice * item.quantity).toLocaleString('vi-VN')} đ
+                                            </span>
+                                        </div>
+                                        <div className="item-remove-col">
+                                            <button className="btn-remove-item" onClick={() => removeItem(item.book.id)}>
+                                                <Trash2 size={20} />
                                             </button>
                                         </div>
-
-                                        <button
-                                            className="cart-item__remove"
-                                            onClick={() => removeItem(item.book.id)}
-                                            aria-label="Remove item"
-                                        >
-                                            <Trash2 size={18} />
-                                            Remove
-                                        </button>
                                     </div>
-
-                                    <div className="cart-item__total">
-                                        {formatCurrency(item.book.originalCost * item.quantity)}
-                                    </div>
-                                </div>
-                            ))}
+                                ))}
+                            </div>
                         </div>
 
-                        {/* Cart Summary */}
-                        <div className="cart-summary">
-                            <h2 className="cart-summary__title">Order Summary</h2>
-
-                            <div className="cart-summary__row">
-                                <span>Subtotal</span>
-                                <span>{formatCurrency(subtotal)}</span>
-                            </div>
-
-                            {/* Shipping Method Selection */}
-                            <div className="cart-summary__section">
-                                <h3 className="cart-summary__section-title">
-                                    <Truck size={18} />
-                                    Shipping Method
-                                </h3>
-                                <div className="cart-summary__options">
-                                    {mockShippingMethods.map(method => (
-                                        <div
-                                            key={method.id}
-                                            className={`cart-summary__option ${selectedShipping === method.id ? 'cart-summary__option--selected' : ''}`}
-                                            onClick={() => setSelectedShipping(method.id)}
-                                        >
-                                            <div className="cart-summary__option-header">
-                                                <div className="cart-summary__option-radio">
-                                                    {selectedShipping === method.id && <div className="cart-summary__option-radio-dot" />}
-                                                </div>
-                                                <div className="cart-summary__option-content">
-                                                    <div className="cart-summary__option-name">{method.name}</div>
-                                                    <div className="cart-summary__option-desc">{method.description}</div>
-                                                    {/* <div className="cart-summary__option-time">{method.estimatedDays}</div> */}
-                                                </div>
-                                                <div className="cart-summary__option-price">
-                                                    {formatCurrency(method.price)}
-                                                </div>
-                                            </div>
+                        {/* Right Column: Summary & Promotions */}
+                        <div className="cart-sidebar-col">
+                            <div className="cart-promo-card">
+                                <div className="card-header">
+                                    <div className="header-left">
+                                        <Ticket size={20} color="#C92127" />
+                                        <span>KHUYẾN MÃI</span>
+                                    </div>
+                                    <button className="btn-view-more">Xem thêm <ChevronRight size={14} /></button>
+                                </div>
+                                <div className="promo-item">
+                                    <div className="promo-info">
+                                        <div className="promo-title">Mã Giảm 10K - Toàn Sàn</div>
+                                        <div className="promo-desc">Đơn hàng từ 130k - Không bao gồm giá trị của...</div>
+                                        <div className="promo-progress">
+                                            <div className="progress-bar"><div className="fill" style={{ width: '60%' }}></div></div>
+                                            <span>Mua thêm 150.000 đ</span>
                                         </div>
-                                    ))}
+                                    </div>
+                                    <button className="btn-buy-more">Mua thêm</button>
+                                    <Info size={16} color="#2489F3" className="promo-info-icon" />
+                                </div>
+                                <div className="promo-footer">
+                                    <button className="btn-gift-guide">Hướng dẫn sử dụng Gift Card <Info size={14} /></button>
                                 </div>
                             </div>
 
-                            {/* Payment Method Selection */}
-                            <div className="cart-summary__section">
-                                <h3 className="cart-summary__section-title">
-                                    <CreditCard size={18} />
-                                    Payment Method
-                                </h3>
-                                <div className="cart-summary__options">
-                                    {mockPaymentMethods.map(method => (
-                                        <div
-                                            key={method.id}
-                                            className={`cart-summary__option ${selectedPayment === method.id ? 'cart-summary__option--selected' : ''}`}
-                                            onClick={() => setSelectedPayment(method.id)}
-                                        >
-                                            <div className="cart-summary__option-header">
-                                                <div className="cart-summary__option-radio">
-                                                    {selectedPayment === method.id && <div className="cart-summary__option-radio-dot" />}
-                                                </div>
-                                                <div className="cart-summary__option-content">
-                                                    <div className="cart-summary__option-name">
-                                                        {/* <span className="cart-summary__option-icon">{method.icon}</span> */}
-                                                        {method.name}
-                                                    </div>
-                                                    <div className="cart-summary__option-desc">{method.description}</div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))}
+                            <div className="cart-gift-card">
+                                <div className="card-header">
+                                    <div className="header-left">
+                                        <Gift size={20} color="#C92127" />
+                                        <span>Nhận quà</span>
+                                    </div>
+                                    <button className="btn-view-more">Chọn quà <ChevronRight size={14} /></button>
                                 </div>
                             </div>
 
-                            <div className="cart-summary__row">
-                                <span>Shipping</span>
-                                <span>
-                                    {!selectedShipping
-                                        ? 'Select method'
-                                        : shippingFee === 0
-                                            ? 'FREE'
-                                            : formatCurrency(shippingFee)
-                                    }
-                                </span>
-                            </div>
-
-                            <div className="cart-summary__row">
-                                <span>Tax (10%)</span>
-                                <span>{formatCurrency(tax)}</span>
-                            </div>
-
-                            <div className="cart-summary__divider"></div>
-
-                            <div className="cart-summary__row cart-summary__row--total">
-                                <span>Total</span>
-                                <span>{formatCurrency(total)}</span>
-                            </div>
-
-                            {!canProceedToCheckout && (
-                                <div className="cart-summary__notice cart-summary__notice--warning">
-                                    Please select shipping and payment method
+                            <div className="cart-summary-card">
+                                <div className="summary-row">
+                                    <span>Thành tiền</span>
+                                    <span>{subtotal.toLocaleString('vi-VN')} đ</span>
                                 </div>
-                            )}
-
-                            {subtotal < 500000 && selectedShipping === 1 && (
-                                <div className="cart-summary__notice">
-                                    Add {formatCurrency(500000 - subtotal)} more for free standard shipping!
+                                <div className="summary-total-row">
+                                    <span>Tổng Số Tiền (gồm VAT)</span>
+                                    <span className="total-value">{total.toLocaleString('vi-VN')} đ</span>
                                 </div>
-                            )}
-
-                            {canProceedToCheckout ? (
-                                <Link to="/shop/checkout" className="btn-primary btn-primary--large btn-primary--full">
-                                    Proceed to Checkout
-                                    <ArrowRight size={18} />
-                                </Link>
-                            ) : (
                                 <button
-                                    className="btn-primary btn-primary--large btn-primary--full btn-primary--disabled"
-                                    disabled
+                                    className={`btn-checkout ${selectedIds.length === 0 ? 'disabled' : ''}`}
+                                    disabled={selectedIds.length === 0}
                                 >
-                                    Proceed to Checkout
-                                    <ArrowRight size={18} />
+                                    THANH TOÁN
                                 </button>
-                            )}
-
-                            <Link to="/shop/books" className="cart-summary__continue">
-                                Continue Shopping
-                            </Link>
+                                <div className="checkout-note">(Giảm giá trên web chỉ áp dụng cho bán lẻ)</div>
+                            </div>
                         </div>
                     </div>
                 )}

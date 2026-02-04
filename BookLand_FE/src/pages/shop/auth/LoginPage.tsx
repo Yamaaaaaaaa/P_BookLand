@@ -1,17 +1,16 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, BookOpen, ArrowRight } from 'lucide-react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { setCustomerToken, setCustomerRefreshToken } from '../../../utils/auth';
 import authService from '../../../api/authService';
 import '../../../styles/pages/auth.css';
-import '../../../styles/components/forms.css';
-import '../../../styles/components/buttons.css';
 
 const LoginPage = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -26,82 +25,81 @@ const LoginPage = () => {
             }
         } catch (err: any) {
             console.error(err);
-            setError('Login failed. Please check your credentials.');
+            setError('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
         }
     };
 
     return (
         <div className="auth-page">
             <div className="auth-container">
-                {/* Left Side - Branding */}
-                <div className="auth-branding">
-                    <div className="auth-branding__content">
-                        <BookOpen size={48} className="auth-branding__icon" />
-                        <h1 className="auth-branding__title">Welcome Back to BookLand</h1>
-                        <p className="auth-branding__description">
-                            Discover your next favorite book. Sign in to continue your reading journey.
-                        </p>
-                    </div>
+                {/* Tabs */}
+                <div className="auth-tabs">
+                    <Link
+                        to="/shop/login"
+                        className={`auth-tab-item ${location.pathname === '/shop/login' ? 'active' : ''}`}
+                    >
+                        Đăng nhập
+                    </Link>
+                    <Link
+                        to="/shop/register"
+                        className={`auth-tab-item ${location.pathname === '/shop/register' ? 'active' : ''}`}
+                    >
+                        Đăng ký
+                    </Link>
                 </div>
 
-                {/* Right Side - Login Form */}
-                <div className="auth-form-wrapper">
-                    <div className="auth-form">
-                        <h2 className="auth-form__title">Sign In</h2>
-                        <p className="auth-form__subtitle">Enter your credentials to access your account</p>
-
-                        <form onSubmit={handleSubmit} className="auth-form__form">
-                            <div className="form-group">
-                                <label className="form-group__label">
-                                    <Mail size={18} />
-                                    Email Address
-                                </label>
+                {/* Login Form */}
+                <div className="auth-form-content">
+                    <form onSubmit={handleSubmit} className="auth-form__form">
+                        <div className="form-group">
+                            <label className="form-group__label">Số điện thoại/Email</label>
+                            <div className="form-group__input-wrapper">
                                 <input
                                     type="email"
                                     className="form-group__input"
-                                    placeholder="Enter your email"
+                                    placeholder="Nhập số điện thoại hoặc email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                 />
                             </div>
+                        </div>
 
-                            <div className="form-group">
-                                <label className="form-group__label">
-                                    <Lock size={18} />
-                                    Password
-                                </label>
+                        <div className="form-group">
+                            <label className="form-group__label">Mật khẩu</label>
+                            <div className="form-group__input-wrapper">
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     className="form-group__input"
-                                    placeholder="Enter your password"
+                                    placeholder="Nhập mật khẩu"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    className="btn-toggle-password"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? 'Ẩn' : 'Hiện'}
+                                </button>
                             </div>
-
-                            {error && (
-                                <div className="auth-form__error">
-                                    {error}
-                                </div>
-                            )}
-
-                            <button type="submit" className="btn-primary btn-primary--large btn-primary--full">
-                                Sign In
-                                <ArrowRight size={18} />
-                            </button>
-                        </form>
-
-                        <div className="auth-form__footer">
-                            <p>
-                                Don't have an account?{' '}
-                                <Link to="/shop/register" className="auth-form__link">
-                                    Create one now
-                                </Link>
-                            </p>
                         </div>
-                    </div>
+
+                        <Link to="/forgot-password" className="auth-form__forgot-link">
+                            Quên mật khẩu?
+                        </Link>
+
+                        {error && (
+                            <div className="auth-form__error">
+                                {error}
+                            </div>
+                        )}
+
+                        <button type="submit" className="btn-auth-submit">
+                            Đăng nhập
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

@@ -7,9 +7,10 @@ import { formatCurrency } from '../utils/formatters';
 
 interface BookCardProps {
     book: Book;
+    viewMode?: 'grid' | 'list';
 }
 
-const BookCard = ({ book }: BookCardProps) => {
+const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
     const renderStars = (rating: number) => {
         const stars = [];
         const fullStars = Math.floor(rating);
@@ -29,15 +30,28 @@ const BookCard = ({ book }: BookCardProps) => {
     };
 
     return (
-        <div className="book-card">
-
-
+        <div className={`book-card book-card--${viewMode}`}>
             <div className="book-card__image-wrapper">
                 <img
                     src={book.bookImageUrl || 'https://via.placeholder.com/150'}
                     alt={book.name}
                     className="book-card__image"
                 />
+
+                {/* Series/Tag (Specific slot in image area) */}
+                {book.seriesName && (
+                    <div className="book-card__series-tag">
+                        {book.seriesName}
+                    </div>
+                )}
+
+                {/* Volume Badge at Bottom Right of Image */}
+                {book.volume && (
+                    <div className="book-card__volume-badge">
+                        Tập {book.volume}
+                    </div>
+                )}
+
                 <div className="book-card__actions">
                     <button className="book-card__action-btn" aria-label="Add to wishlist">
                         <Heart size={16} />
@@ -52,26 +66,46 @@ const BookCard = ({ book }: BookCardProps) => {
             </div>
 
             <div className="book-card__content">
-                <span className="book-card__category">{book.seriesName || 'General'}</span>
                 <h3 className="book-card__title">{book.name}</h3>
-                <p className="book-card__author">by {book.authorName}</p>
 
-                <div className="book-card__footer">
-                    <div className="book-card__price">
-                        {formatCurrency(book.originalCost - (book.sale || 0))}
-                        {book.sale > 0 && (
-                            <span className="book-card__price-old">
-                                {formatCurrency(book.originalCost)}
-                            </span>
-                        )}
+                {viewMode === 'list' && (
+                    <div className="book-card__details-list">
+                        <p className="book-card__author">Tác giả: <strong>{book.authorName}</strong></p>
+                        <p className="book-card__description">{book.description || 'Đang cập nhật nội dung...'}</p>
                     </div>
-                    <div className="book-card__rating">
-                        <div className="book-card__stars">
-                            {renderStars(5)}
-                        </div>
-                        <span className="book-card__rating-count">(0)</span>
-                    </div>
+                )}
+
+                <div className="book-card__price-row">
+                    <span className="book-card__price-final">{formatCurrency(book.finalPrice)}</span>
+                    {book.sale > 0 && (
+                        <span className="book-card__discount">-{book.sale}%</span>
+                    )}
                 </div>
+
+                {book.sale > 0 && (
+                    <div className="book-card__price-original">
+                        {formatCurrency(book.originalCost)}
+                    </div>
+                )}
+
+                <div className="book-card__rating">
+                    <div className="book-card__stars">
+                        {renderStars(book.rating || 5)}
+                    </div>
+                    {book.ratingCount !== undefined && (
+                        <span className="book-card__rating-count">({book.ratingCount})</span>
+                    )}
+                </div>
+
+                {viewMode === 'list' && (
+                    <div className="book-card__actions-list">
+                        <button className="btn-add-cart-list">
+                            <ShoppingCart size={18} />
+                            Thêm vào giỏ hàng
+                        </button>
+                        <button className="btn-buy-now-list">Mua ngay</button>
+                    </div>
+                )}
             </div>
         </div>
     );

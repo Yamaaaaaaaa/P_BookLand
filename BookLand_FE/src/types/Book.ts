@@ -26,6 +26,9 @@ export interface Book {
     seriesId?: number;
     seriesName?: string;
     categoryIds: number[];
+    rating?: number;
+    ratingCount?: number;
+    volume?: string | number;
     createdAt?: string;
     updatedAt?: string;
 }

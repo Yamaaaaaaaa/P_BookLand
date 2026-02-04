@@ -1,25 +1,25 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { Mail, Lock, BookOpen, ArrowRight, User } from 'lucide-react';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import authService from '../../../api/authService';
 import '../../../styles/pages/auth.css';
-import '../../../styles/components/forms.css';
-import '../../../styles/components/buttons.css';
 
 const RegisterPage = () => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
         if (password !== confirmPassword) {
-            setError('Passwords do not match');
+            setError('Mật khẩu xác nhận không khớp.');
             return;
         }
 
@@ -29,116 +29,115 @@ const RegisterPage = () => {
                 email,
                 password
             });
-            // Redirect to login on success
             navigate('/shop/login');
         } catch (err) {
             console.error(err);
-            setError('Registration failed. Please try again.');
+            setError('Đăng ký thất bại. Vui lòng thử lại.');
         }
     };
 
     return (
         <div className="auth-page">
             <div className="auth-container">
-                {/* Left Side - Branding */}
-                <div className="auth-branding">
-                    <div className="auth-branding__content">
-                        <BookOpen size={48} className="auth-branding__icon" />
-                        <h1 className="auth-branding__title">Join BookLand Today</h1>
-                        <p className="auth-branding__description">
-                            Create your account and start exploring thousands of amazing books.
-                        </p>
-                    </div>
+                {/* Tabs */}
+                <div className="auth-tabs">
+                    <Link
+                        to="/shop/login"
+                        className={`auth-tab-item ${location.pathname === '/shop/login' ? 'active' : ''}`}
+                    >
+                        Đăng nhập
+                    </Link>
+                    <Link
+                        to="/shop/register"
+                        className={`auth-tab-item ${location.pathname === '/shop/register' ? 'active' : ''}`}
+                    >
+                        Đăng ký
+                    </Link>
                 </div>
 
-                {/* Right Side - Register Form */}
-                <div className="auth-form-wrapper">
-                    <div className="auth-form">
-                        <h2 className="auth-form__title">Create Account</h2>
-                        <p className="auth-form__subtitle">Fill in your details to get started</p>
-
-                        <form onSubmit={handleSubmit} className="auth-form__form">
-                            <div className="form-group">
-                                <label className="form-group__label">
-                                    <User size={18} />
-                                    Username
-                                </label>
+                {/* Register Form */}
+                <div className="auth-form-content">
+                    <form onSubmit={handleSubmit} className="auth-form__form">
+                        <div className="form-group">
+                            <label className="form-group__label">Tên đăng nhập</label>
+                            <div className="form-group__input-wrapper">
                                 <input
                                     type="text"
                                     className="form-group__input"
-                                    placeholder="johndoe123"
+                                    placeholder="Nhập tên đăng nhập"
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     required
                                 />
                             </div>
+                        </div>
 
-                            <div className="form-group">
-                                <label className="form-group__label">
-                                    <Mail size={18} />
-                                    Email Address
-                                </label>
+                        <div className="form-group">
+                            <label className="form-group__label">Email Address</label>
+                            <div className="form-group__input-wrapper">
                                 <input
                                     type="email"
                                     className="form-group__input"
-                                    placeholder="john@example.com"
+                                    placeholder="Nhập địa chỉ email"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
                                 />
                             </div>
+                        </div>
 
-                            <div className="form-group">
-                                <label className="form-group__label">
-                                    <Lock size={18} />
-                                    Password
-                                </label>
+                        <div className="form-group">
+                            <label className="form-group__label">Mật khẩu</label>
+                            <div className="form-group__input-wrapper">
                                 <input
-                                    type="password"
+                                    type={showPassword ? 'text' : 'password'}
                                     className="form-group__input"
-                                    placeholder="Create a password"
+                                    placeholder="Nhập mật khẩu"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    className="btn-toggle-password"
+                                    onClick={() => setShowPassword(!showPassword)}
+                                >
+                                    {showPassword ? 'Ẩn' : 'Hiện'}
+                                </button>
                             </div>
+                        </div>
 
-                            <div className="form-group">
-                                <label className="form-group__label">
-                                    <Lock size={18} />
-                                    Confirm Password
-                                </label>
+                        <div className="form-group">
+                            <label className="form-group__label">Xác nhận mật khẩu</label>
+                            <div className="form-group__input-wrapper">
                                 <input
-                                    type="password"
+                                    type={showConfirmPassword ? 'text' : 'password'}
                                     className="form-group__input"
-                                    placeholder="Confirm your password"
+                                    placeholder="Xác nhận mật khẩu"
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
                                 />
+                                <button
+                                    type="button"
+                                    className="btn-toggle-password"
+                                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                                >
+                                    {showConfirmPassword ? 'Ẩn' : 'Hiện'}
+                                </button>
                             </div>
-
-                            {error && (
-                                <div className="auth-form__error">
-                                    {error}
-                                </div>
-                            )}
-
-                            <button type="submit" className="btn-primary btn-primary--large btn-primary--full">
-                                Create Account
-                                <ArrowRight size={18} />
-                            </button>
-                        </form>
-
-                        <div className="auth-form__footer">
-                            <p>
-                                Already have an account?{' '}
-                                <Link to="/shop/login" className="auth-form__link">
-                                    Sign in here
-                                </Link>
-                            </p>
                         </div>
-                    </div>
+
+                        {error && (
+                            <div className="auth-form__error">
+                                {error}
+                            </div>
+                        )}
+
+                        <button type="submit" className="btn-auth-submit">
+                            Đăng ký
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>

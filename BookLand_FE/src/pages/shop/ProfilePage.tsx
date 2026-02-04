@@ -1,230 +1,243 @@
-import { useState, useEffect } from 'react';
-import { User, Mail, Phone, MapPin, Calendar, Edit2, Save, X } from 'lucide-react';
+import { useState } from 'react';
+import {
+    User,
+    ClipboardList,
+    Ticket,
+    Bell,
+    Heart,
+    BookOpen,
+    Star,
+    ChevronDown,
+    ChevronRight,
+    Info,
+} from 'lucide-react';
 import '../../styles/pages/profile.css';
-import '../../styles/components/buttons.css';
-import '../../styles/components/forms.css';
 import { mockUsers } from '../../data/mockUsers';
 
-// Local interface for form state, mapped from User entity
-interface UserProfile {
-    name: string;
-    email: string;
-    phone: string;
-    address: string;
-    city: string;
-    country: string;
-    joinDate: string;
-}
-
 const ProfilePage = () => {
-    // Simulate getting logged in user
     const currentUser = mockUsers.find(u => u.username === 'customer1') || mockUsers[1];
-
-    // Default address
-    const defaultAddress = currentUser.addresses?.find(a => a.isDefault) || currentUser.addresses?.[0];
-
-    const [isEditing, setIsEditing] = useState(false);
-
-    // Initialize state from properties
-    const [profile, setProfile] = useState<UserProfile>({
-        name: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username,
-        email: currentUser.email,
-        phone: currentUser.phone || defaultAddress?.contactPhone || '',
-        address: defaultAddress?.addressDetail || '',
-        city: 'Hanoi', // Placeholder as it's not in Address entity
-        country: 'Vietnam', // Placeholder
-        joinDate: currentUser.createdAt || 'January 2024',
-    });
-
-    const [editedProfile, setEditedProfile] = useState<UserProfile>(profile);
-
-    // Update profile if currentUser changes (simulated)
-    useEffect(() => {
-        setProfile({
-            name: `${currentUser.firstName || ''} ${currentUser.lastName || ''}`.trim() || currentUser.username,
-            email: currentUser.email,
-            phone: currentUser.phone || defaultAddress?.contactPhone || '',
-            address: defaultAddress?.addressDetail || '',
-            city: 'Hanoi',
-            country: 'Vietnam',
-            joinDate: currentUser.createdAt || 'January 2024',
-        });
-    }, []);
-
-    const handleEdit = () => {
-        setIsEditing(true);
-        setEditedProfile(profile);
-    };
-
-    const handleSave = () => {
-        setProfile(editedProfile);
-        setIsEditing(false);
-        // In real app, would call API to update User entity
-    };
-
-    const handleCancel = () => {
-        setEditedProfile(profile);
-        setIsEditing(false);
-    };
-
-    const handleChange = (field: keyof UserProfile, value: string) => {
-        setEditedProfile(prev => ({ ...prev, [field]: value }));
-    };
+    const [gender, setGender] = useState('male');
 
     return (
         <div className="profile-page">
             <div className="shop-container">
-                {/* Page Header */}
-                <div className="profile-page__header">
-                    <div>
-                        <h1 className="profile-page__title">My Profile</h1>
-                        <p className="profile-page__subtitle">Manage your account information</p>
-                    </div>
-                    {!isEditing ? (
-                        <button className="btn-primary" onClick={handleEdit}>
-                            <Edit2 size={18} />
-                            Edit Profile
-                        </button>
-                    ) : (
-                        <div className="profile-page__actions">
-                            <button className="btn-secondary" onClick={handleCancel}>
-                                <X size={18} />
-                                Cancel
-                            </button>
-                            <button className="btn-primary" onClick={handleSave}>
-                                <Save size={18} />
-                                Save Changes
-                            </button>
-                        </div>
-                    )}
-                </div>
-
-                {/* Profile Content */}
-                <div className="profile-content">
-                    {/* Profile Card */}
-                    <div className="profile-card">
-                        <div className="profile-card__avatar">
-                            <User size={48} />
-                        </div>
-                        <h2 className="profile-card__name">{profile.name}</h2>
-                        <p className="profile-card__email">{profile.email}</p>
-                        <div className="profile-card__badge">
-                            <Calendar size={14} />
-                            Member since {profile.joinDate}
-                        </div>
-                    </div>
-
-                    {/* Profile Details */}
-                    <div className="profile-details">
-                        <h3 className="profile-details__title">Personal Information</h3>
-
-                        <div className="profile-field">
-                            <label className="profile-field__label">
-                                <User size={18} />
-                                Full Name
-                            </label>
-                            {isEditing ? (
-                                <input
-                                    type="text"
-                                    className="profile-field__input"
-                                    value={editedProfile.name}
-                                    onChange={(e) => handleChange('name', e.target.value)}
-                                />
-                            ) : (
-                                <p className="profile-field__value">{profile.name}</p>
-                            )}
-                        </div>
-
-                        <div className="profile-field">
-                            <label className="profile-field__label">
-                                <Mail size={18} />
-                                Email Address
-                            </label>
-                            {isEditing ? (
-                                <input
-                                    type="email"
-                                    className="profile-field__input"
-                                    value={editedProfile.email}
-                                    onChange={(e) => handleChange('email', e.target.value)}
-                                />
-                            ) : (
-                                <p className="profile-field__value">{profile.email}</p>
-                            )}
-                        </div>
-
-                        <div className="profile-field">
-                            <label className="profile-field__label">
-                                <Phone size={18} />
-                                Phone Number
-                            </label>
-                            {isEditing ? (
-                                <input
-                                    type="tel"
-                                    className="profile-field__input"
-                                    value={editedProfile.phone}
-                                    onChange={(e) => handleChange('phone', e.target.value)}
-                                />
-                            ) : (
-                                <p className="profile-field__value">{profile.phone}</p>
-                            )}
-                        </div>
-
-                        <div className="profile-field">
-                            <label className="profile-field__label">
-                                <MapPin size={18} />
-                                Address
-                            </label>
-                            {isEditing ? (
-                                <input
-                                    type="text"
-                                    className="profile-field__input"
-                                    value={editedProfile.address}
-                                    onChange={(e) => handleChange('address', e.target.value)}
-                                />
-                            ) : (
-                                <p className="profile-field__value">{profile.address}</p>
-                            )}
-                        </div>
-
-                        <div className="profile-field-group">
-                            <div className="profile-field">
-                                <label className="profile-field__label">City</label>
-                                {isEditing ? (
-                                    <input
-                                        type="text"
-                                        className="profile-field__input"
-                                        value={editedProfile.city}
-                                        onChange={(e) => handleChange('city', e.target.value)}
-                                    />
-                                ) : (
-                                    <p className="profile-field__value">{profile.city}</p>
-                                )}
-                            </div>
-
-                            <div className="profile-field">
-                                <label className="profile-field__label">Country</label>
-                                {isEditing ? (
-                                    <input
-                                        type="text"
-                                        className="profile-field__input"
-                                        value={editedProfile.country}
-                                        onChange={(e) => handleChange('country', e.target.value)}
-                                    />
-                                ) : (
-                                    <p className="profile-field__value">{profile.country}</p>
-                                )}
+                <div className="profile-layout">
+                    {/* Sidebar */}
+                    <aside className="profile-sidebar">
+                        <div className="user-summary-card">
+                            <div className="avatar-section-centered">
+                                <div className="large-avatar-wrapper">
+                                    <div className="avatar-circle">
+                                        <div className="crown-icon-placeholder">
+                                            <Star size={32} fill="#ccd0d5" stroke="none" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="user-info-centered">
+                                    <h3>{currentUser.firstName} {currentUser.lastName}</h3>
+                                    <span className="rank-badge-chip">Thành viên Bạc</span>
+                                    <div className="fpoint-summary-centered">
+                                        <p>F-Point tích lũy 0</p>
+                                        <p className="next-rank-note">Thêm 30.000 để nâng hạng Vàng</p>
+                                    </div>
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Order History Section */}
-                <div className="order-history">
-                    <h3 className="order-history__title">Recent Orders</h3>
-                    <div className="order-history__empty">
-                        <p>No orders yet</p>
-                        <a href="/shop/books" className="order-history__link">Start Shopping</a>
-                    </div>
+                        <nav className="profile-nav">
+                            <div className="nav-section">
+                                <div className="nav-item active">
+                                    <div className="nav-item-header">
+                                        <div className="nav-item-wrapper">
+                                            <User size={20} />
+                                            <span>Thông tin tài khoản</span>
+                                        </div>
+                                        <ChevronDown size={14} className="arrow" />
+                                    </div>
+                                    <div className="sub-nav">
+                                        <div className="sub-nav-item active">Hồ sơ cá nhân</div>
+                                        <div className="sub-nav-item">Số địa chỉ</div>
+                                        <div className="sub-nav-item">Đổi mật khẩu</div>
+                                        <div className="sub-nav-item">Thông tin xuất hóa đơn GTGT</div>
+                                        <div className="sub-nav-item">Ưu đãi thành viên</div>
+                                    </div>
+                                </div>
+                                <div className="nav-item">
+                                    <div className="nav-item-header">
+                                        <div className="nav-item-wrapper">
+                                            <ClipboardList size={20} />
+                                            <span>Đơn hàng của tôi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="nav-item">
+                                    <div className="nav-item-header">
+                                        <div className="nav-item-wrapper">
+                                            <Ticket size={20} />
+                                            <span>Ví voucher</span>
+                                        </div>
+                                        <span className="badge-count-red">18</span>
+                                    </div>
+                                </div>
+                                <div className="nav-item">
+                                    <div className="nav-item-header">
+                                        <div className="nav-item-wrapper">
+                                            <div className="f-coin-icon">F</div>
+                                            <span>Tài Khoản F-Point / Freeship</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="nav-item">
+                                    <div className="nav-item-header">
+                                        <div className="nav-item-wrapper">
+                                            <Bell size={20} />
+                                            <span>Thông báo</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="nav-item">
+                                    <div className="nav-item-header">
+                                        <div className="nav-item-wrapper">
+                                            <Heart size={20} />
+                                            <span>Sản phẩm yêu thích</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="nav-item">
+                                    <div className="nav-item-header">
+                                        <div className="nav-item-wrapper">
+                                            <BookOpen size={20} />
+                                            <span>Sách theo bộ</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="nav-item">
+                                    <div className="nav-item-header">
+                                        <div className="nav-item-wrapper">
+                                            <Star size={20} />
+                                            <span>Nhận xét của tôi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </nav>
+                    </aside>
+
+                    {/* Main Content */}
+                    <main className="profile-main">
+                        {/* Membership Banner */}
+                        <div className="membership-banner">
+                            <div className="banner-alert">
+                                <Info size={16} />
+                                <span>Bạn vui lòng cập nhật thông tin tài khoản:</span>
+                                <button className="btn-update-now">Cập nhật thông tin ngay</button>
+                            </div>
+                            <div className="banner-content">
+                                <div className="mascot-section">
+                                    <div className="mascot-container">
+                                        <img src="https://cdn0.fahasa.com/skin/frontend/ma_fahasa7/default/images/fahasa-mascot.png" alt="Mascot" />
+                                    </div>
+                                    <button className="btn-membership-status">Thành viên <ChevronRight size={14} /></button>
+                                </div>
+                                <div className="stats-grid">
+                                    <div className="stat-card">
+                                        <h4>Ưu đãi của bạn</h4>
+                                        <div className="stat-items">
+                                            <div className="stat-item">
+                                                <span className="stat-label">F-Point hiện có</span>
+                                                <span className="stat-value">0</span>
+                                            </div>
+                                            <div className="stat-item">
+                                                <span className="stat-label">Freeship hiện có</span>
+                                                <span className="stat-value highlight">0 lần</span>
+                                            </div>
+                                        </div>
+                                        <button className="btn-explore">Khám phá hạng thành viên. <span>Xem chi tiết</span></button>
+                                    </div>
+                                    <div className="stat-card">
+                                        <h4>Thành tích năm 2025</h4>
+                                        <div className="stat-items">
+                                            <div className="stat-item">
+                                                <span className="stat-label">Số đơn hàng</span>
+                                                <span className="stat-value highlight-blue">0 đơn hàng</span>
+                                            </div>
+                                            <div className="stat-item">
+                                                <span className="stat-label">Đã thanh toán</span>
+                                                <span className="stat-value highlight-blue">0 đ</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Profile Form */}
+                        <div className="profile-form-section">
+                            <h2 className="section-title">Hồ sơ cá nhân</h2>
+                            <form className="profile-form">
+                                <div className="form-group-row">
+                                    <label>Họ*</label>
+                                    <input type="text" defaultValue={currentUser.firstName} placeholder="Nhập họ" />
+                                </div>
+                                <div className="form-group-row">
+                                    <label>Tên*</label>
+                                    <input type="text" defaultValue={currentUser.lastName} placeholder="Nhập tên" />
+                                </div>
+                                <div className="form-group-row">
+                                    <label>Số điện thoại</label>
+                                    <div className="input-with-action">
+                                        <input type="text" defaultValue={currentUser.phone} placeholder="Nhập số điện thoại" />
+                                        <button type="button" className="btn-inline-action">Thay đổi</button>
+                                    </div>
+                                </div>
+                                <div className="form-group-row">
+                                    <label>Email</label>
+                                    <div className="input-with-action">
+                                        <input type="email" defaultValue={currentUser.email} placeholder="Chưa có email" />
+                                        <button type="button" className="btn-inline-action">Thêm mới</button>
+                                    </div>
+                                </div>
+                                <div className="form-group-row">
+                                    <label>Giới tính*</label>
+                                    <div className="radio-group">
+                                        <label className="radio-label">
+                                            <input
+                                                type="radio"
+                                                name="gender"
+                                                value="male"
+                                                checked={gender === 'male'}
+                                                onChange={() => setGender('male')}
+                                            />
+                                            <span className="radio-custom"></span>
+                                            Nam
+                                        </label>
+                                        <label className="radio-label">
+                                            <input
+                                                type="radio"
+                                                name="gender"
+                                                value="female"
+                                                checked={gender === 'female'}
+                                                onChange={() => setGender('female')}
+                                            />
+                                            <span className="radio-custom"></span>
+                                            Nữ
+                                        </label>
+                                    </div>
+                                </div>
+                                <div className="form-group-row">
+                                    <label>Birthday*</label>
+                                    <div className="date-inputs">
+                                        <input type="text" placeholder="04" className="date-input" />
+                                        <input type="text" placeholder="07" className="date-input" />
+                                        <input type="text" placeholder="2004" className="date-input-year" />
+                                    </div>
+                                </div>
+                                <div className="form-actions">
+                                    <button type="submit" className="btn-save-profile">Lưu thay đổi</button>
+                                </div>
+                            </form>
+                        </div>
+                    </main>
                 </div>
             </div>
         </div>

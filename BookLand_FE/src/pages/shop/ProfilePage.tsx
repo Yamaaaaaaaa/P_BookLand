@@ -2,11 +2,8 @@ import { useState } from 'react';
 import {
     User,
     ClipboardList,
-    Ticket,
     Bell,
     Heart,
-    BookOpen,
-    Star,
     ChevronDown,
     ChevronRight,
     Info,
@@ -28,18 +25,11 @@ const ProfilePage = () => {
                             <div className="avatar-section-centered">
                                 <div className="large-avatar-wrapper">
                                     <div className="avatar-circle">
-                                        <div className="crown-icon-placeholder">
-                                            <Star size={32} fill="#ccd0d5" stroke="none" />
-                                        </div>
+                                        <User size={48} color="#ccd0d5" />
                                     </div>
                                 </div>
                                 <div className="user-info-centered">
                                     <h3>{currentUser.firstName} {currentUser.lastName}</h3>
-                                    <span className="rank-badge-chip">Thành viên Bạc</span>
-                                    <div className="fpoint-summary-centered">
-                                        <p>F-Point tích lũy 0</p>
-                                        <p className="next-rank-note">Thêm 30.000 để nâng hạng Vàng</p>
-                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -58,8 +48,6 @@ const ProfilePage = () => {
                                         <div className="sub-nav-item active">Hồ sơ cá nhân</div>
                                         <div className="sub-nav-item">Số địa chỉ</div>
                                         <div className="sub-nav-item">Đổi mật khẩu</div>
-                                        <div className="sub-nav-item">Thông tin xuất hóa đơn GTGT</div>
-                                        <div className="sub-nav-item">Ưu đãi thành viên</div>
                                     </div>
                                 </div>
                                 <div className="nav-item">
@@ -67,23 +55,6 @@ const ProfilePage = () => {
                                         <div className="nav-item-wrapper">
                                             <ClipboardList size={20} />
                                             <span>Đơn hàng của tôi</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="nav-item">
-                                    <div className="nav-item-header">
-                                        <div className="nav-item-wrapper">
-                                            <Ticket size={20} />
-                                            <span>Ví voucher</span>
-                                        </div>
-                                        <span className="badge-count-red">18</span>
-                                    </div>
-                                </div>
-                                <div className="nav-item">
-                                    <div className="nav-item-header">
-                                        <div className="nav-item-wrapper">
-                                            <div className="f-coin-icon">F</div>
-                                            <span>Tài Khoản F-Point / Freeship</span>
                                         </div>
                                     </div>
                                 </div>
@@ -100,22 +71,6 @@ const ProfilePage = () => {
                                         <div className="nav-item-wrapper">
                                             <Heart size={20} />
                                             <span>Sản phẩm yêu thích</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="nav-item">
-                                    <div className="nav-item-header">
-                                        <div className="nav-item-wrapper">
-                                            <BookOpen size={20} />
-                                            <span>Sách theo bộ</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="nav-item">
-                                    <div className="nav-item-header">
-                                        <div className="nav-item-wrapper">
-                                            <Star size={20} />
-                                            <span>Nhận xét của tôi</span>
                                         </div>
                                     </div>
                                 </div>
@@ -140,20 +95,6 @@ const ProfilePage = () => {
                                     <button className="btn-membership-status">Thành viên <ChevronRight size={14} /></button>
                                 </div>
                                 <div className="stats-grid">
-                                    <div className="stat-card">
-                                        <h4>Ưu đãi của bạn</h4>
-                                        <div className="stat-items">
-                                            <div className="stat-item">
-                                                <span className="stat-label">F-Point hiện có</span>
-                                                <span className="stat-value">0</span>
-                                            </div>
-                                            <div className="stat-item">
-                                                <span className="stat-label">Freeship hiện có</span>
-                                                <span className="stat-value highlight">0 lần</span>
-                                            </div>
-                                        </div>
-                                        <button className="btn-explore">Khám phá hạng thành viên. <span>Xem chi tiết</span></button>
-                                    </div>
                                     <div className="stat-card">
                                         <h4>Thành tích năm 2025</h4>
                                         <div className="stat-items">

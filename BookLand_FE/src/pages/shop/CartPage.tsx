@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, Truck, CreditCard } from 'lucide-react';
 import '../../styles/pages/cart.css';
 import cartService from '../../api/cartService';
+import billService from '../../api/billService';
 import shippingMethodService from '../../api/shippingMethodService';
 import paymentMethodService from '../../api/paymentMethodService';
 import { getCurrentUserId } from '../../utils/auth';
@@ -119,6 +120,42 @@ const CartPage = () => {
             setSelectedIds([]);
         } else {
             setSelectedIds(cartItems.map(item => item.bookId));
+        }
+    };
+
+    const handleConfirmOrder = async () => {
+        if (selectedIds.length === 0) return;
+        if (!selectedShippingId || !selectedPaymentId) {
+            toast.warning('Vui lòng chọn phương thức vận chuyển và thanh toán');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const previewRequest = {
+                books: selectedItemsList.map(item => ({
+                    bookId: item.bookId,
+                    quantity: item.quantity
+                })),
+                shippingMethodId: selectedShippingId
+            };
+
+            const response = await billService.previewBill(previewRequest);
+            if (response.result) {
+                navigate('/shop/checkout', {
+                    state: {
+                        selectedBookIds: selectedIds,
+                        shippingMethodId: selectedShippingId,
+                        paymentMethodId: selectedPaymentId,
+                        billPreview: response.result
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Failed to preview bill:', error);
+            toast.error('Có lỗi xảy ra khi chuẩn bị đơn hàng');
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -310,15 +347,9 @@ const CartPage = () => {
                                 <button
                                     className={`btn-checkout ${selectedIds.length === 0 ? 'disabled' : ''}`}
                                     disabled={selectedIds.length === 0}
-                                    onClick={() => navigate('/shop/checkout', {
-                                        state: {
-                                            selectedBookIds: selectedIds,
-                                            shippingMethodId: selectedShippingId,
-                                            paymentMethodId: selectedPaymentId
-                                        }
-                                    })}
+                                    onClick={handleConfirmOrder}
                                 >
-                                    THANH TOÁN
+                                    XÁC NHẬN ĐƠN HÀNG
                                 </button>
                                 <div className="checkout-note">(Giảm giá trên web chỉ áp dụng cho bán lẻ)</div>
                             </div>

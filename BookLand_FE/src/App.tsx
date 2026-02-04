@@ -15,6 +15,7 @@ import CheckoutPage from './pages/shop/CheckoutPage';
 import ProfilePage from './pages/shop/ProfilePage';
 import LoginPage from './pages/shop/auth/LoginPage';
 import RegisterPage from './pages/shop/auth/RegisterPage';
+import PaymentPage from './pages/shop/PaymentPage';
 
 // Admin Pages
 import DashboardPage from './pages/admin/DashboardPage';
@@ -60,6 +61,7 @@ function App() {
             <Route path="cart" element={<CartPage />} />
             <Route path="wishlist" element={<WishList />} />
             <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="payment/:billId" element={<PaymentPage />} />
             <Route path="profile" element={<ProfilePage />} />
           </Route>
         </Route>

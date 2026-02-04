@@ -25,11 +25,13 @@ import paymentMethodService from '../../api/paymentMethodService';
 import type { CartItem } from '../../types/CartItem';
 import type { ShippingMethod } from '../../types/ShippingMethod';
 import type { PaymentMethod } from '../../types/PaymentMethod';
+import type { BillPreviewDTO } from '../../api/billService';
 
 const CheckoutPage = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const checkoutData = location.state || {};
+    const billPreview = checkoutData.billPreview as BillPreviewDTO;
 
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [shippingMethod, setShippingMethod] = useState<ShippingMethod | null>(null);
@@ -130,7 +132,14 @@ const CheckoutPage = () => {
 
         setIsProcessing(true);
         try {
+            const userId = getCurrentUserId();
+            if (!userId) {
+                toast.error('Không tìm thấy thông tin người dùng');
+                return;
+            }
+
             const billRequest = {
+                userId: userId,
                 fullName: formData.fullName,
                 email: formData.email,
                 phone: formData.phone,
@@ -148,12 +157,19 @@ const CheckoutPage = () => {
             const response = await billService.createBill(billRequest);
 
             if (response.result) {
+                // Clear the cart after successful order
+                try {
+                    await cartService.clearCart(userId);
+                } catch (clearError) {
+                    console.error('Failed to clear cart:', clearError);
+                    // We don't block the user if clear cart fails, as the bill is already created
+                }
+
                 toast.success('Đặt hàng thành công! 🎉');
                 window.dispatchEvent(new Event('cart:updated'));
 
-                // If VNPAY or online payment, could handle redirect here
-                // For now, go to profile/orders
-                navigate('/shop/profile', { state: { activeTab: 'orders' } });
+                // Redirect to the placeholder payment page
+                navigate(`/shop/payment/${response.result.id}`);
             }
         } catch (error) {
             console.error('Failed to place order:', error);
@@ -317,38 +333,73 @@ const CheckoutPage = () => {
                             </div>
 
                             <div className="checkout-items-preview">
-                                {cartItems.map(item => (
-                                    <div key={item.bookId} className="preview-item">
-                                        <div className="item-img">
-                                            <img src={item.bookImageUrl} alt={item.bookName} />
+                                {(billPreview?.books || cartItems).map(item => {
+                                    // Handle both CartItem (from local) and BillPreviewBookDTO (from API)
+                                    const bookId = 'bookId' in item ? item.bookId : (item as any).book.id;
+                                    const bookName = 'bookName' in item ? item.bookName : (item as any).book.name;
+                                    const bookImageUrl = 'bookImageUrl' in item ? item.bookImageUrl : (item as any).book.bookImageUrl;
+                                    const quantity = item.quantity;
+                                    const subtotal = item.subtotal;
+                                    const originalPrice = 'originalPrice' in item ? item.originalPrice : (item as any).book.originalCost;
+                                    const finalPrice = 'finalPrice' in item ? item.finalPrice : (item as any).finalPrice;
+                                    const hasEventDiscount = 'hasEventDiscount' in item ? item.hasEventDiscount : false;
+
+                                    return (
+                                        <div key={bookId} className="preview-item">
+                                            <div className="item-img">
+                                                <img src={bookImageUrl} alt={bookName} />
+                                            </div>
+                                            <div className="item-meta">
+                                                <div className="name">{bookName}</div>
+                                                <div className="price-row">
+                                                    {hasEventDiscount && (
+                                                        <span className="old-price" style={{ textDecoration: 'line-through', color: '#999', fontSize: '11px', marginRight: '5px' }}>
+                                                            {formatCurrency(originalPrice)}
+                                                        </span>
+                                                    )}
+                                                    <span className="current-price" style={{ color: hasEventDiscount ? '#C92127' : '#888' }}>
+                                                        {formatCurrency(finalPrice)}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <div className="item-qty">
+                                                x{quantity}
+                                            </div>
+                                            <div className="item-total">
+                                                {formatCurrency(subtotal)}
+                                            </div>
                                         </div>
-                                        <div className="item-meta">
-                                            <div className="name">{item.bookName}</div>
-                                            <div className="price">{formatCurrency(item.finalPrice)}</div>
-                                        </div>
-                                        <div className="item-qty">
-                                            x{item.quantity}
-                                        </div>
-                                        <div className="item-total">
-                                            {formatCurrency(item.subtotal)}
-                                        </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             <div className="summary-breakdown">
+                                {billPreview?.appliedEventName && (
+                                    <div className="row event-row" style={{ color: '#28a745', fontSize: '12px', border: '1px dashed #28a745', padding: '8px', borderRadius: '4px', marginBottom: '10px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+                                            <Package size={14} />
+                                            <span>Khuyến mãi: {billPreview.appliedEventName}</span>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="row">
                                     <span>Tạm tính</span>
-                                    <span>{formatCurrency(subtotal)}</span>
+                                    <span>{formatCurrency(billPreview?.originalSubtotal || subtotal)}</span>
                                 </div>
+                                {billPreview && (billPreview.originalSubtotal - billPreview.discountedSubtotal) > 0 && (
+                                    <div className="row" style={{ color: '#28a745' }}>
+                                        <span>Giảm giá trực tiếp</span>
+                                        <span>-{formatCurrency(billPreview.originalSubtotal - billPreview.discountedSubtotal)}</span>
+                                    </div>
+                                )}
                                 <div className="row">
                                     <span>Phí vận chuyển</span>
-                                    <span>{formatCurrency(shippingFee)}</span>
+                                    <span>{formatCurrency(billPreview?.shippingCost || shippingFee)}</span>
                                 </div>
                                 <div className="divider"></div>
                                 <div className="row total">
                                     <span>Tổng cộng</span>
-                                    <span className="final-total">{formatCurrency(total)}</span>
+                                    <span className="final-total">{formatCurrency(billPreview?.grandTotal || total)}</span>
                                 </div>
                                 <div className="vat-notice">(Đã bao gồm VAT nếu có)</div>
                             </div>

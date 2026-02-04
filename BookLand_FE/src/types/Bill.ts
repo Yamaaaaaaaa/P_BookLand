@@ -35,6 +35,7 @@ export interface Bill {
 }
 
 export interface CreateBillRequest {
+    userId: number;
     fullName: string;
     email: string;
     phone: string;

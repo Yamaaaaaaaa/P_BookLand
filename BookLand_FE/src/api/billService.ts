@@ -21,18 +21,29 @@ export interface PreviewBillRequest {
 }
 
 
-// Assuming BillPreviewDTO is same as Bill for now or close enough, but actually need to define it if I want strict type
-// For now leaving as 'any' for result or defining a quick interface if needed.
-// The doc has BillPreviewDTO.
+export interface BillPreviewBookDTO {
+    bookId: number;
+    bookName: string;
+    bookImageUrl: string;
+    originalPrice: number;
+    eventDiscountedPrice: number;
+    finalPrice: number;
+    quantity: number;
+    subtotal: number;
+    hasEventDiscount: boolean;
+}
+
 export interface BillPreviewDTO {
-    books: any[]; // define stricter if needed
+    books: BillPreviewBookDTO[];
     originalSubtotal: number;
     discountedSubtotal: number;
     shippingCost: number;
     totalSaved: number;
     grandTotal: number;
     hasEventApplied: boolean;
-    appliedEventId: number;
+    appliedEventId?: number;
+    appliedEventName?: string;
+    appliedEventType?: string;
 }
 
 const billService = {

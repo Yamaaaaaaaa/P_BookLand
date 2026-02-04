@@ -1,8 +1,11 @@
-import type { Cart } from './Cart';
-import type { Book } from './Book';
-
 export interface CartItem {
-    cart: Cart;
-    book: Book;
+    bookId: number;
+    bookName: string;
+    bookImageUrl: string;
+    originalPrice: number;
+    salePrice: number; // Discount percentage or amount
+    finalPrice: number; // The actual price after discount
     quantity: number;
+    availableStock: number;
+    subtotal: number; // finalPrice * quantity
 }

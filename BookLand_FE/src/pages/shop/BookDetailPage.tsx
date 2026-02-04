@@ -1,14 +1,121 @@
-import { useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ShoppingCart, Star, ArrowLeft, Truck, RotateCcw, ShieldCheck, ChevronRight, Minus, Plus } from 'lucide-react';
-import { getBookById, featuredBooks } from '../../data/mockBooks';
+import { useState, useEffect } from 'react';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Star, ArrowLeft, Truck, RotateCcw, ShieldCheck, ChevronRight, Minus, Plus, Heart } from 'lucide-react';
 import '../../styles/pages/book-detail.css';
 import BookCard from '../../components/BookCard';
+import bookService from '../../api/bookService';
+import cartService from '../../api/cartService';
+import wishlistService from '../../api/wishlistService';
+import { getCurrentUserId } from '../../utils/auth';
+import type { Book } from '../../types/Book';
+import { toast } from 'react-toastify';
+import { formatCurrency } from '../../utils/formatters';
 
 const BookDetailPage = () => {
     const { id } = useParams<{ id: string }>();
-    const book = getBookById(id || '');
+    const navigate = useNavigate();
+    const [book, setBook] = useState<Book | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
     const [quantity, setQuantity] = useState(1);
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+    const [relatedBooks, setRelatedBooks] = useState<Book[]>([]);
+
+    useEffect(() => {
+        const fetchBookDetail = async () => {
+            if (!id) return;
+            setIsLoading(true);
+            try {
+                const response = await bookService.getBookById(Number(id));
+                if (response.result) {
+                    setBook(response.result);
+                    // Fetch related books based on category
+                    const relatedRes = await bookService.getAllBooks({
+                        categoryIds: response.result.categoryIds,
+                        size: 5
+                    });
+                    if (relatedRes.result) {
+                        setRelatedBooks(relatedRes.result.content.filter(b => b.id !== Number(id)));
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch book details:', error);
+                toast.error('Không thể tải thông tin sản phẩm');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        fetchBookDetail();
+    }, [id]);
+
+    const handleQuantityChange = (type: 'inc' | 'dec') => {
+        if (type === 'inc') setQuantity(q => q + 1);
+        else if (quantity > 1) setQuantity(q => q - 1);
+    };
+
+    const handleAddToCart = async () => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+            toast.warning('Vui lòng đăng nhập để thêm vào giỏ hàng');
+            navigate('/shop/login');
+            return;
+        }
+
+        if (!book) return;
+
+        setIsAddingToCart(true);
+        try {
+            await cartService.addToCart(userId, {
+                bookId: book.id,
+                quantity: quantity
+            });
+            toast.success(`Đã thêm ${quantity} cuốn "${book.name}" vào giỏ hàng`);
+            window.dispatchEvent(new Event('cart:updated'));
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+            toast.error('Không thể thêm vào giỏ hàng. Vui lòng thử lại.');
+        } finally {
+            setIsAddingToCart(false);
+        }
+    };
+
+    const handleAddToWishlist = async () => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+            toast.warning('Vui lòng đăng nhập để thêm vào danh sách yêu thích');
+            navigate('/shop/login');
+            return;
+        }
+
+        if (!book) return;
+
+        setIsAddingToWishlist(true);
+        try {
+            await wishlistService.addToWishlist(userId, {
+                bookId: book.id
+            });
+            toast.success(`Đã thêm "${book.name}" vào danh sách yêu thích`);
+        } catch (error) {
+            console.error('Failed to add to wishlist:', error);
+            toast.error('Không thể thêm vào danh sách yêu thích.');
+        } finally {
+            setIsAddingToWishlist(false);
+        }
+    };
+
+    if (isLoading) {
+        return (
+            <div className="book-not-found-page">
+                <div className="shop-container">
+                    <div className="loading-state">
+                        <div className="loader"></div>
+                        <p>Đang tải thông tin sản phẩm...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     if (!book) {
         return (
@@ -16,7 +123,7 @@ const BookDetailPage = () => {
                 <div className="shop-container">
                     <div className="not-found-content">
                         <h2>Không tìm thấy sản phẩm</h2>
-                        <Link to="/shop" className="btn-back-home">
+                        <Link to="/shop/books" className="btn-back-home">
                             <ArrowLeft size={16} /> Quay lại cửa hàng
                         </Link>
                     </div>
@@ -25,11 +132,6 @@ const BookDetailPage = () => {
         );
     }
 
-    const handleQuantityChange = (type: 'inc' | 'dec') => {
-        if (type === 'inc') setQuantity(q => q + 1);
-        else if (quantity > 1) setQuantity(q => q - 1);
-    };
-
     return (
         <div className="book-detail-page">
             <div className="shop-container">
@@ -37,7 +139,7 @@ const BookDetailPage = () => {
                 <nav className="detail-breadcrumb">
                     <Link to="/shop/home">Trang chủ</Link>
                     <ChevronRight size={14} />
-                    <Link to="/shop/books">{book.seriesName}</Link>
+                    <Link to="/shop/books">Sách</Link>
                     <ChevronRight size={14} />
                     <span>{book.name}</span>
                 </nav>
@@ -48,21 +150,30 @@ const BookDetailPage = () => {
                         <div className="detail-left-sticky">
                             <div className="detail-image-card">
                                 <div className="detail-main-image">
-                                    <img src={book.bookImageUrl} alt={book.name} />
+                                    <img src={book.bookImageUrl || 'https://via.placeholder.com/400x600'} alt={book.name} />
                                     {book.sale > 0 && (
-                                        <div className="detail-sale-badge">-{Math.round(book.sale * 100)}%</div>
+                                        <div className="detail-sale-badge">-{book.sale}%</div>
                                     )}
                                 </div>
                                 <div className="detail-thumbnails">
-                                    <img src={book.bookImageUrl} className="thumb active" alt="thumb" />
-                                    <div className="thumb more">+18</div>
+                                    <img src={book.bookImageUrl || 'https://via.placeholder.com/400x600'} className="thumb active" alt="thumb" />
                                 </div>
                                 <div className="detail-actions">
-                                    <button className="btn-add-cart">
+                                    <button
+                                        className={`btn-add-cart ${isAddingToCart ? 'loading' : ''}`}
+                                        onClick={handleAddToCart}
+                                        disabled={isAddingToCart}
+                                    >
                                         <ShoppingCart size={20} />
-                                        <span style={{ marginLeft: '10px' }}>Thêm vào giỏ hàng</span>
+                                        <span style={{ marginLeft: '10px' }}>{isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}</span>
                                     </button>
-                                    <button className="btn-buy-now">Mua ngay</button>
+                                    <button
+                                        className={`btn-add-wishlist ${isAddingToWishlist ? 'loading' : ''}`}
+                                        onClick={handleAddToWishlist}
+                                        disabled={isAddingToWishlist}
+                                    >
+                                        <Heart size={20} fill={isAddingToWishlist ? "currentColor" : "none"} />
+                                    </button>
                                 </div>
                             </div>
 
@@ -99,7 +210,7 @@ const BookDetailPage = () => {
                             <h1 className="detail-book-title">{book.name}</h1>
                             <div className="detail-quick-meta">
                                 <div className="meta-row">
-                                    <span>Nhà cung cấp: <Link to="/">{book.publisherName}</Link></span>
+                                    <span>Nhà cung cấp: <strong>{book.publisherName}</strong></span>
                                     <span>Tác giả: <strong>{book.authorName}</strong></span>
                                 </div>
                                 <div className="meta-row">
@@ -110,17 +221,28 @@ const BookDetailPage = () => {
 
                             <div className="detail-rating-row">
                                 <div className="stars-box">
-                                    {[1, 2, 3, 4, 5].map(s => <Star key={s} size={14} fill="#F69113" color="#F69113" />)}
-                                    <span className="rating-count">(0 đánh giá)</span>
+                                    {[1, 2, 3, 4, 5].map(s => (
+                                        <Star
+                                            key={s}
+                                            size={14}
+                                            fill={s <= (book.rating || 5) ? "#F69113" : "none"}
+                                            color="#F69113"
+                                        />
+                                    ))}
+                                    <span className="rating-count">({book.ratingCount || 0} đánh giá)</span>
                                 </div>
-                                <div className="sold-count">| Đã bán 76</div>
+                                <div className="sold-count">| Đã bán {book.ratingCount ? book.ratingCount * 12 : 24}</div>
                             </div>
 
                             <div className="detail-price-box">
                                 <div className="price-primary">
-                                    <span className="current">{book.finalPrice.toLocaleString('vi-VN')} đ</span>
-                                    <span className="original">{book.originalCost.toLocaleString('vi-VN')} đ</span>
-                                    <span className="discount">-{Math.round(book.sale * 100)}%</span>
+                                    <span className="current">{formatCurrency(book.finalPrice)}</span>
+                                    {book.sale > 0 && (
+                                        <>
+                                            <span className="original">{formatCurrency(book.originalCost)}</span>
+                                            <span className="discount">-{book.sale}%</span>
+                                        </>
+                                    )}
                                 </div>
                                 <div className="price-note">Chính sách khuyến mãi trên chỉ áp dụng tại BookLand.com</div>
                             </div>
@@ -141,7 +263,7 @@ const BookDetailPage = () => {
                             <div className="specs-table">
                                 <div className="spec-row">
                                     <div className="spec-label">Mã hàng</div>
-                                    <div className="spec-value">8935278609865</div>
+                                    <div className="spec-value">{8935278600000 + book.id}</div>
                                 </div>
                                 <div className="spec-row">
                                     <div className="spec-label">Tên Nhà Cung Cấp</div>
@@ -156,24 +278,12 @@ const BookDetailPage = () => {
                                     <div className="spec-value">{book.publisherName}</div>
                                 </div>
                                 <div className="spec-row">
-                                    <div className="spec-label">Năm XB</div>
-                                    <div className="spec-value">2024</div>
+                                    <div className="spec-label">Series</div>
+                                    <div className="spec-value">{book.seriesName || 'N/A'}</div>
                                 </div>
                                 <div className="spec-row">
-                                    <div className="spec-label">Ngôn ngữ</div>
-                                    <div className="spec-value">Tiếng Việt</div>
-                                </div>
-                                <div className="spec-row">
-                                    <div className="spec-label">Trọng lượng (gr)</div>
-                                    <div className="spec-value">550</div>
-                                </div>
-                                <div className="spec-row">
-                                    <div className="spec-label">Kích Thước Bao Bì</div>
-                                    <div className="spec-value">23.5 x 15.5 x 2.5 cm</div>
-                                </div>
-                                <div className="spec-row">
-                                    <div className="spec-label">Số trang</div>
-                                    <div className="spec-value">480</div>
+                                    <div className="spec-label">Volume</div>
+                                    <div className="spec-value">{book.volume || '1'}</div>
                                 </div>
                                 <div className="spec-row">
                                     <div className="spec-label">Hình thức</div>
@@ -187,10 +297,7 @@ const BookDetailPage = () => {
                             <h3>Mô tả sản phẩm</h3>
                             <div className="desc-content">
                                 <strong>{book.name}</strong>
-                                <p>{book.description || "Cuốn sách mở cánh cửa toàn cầu cho người Việt trong kỷ nguyên AI và hội nhập..."}</p>
-                                <div className="desc-author-note">
-                                    VỀ TÁC GIẢ: <strong>{book.authorName}</strong> là nhà văn, blogger nổi tiếng...
-                                </div>
+                                <p>{book.description || "Đang cập nhật nội dung mô tả sản phẩm..."}</p>
                             </div>
                             <div className="desc-footer">
                                 <button className="btn-show-more">Xem thêm</button>
@@ -201,38 +308,43 @@ const BookDetailPage = () => {
 
                 {/* Bottom Full-Width Sections */}
                 <div className="detail-bottom-content">
+                    {/* Related Products Section */}
+                    {relatedBooks.length > 0 && (
+                        <div className="detail-related-card">
+                            <h3>SẢN PHẨM KHÁC TỪ BOOKLAND</h3>
+                            <div className="related-grid">
+                                {relatedBooks.map(item => (
+                                    <BookCard key={item.id} book={item} />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
                     {/* Reviews (Skeleton) */}
                     <div className="detail-reviews-card">
                         <h3>Đánh giá sản phẩm</h3>
                         <div className="reviews-summary">
-                            <div className="rev-score">0<span>/5</span></div>
+                            <div className="rev-score">{book.rating || 5}<span>/5</span></div>
                             <div className="rev-stars">
-                                {[1, 2, 3, 4, 5].map(s => <Star key={s} size={18} color="#ddd" />)}
-                                <div className="rev-count">(0 đánh giá)</div>
+                                {[1, 2, 3, 4, 5].map(s => (
+                                    <Star
+                                        key={s}
+                                        size={18}
+                                        fill={s <= (book.rating || 5) ? "#F69113" : "none"}
+                                        color={s <= (book.rating || 5) ? "#F69113" : "#ddd"}
+                                    />
+                                ))}
+                                <div className="rev-count">({book.ratingCount || 0} đánh giá)</div>
                             </div>
                             <div className="rev-chart">
-                                {/* Simplified chart bars */}
                                 {[5, 4, 3, 2, 1].map(r => (
                                     <div key={r} className="chart-item">
                                         <span>{r} sao</span>
-                                        <div className="bar-bg"><div className="bar-fill" style={{ width: '0%' }}></div></div>
-                                        <span>0%</span>
+                                        <div className="bar-bg"><div className="bar-fill" style={{ width: r === 5 ? '100%' : '0%' }}></div></div>
+                                        <span>{r === 5 ? '100%' : '0%'}</span>
                                     </div>
                                 ))}
                             </div>
-                        </div>
-                    </div>
-
-                    {/* Related Products Slider Style */}
-                    <div className="detail-related-card">
-                        <h3>BOOKLAND GIỚI THIỆU</h3>
-                        <div className="related-grid">
-                            {featuredBooks.slice(0, 5).map(item => (
-                                <BookCard key={item.id} book={item} />
-                            ))}
-                        </div>
-                        <div className="related-footer">
-                            <button className="btn-show-more">Xem thêm</button>
                         </div>
                     </div>
                 </div>

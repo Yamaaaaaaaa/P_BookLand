@@ -1,4 +1,3 @@
-import type { User } from './User.ts';
 import type { CartItem } from './CartItem.ts';
 
 export const CartStatus = {
@@ -10,11 +9,12 @@ export type CartStatus = (typeof CartStatus)[keyof typeof CartStatus];
 
 export interface Cart {
     id: number;
-    user: User;
+    userId: number;
     status: CartStatus;
+    totalAmount: number;
     createdAt?: string;
     updatedAt?: string;
-    items?: CartItem[];
+    items: CartItem[];
 }
 
 export interface AddToCartRequest {

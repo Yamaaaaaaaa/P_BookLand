@@ -1,27 +1,111 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag, ChevronRight, Info, Gift, Ticket } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { Trash2, Plus, Minus, ShoppingBag, Truck, CreditCard } from 'lucide-react';
 import '../../styles/pages/cart.css';
-import { mockCart } from '../../data/mockOrders';
+import cartService from '../../api/cartService';
+import shippingMethodService from '../../api/shippingMethodService';
+import paymentMethodService from '../../api/paymentMethodService';
+import { getCurrentUserId } from '../../utils/auth';
+import { toast } from 'react-toastify';
+import { formatCurrency } from '../../utils/formatters';
 import type { CartItem } from '../../types/CartItem';
+import type { ShippingMethod } from '../../types/ShippingMethod';
+import type { PaymentMethod } from '../../types/PaymentMethod';
 
 const CartPage = () => {
-    const [cartItems, setCartItems] = useState<CartItem[]>(mockCart.items || []);
-    const [selectedIds, setSelectedIds] = useState<number[]>(cartItems.map(item => item.book.id));
+    const navigate = useNavigate();
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+    const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
-    const updateQuantity = (bookId: number, delta: number) => {
-        setCartItems(items =>
-            items.map(item =>
-                item.book.id === bookId
-                    ? { ...item, quantity: Math.max(1, item.quantity + delta) }
-                    : item
-            )
-        );
+    const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
+    const [selectedShippingId, setSelectedShippingId] = useState<number | null>(null);
+
+    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+    const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
+
+    const fetchData = async () => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+            toast.warning('Vui lòng đăng nhập để xem giỏ hàng');
+            navigate('/shop/login');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            // Fetch cart
+            const cartRes = await cartService.getUserCart(userId);
+            if (cartRes.result && cartRes.result.items) {
+                setCartItems(cartRes.result.items);
+                if (selectedIds.length === 0) {
+                    setSelectedIds(cartRes.result.items.map((item: CartItem) => item.bookId));
+                }
+            }
+
+            // Fetch shipping methods
+            const shipRes = await shippingMethodService.getAllShippingMethods();
+            if (shipRes.result && shipRes.result.content) {
+                setShippingMethods(shipRes.result.content);
+                if (shipRes.result.content.length > 0) {
+                    setSelectedShippingId(shipRes.result.content[0].id);
+                }
+            }
+
+            // Fetch payment methods
+            const payRes = await paymentMethodService.getAll();
+            if (payRes.result && payRes.result.content) {
+                setPaymentMethods(payRes.result.content);
+                if (payRes.result.content.length > 0) {
+                    setSelectedPaymentId(payRes.result.content[0].id);
+                }
+            }
+        } catch (error) {
+            console.error('Failed to fetch data:', error);
+            toast.error('Không thể tải thông tin giỏ hàng');
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const removeItem = (bookId: number) => {
-        setCartItems(items => items.filter(item => item.book.id !== bookId));
-        setSelectedIds(ids => ids.filter(id => id !== bookId));
+    useEffect(() => {
+        fetchData();
+    }, []);
+
+    const updateQuantity = async (bookId: number, currentQuantity: number, delta: number) => {
+        const userId = getCurrentUserId();
+        if (!userId) return;
+
+        const newQuantity = currentQuantity + delta;
+        if (newQuantity < 1) return;
+
+        try {
+            await cartService.updateCartItem(userId, bookId, { quantity: newQuantity });
+            // Refresh cart
+            const cartRes = await cartService.getUserCart(userId);
+            if (cartRes.result) {
+                setCartItems(cartRes.result.items);
+            }
+        } catch (error) {
+            console.error('Failed to update quantity:', error);
+            toast.error('Không thể cập nhật số lượng');
+        }
+    };
+
+    const removeItem = async (bookId: number) => {
+        const userId = getCurrentUserId();
+        if (!userId) return;
+
+        try {
+            await cartService.removeFromCart(userId, bookId);
+            setCartItems(items => items.filter(item => item.bookId !== bookId));
+            setSelectedIds(ids => ids.filter(id => id !== bookId));
+            toast.success('Đã xóa sản phẩm khỏi giỏ hàng');
+            window.dispatchEvent(new Event('cart:updated'));
+        } catch (error) {
+            console.error('Failed to remove item:', error);
+            toast.error('Không thể xóa sản phẩm');
+        }
     };
 
     const toggleSelect = (bookId: number) => {
@@ -34,13 +118,30 @@ const CartPage = () => {
         if (selectedIds.length === cartItems.length) {
             setSelectedIds([]);
         } else {
-            setSelectedIds(cartItems.map(item => item.book.id));
+            setSelectedIds(cartItems.map(item => item.bookId));
         }
     };
 
-    const selectedItems = cartItems.filter(item => selectedIds.includes(item.book.id));
-    const subtotal = selectedItems.reduce((sum, item) => sum + item.book.finalPrice * item.quantity, 0);
-    const total = subtotal; // Assuming VAT included or separate calculation for demo
+    const selectedItemsList = cartItems.filter(item => selectedIds.includes(item.bookId));
+    const itemsSubtotal = selectedItemsList.reduce((sum, item) => sum + item.subtotal, 0);
+
+    const selectedShipping = shippingMethods.find(s => s.id === selectedShippingId);
+    const shippingPrice = selectedShipping ? selectedShipping.price : 0;
+
+    const totalAmount = itemsSubtotal + shippingPrice;
+
+    if (isLoading && cartItems.length === 0) {
+        return (
+            <div className="cart-page">
+                <div className="shop-container">
+                    <div className="loading-state">
+                        <div className="loader"></div>
+                        <p>Đang tải giỏ hàng...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="cart-page">
@@ -70,56 +171,60 @@ const CartPage = () => {
                                     Chọn tất cả ({cartItems.length} sản phẩm)
                                 </label>
                                 <div className="bar-labels">
-                                    <span>Số lượng</span>
-                                    <span>Thành tiền</span>
+                                    <span className="bar-label-qty">Số lượng</span>
+                                    <span className="bar-label-subtotal">Thành tiền</span>
+                                    <div className="bar-label-spacer"></div>
                                 </div>
                             </div>
 
                             <div className="cart-items-list">
                                 {cartItems.map(item => (
-                                    <div key={item.book.id} className="cart-item-card">
+                                    <div key={item.bookId} className="cart-item-card">
                                         <div className="item-checkbox">
                                             <label className="cart-checkbox-wrapper">
                                                 <input
                                                     type="checkbox"
-                                                    checked={selectedIds.includes(item.book.id)}
-                                                    onChange={() => toggleSelect(item.book.id)}
+                                                    checked={selectedIds.includes(item.bookId)}
+                                                    onChange={() => toggleSelect(item.bookId)}
                                                 />
                                                 <span className="checkmark"></span>
                                             </label>
                                         </div>
                                         <div className="item-image">
-                                            <img src={item.book.bookImageUrl} alt={item.book.name} />
+                                            <img src={item.bookImageUrl || 'https://via.placeholder.com/150'} alt={item.bookName} />
                                         </div>
                                         <div className="item-info">
-                                            <Link to={`/shop/books/${item.book.id}`} className="item-name">
-                                                {item.book.name}
+                                            <Link to={`/shop/book-detail/${item.bookId}`} className="item-name">
+                                                {item.bookName}
                                             </Link>
                                             <div className="item-price-row">
                                                 <span className="item-current-price">
-                                                    {item.book.finalPrice.toLocaleString('vi-VN')} đ
+                                                    {formatCurrency(item.finalPrice)}
                                                 </span>
-                                                {item.book.sale > 0 && (
+                                                {item.salePrice > 0 && (
                                                     <span className="item-old-price">
-                                                        {item.book.originalCost.toLocaleString('vi-VN')} đ
+                                                        {formatCurrency(item.originalPrice)}
                                                     </span>
                                                 )}
                                             </div>
                                         </div>
                                         <div className="item-quantity-col">
                                             <div className="item-quantity-control">
-                                                <button onClick={() => updateQuantity(item.book.id, -1)}><Minus size={14} /></button>
+                                                <button onClick={() => updateQuantity(item.bookId, item.quantity, -1)}><Minus size={14} /></button>
                                                 <input type="text" value={item.quantity} readOnly />
-                                                <button onClick={() => updateQuantity(item.book.id, 1)}><Plus size={14} /></button>
+                                                <button onClick={() => updateQuantity(item.bookId, item.quantity, 1)}><Plus size={14} /></button>
+                                            </div>
+                                            <div className="item-available-stock">
+                                                Còn {item.availableStock} sp
                                             </div>
                                         </div>
                                         <div className="item-subtotal-col">
                                             <span className="item-subtotal">
-                                                {(item.book.finalPrice * item.quantity).toLocaleString('vi-VN')} đ
+                                                {formatCurrency(item.subtotal)}
                                             </span>
                                         </div>
                                         <div className="item-remove-col">
-                                            <button className="btn-remove-item" onClick={() => removeItem(item.book.id)}>
+                                            <button className="btn-remove-item" onClick={() => removeItem(item.bookId)}>
                                                 <Trash2 size={20} />
                                             </button>
                                         </div>
@@ -128,55 +233,90 @@ const CartPage = () => {
                             </div>
                         </div>
 
-                        {/* Right Column: Summary & Promotions */}
+                        {/* Right Column: Checkout Config & Summary */}
                         <div className="cart-sidebar-col">
-                            <div className="cart-promo-card">
-                                <div className="card-header">
-                                    <div className="header-left">
-                                        <Ticket size={20} color="#C92127" />
-                                        <span>KHUYẾN MÃI</span>
+                            <div className="checkout-config-card">
+                                {/* Shipping Method */}
+                                <div className="config-section">
+                                    <div className="config-title">
+                                        <Truck size={18} color="#C92127" />
+                                        <span>PHƯƠNG THỨC VẬN CHUYỂN</span>
                                     </div>
-                                    <button className="btn-view-more">Xem thêm <ChevronRight size={14} /></button>
-                                </div>
-                                <div className="promo-item">
-                                    <div className="promo-info">
-                                        <div className="promo-title">Mã Giảm 10K - Toàn Sàn</div>
-                                        <div className="promo-desc">Đơn hàng từ 130k - Không bao gồm giá trị của...</div>
-                                        <div className="promo-progress">
-                                            <div className="progress-bar"><div className="fill" style={{ width: '60%' }}></div></div>
-                                            <span>Mua thêm 150.000 đ</span>
-                                        </div>
+                                    <div className="config-options">
+                                        {shippingMethods.map(method => (
+                                            <label
+                                                key={method.id}
+                                                className={`option-item ${selectedShippingId === method.id ? 'active' : ''}`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="shippingMethod"
+                                                    className="option-radio"
+                                                    checked={selectedShippingId === method.id}
+                                                    onChange={() => setSelectedShippingId(method.id)}
+                                                />
+                                                <div className="option-info">
+                                                    <span className="option-name">{method.name}</span>
+                                                    <span className="option-price">{formatCurrency(method.price)}</span>
+                                                    {method.description && <span className="option-desc">{method.description}</span>}
+                                                </div>
+                                            </label>
+                                        ))}
                                     </div>
-                                    <button className="btn-buy-more">Mua thêm</button>
-                                    <Info size={16} color="#2489F3" className="promo-info-icon" />
                                 </div>
-                                <div className="promo-footer">
-                                    <button className="btn-gift-guide">Hướng dẫn sử dụng Gift Card <Info size={14} /></button>
-                                </div>
-                            </div>
 
-                            <div className="cart-gift-card">
-                                <div className="card-header">
-                                    <div className="header-left">
-                                        <Gift size={20} color="#C92127" />
-                                        <span>Nhận quà</span>
+                                {/* Payment Method */}
+                                <div className="config-section">
+                                    <div className="config-title">
+                                        <CreditCard size={18} color="#C92127" />
+                                        <span>PHƯƠNG THỨC THANH TOÁN</span>
                                     </div>
-                                    <button className="btn-view-more">Chọn quà <ChevronRight size={14} /></button>
+                                    <div className="config-options">
+                                        {paymentMethods.map(method => (
+                                            <label
+                                                key={method.id}
+                                                className={`option-item ${selectedPaymentId === method.id ? 'active' : ''}`}
+                                            >
+                                                <input
+                                                    type="radio"
+                                                    name="paymentMethod"
+                                                    className="option-radio"
+                                                    checked={selectedPaymentId === method.id}
+                                                    onChange={() => setSelectedPaymentId(method.id)}
+                                                />
+                                                <div className="option-info">
+                                                    <span className="option-name">{method.name}</span>
+                                                    {method.description && <span className="option-desc">{method.description}</span>}
+                                                </div>
+                                            </label>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
 
                             <div className="cart-summary-card">
                                 <div className="summary-row">
                                     <span>Thành tiền</span>
-                                    <span>{subtotal.toLocaleString('vi-VN')} đ</span>
+                                    <span>{formatCurrency(itemsSubtotal)}</span>
+                                </div>
+                                <div className="summary-row">
+                                    <span>Phí vận chuyển</span>
+                                    <span>{formatCurrency(shippingPrice)}</span>
                                 </div>
                                 <div className="summary-total-row">
-                                    <span>Tổng Số Tiền (gồm VAT)</span>
-                                    <span className="total-value">{total.toLocaleString('vi-VN')} đ</span>
+                                    <span>Tổng Số Tiền</span>
+                                    <span className="total-value">{formatCurrency(totalAmount)}</span>
                                 </div>
                                 <button
                                     className={`btn-checkout ${selectedIds.length === 0 ? 'disabled' : ''}`}
                                     disabled={selectedIds.length === 0}
+                                    onClick={() => navigate('/shop/checkout', {
+                                        state: {
+                                            selectedBookIds: selectedIds,
+                                            shippingMethodId: selectedShippingId,
+                                            paymentMethodId: selectedPaymentId
+                                        }
+                                    })}
                                 >
                                     THANH TOÁN
                                 </button>

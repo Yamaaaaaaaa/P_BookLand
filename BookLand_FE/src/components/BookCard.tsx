@@ -2,8 +2,13 @@ import { Heart, Eye, ShoppingCart, Star } from 'lucide-react';
 import '../styles/components/book-card.css';
 import '../styles/components/buttons.css';
 import type { Book } from '../types/Book';
-import { Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { formatCurrency } from '../utils/formatters';
+import { getCurrentUserId } from '../utils/auth';
+import cartService from '../api/cartService';
+import wishlistService from '../api/wishlistService';
+import { toast } from 'react-toastify';
+import { useState } from 'react';
 
 interface BookCardProps {
     book: Book;
@@ -11,6 +16,62 @@ interface BookCardProps {
 }
 
 const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
+    const navigate = useNavigate();
+    const [isAddingToCart, setIsAddingToCart] = useState(false);
+    const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
+
+    const handleAddToCart = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const userId = getCurrentUserId();
+        if (!userId) {
+            toast.warning('Vui lòng đăng nhập để thêm vào giỏ hàng');
+            navigate('/shop/login');
+            return;
+        }
+
+        setIsAddingToCart(true);
+        try {
+            await cartService.addToCart(userId, {
+                bookId: book.id,
+                quantity: 1
+            });
+            toast.success(`Đã thêm "${book.name}" vào giỏ hàng`);
+            window.dispatchEvent(new Event('cart:updated'));
+        } catch (error) {
+            console.error('Failed to add to cart:', error);
+            toast.error('Không thể thêm vào giỏ hàng. Vui lòng thử lại.');
+        } finally {
+            setIsAddingToCart(false);
+        }
+    };
+
+    const handleAddToWishlist = async (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const userId = getCurrentUserId();
+        if (!userId) {
+            toast.warning('Vui lòng đăng nhập để thêm vào danh sách yêu thích');
+            navigate('/shop/login');
+            return;
+        }
+
+        setIsAddingToWishlist(true);
+        try {
+            await wishlistService.addToWishlist(userId, {
+                bookId: book.id
+            });
+            toast.success(`Đã thêm "${book.name}" vào danh sách yêu thích`);
+        } catch (error) {
+            console.error('Failed to add to wishlist:', error);
+            toast.error('Không thể thêm vào danh sách yêu thích.');
+        } finally {
+            setIsAddingToWishlist(false);
+        }
+    };
+
     const renderStars = (rating: number) => {
         const stars = [];
         const fullStars = Math.floor(rating);
@@ -53,13 +114,23 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
                 )}
 
                 <div className="book-card__actions">
-                    <button className="book-card__action-btn" aria-label="Add to wishlist">
-                        <Heart size={16} />
+                    <button
+                        className={`book-card__action-btn ${isAddingToWishlist ? 'loading' : ''}`}
+                        aria-label="Add to wishlist"
+                        onClick={handleAddToWishlist}
+                        disabled={isAddingToWishlist}
+                    >
+                        <Heart size={16} fill={isAddingToWishlist ? "currentColor" : "none"} />
                     </button>
                     <Link className="book-card__action-btn" aria-label="Quick view" to={`/shop/book-detail/${book.id}`} >
                         <Eye size={16} />
                     </Link>
-                    <button className="book-card__action-btn" aria-label="Add to cart">
+                    <button
+                        className={`book-card__action-btn ${isAddingToCart ? 'loading' : ''}`}
+                        aria-label="Add to cart"
+                        onClick={handleAddToCart}
+                        disabled={isAddingToCart}
+                    >
                         <ShoppingCart size={16} />
                     </button>
                 </div>
@@ -99,11 +170,14 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
 
                 {viewMode === 'list' && (
                     <div className="book-card__actions-list">
-                        <button className="btn-add-cart-list">
+                        <button
+                            className={`btn-add-cart-list ${isAddingToCart ? 'loading' : ''}`}
+                            onClick={handleAddToCart}
+                            disabled={isAddingToCart}
+                        >
                             <ShoppingCart size={18} />
-                            Thêm vào giỏ hàng
+                            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
                         </button>
-                        <button className="btn-buy-now-list">Mua ngay</button>
                     </div>
                 )}
             </div>

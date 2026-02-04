@@ -1,37 +1,41 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { formatCurrency } from '../../utils/formatters';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
-    ShoppingBag,
     Truck,
     CreditCard,
     MapPin,
-    User,
+    User as UserIcon,
     Phone,
     Mail,
     CheckCircle,
-    ArrowLeft
+    ArrowLeft,
+    ChevronRight,
+    ShoppingBag,
+    Package
 } from 'lucide-react';
 import '../../styles/pages/checkout.css';
-import '../../styles/components/buttons.css';
-import '../../styles/components/forms.css';
-import { mockCart } from '../../data/mockOrders';
-import { mockShippingMethods, mockPaymentMethods } from '../../data/mockMasterData';
+import { formatCurrency } from '../../utils/formatters';
+import { getCurrentUserId } from '../../utils/auth';
+import { toast } from 'react-toastify';
+import cartService from '../../api/cartService';
+import userService from '../../api/userService';
+import billService from '../../api/billService';
+import shippingMethodService from '../../api/shippingMethodService';
+import paymentMethodService from '../../api/paymentMethodService';
 import type { CartItem } from '../../types/CartItem';
 import type { ShippingMethod } from '../../types/ShippingMethod';
 import type { PaymentMethod } from '../../types/PaymentMethod';
 
-
-
 const CheckoutPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
+    const checkoutData = location.state || {};
 
-    // Mock data - In real app, this would come from cart state/context
-    const [cartItems] = useState<CartItem[]>(mockCart.items || []);
-
-    const [selectedShipping] = useState<ShippingMethod>(mockShippingMethods[1]); // Default to Express
-
-    const [selectedPayment] = useState<PaymentMethod>(mockPaymentMethods[0]); // Default to COD
+    const [cartItems, setCartItems] = useState<CartItem[]>([]);
+    const [shippingMethod, setShippingMethod] = useState<ShippingMethod | null>(null);
+    const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isProcessing, setIsProcessing] = useState(false);
 
     // Form states
     const [formData, setFormData] = useState({
@@ -39,294 +43,327 @@ const CheckoutPage = () => {
         email: '',
         phone: '',
         address: '',
-        city: '',
-        postalCode: '',
+        city: 'Hà Nội',
         notes: '',
     });
 
-    const [isProcessing, setIsProcessing] = useState(false);
+    useEffect(() => {
+        const loadCheckoutData = async () => {
+            const userId = getCurrentUserId();
+            if (!userId) {
+                toast.error('Vui lòng đăng nhập để thanh toán');
+                navigate('/shop/login');
+                return;
+            }
 
-    // Calculations
-    const subtotal = cartItems.reduce((sum, item) => sum + item.book.originalCost * item.quantity, 0);
-    const shippingFee = selectedShipping.price;
-    const tax = subtotal * 0.1;
-    const total = subtotal + shippingFee + tax;
+            if (!checkoutData.selectedBookIds || checkoutData.selectedBookIds.length === 0) {
+                toast.warning('Không có sản phẩm nào được chọn để thanh toán');
+                navigate('/shop/cart');
+                return;
+            }
+
+            setIsLoading(true);
+            try {
+                // Load User Info
+                const userRes = await userService.getUserById(userId);
+                if (userRes.result) {
+                    const u = userRes.result;
+                    setFormData(prev => ({
+                        ...prev,
+                        fullName: `${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username,
+                        email: u.email,
+                        phone: u.phone || '',
+                        address: u.addresses?.[0]?.addressDetail || '',
+                        city: 'Hà Nội', // Address type doesn't have city, defaulting to Hanoi
+                    }));
+                }
+
+                // Load Cart Items
+                const cartRes = await cartService.getUserCart(userId);
+                if (cartRes.result) {
+                    const selectedItems = cartRes.result.items.filter((item: CartItem) =>
+                        checkoutData.selectedBookIds.includes(item.bookId)
+                    );
+                    setCartItems(selectedItems);
+                }
+
+                // Load Shipping Method
+                if (checkoutData.shippingMethodId) {
+                    const shipRes = await shippingMethodService.getShippingMethodById(checkoutData.shippingMethodId);
+                    if (shipRes.result) setShippingMethod(shipRes.result);
+                }
+
+                // Load Payment Method
+                if (checkoutData.paymentMethodId) {
+                    const payRes = await paymentMethodService.getById(checkoutData.paymentMethodId);
+                    if (payRes.result) setPaymentMethod(payRes.result);
+                }
+
+            } catch (error) {
+                console.error('Failed to load checkout data:', error);
+                toast.error('Có lỗi xảy ra khi tải thông tin thanh toán');
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadCheckoutData();
+    }, [checkoutData, navigate]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
-
-
     const handleSubmitOrder = async (e: React.FormEvent) => {
         e.preventDefault();
 
-        // Validate form
-        if (!formData.fullName || !formData.email || !formData.phone || !formData.address || !formData.city) {
-            alert('Please fill in all required fields');
+        if (!formData.fullName || !formData.phone || !formData.address) {
+            toast.warning('Vui lòng điền đầy đủ thông tin giao hàng');
+            return;
+        }
+
+        if (!shippingMethod || !paymentMethod) {
+            toast.warning('Thiếu thông tin vận chuyển hoặc thanh toán');
             return;
         }
 
         setIsProcessing(true);
+        try {
+            const billRequest = {
+                fullName: formData.fullName,
+                email: formData.email,
+                phone: formData.phone,
+                address: formData.address,
+                city: formData.city,
+                notes: formData.notes,
+                paymentMethodId: paymentMethod.id,
+                shippingMethodId: shippingMethod.id,
+                books: cartItems.map(item => ({
+                    bookId: item.bookId,
+                    quantity: item.quantity
+                }))
+            };
 
-        // Simulate API call
-        setTimeout(() => {
+            const response = await billService.createBill(billRequest);
+
+            if (response.result) {
+                toast.success('Đặt hàng thành công! 🎉');
+                window.dispatchEvent(new Event('cart:updated'));
+
+                // If VNPAY or online payment, could handle redirect here
+                // For now, go to profile/orders
+                navigate('/shop/profile', { state: { activeTab: 'orders' } });
+            }
+        } catch (error) {
+            console.error('Failed to place order:', error);
+            toast.error('Đặt hàng thất bại. Vui lòng thử lại.');
+        } finally {
             setIsProcessing(false);
-            alert('Order placed successfully! 🎉');
-            navigate('/shop');
-        }, 2000);
+        }
     };
+
+    const subtotal = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
+    const shippingFee = shippingMethod?.price || 0;
+    const total = subtotal + shippingFee;
+
+    if (isLoading) {
+        return (
+            <div className="checkout-page">
+                <div className="shop-container">
+                    <div className="loading-state">
+                        <div className="loader"></div>
+                        <p>Đang chuẩn bị thông tin thanh toán...</p>
+                    </div>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="checkout-page">
             <div className="shop-container">
-                {/* Header */}
-                <div className="checkout-page__header">
-                    <button
-                        className="checkout-page__back-btn"
-                        onClick={() => navigate('/shop/cart')}
-                    >
-                        <ArrowLeft size={20} />
-                        Back to Cart
-                    </button>
-                    <h1 className="checkout-page__title">Checkout</h1>
-                    <p className="checkout-page__subtitle">Complete your order</p>
+                {/* Breadcrumbs-style Progress */}
+                <div className="checkout-steps">
+                    <div className="step done" onClick={() => navigate('/shop/cart')}>
+                        <span>Giỏ hàng</span>
+                        <ChevronRight size={16} />
+                    </div>
+                    <div className="step active">
+                        <span>Thanh toán</span>
+                        <ChevronRight size={16} />
+                    </div>
+                    <div className="step">
+                        <span>Hoàn tất</span>
+                    </div>
                 </div>
 
-                <form onSubmit={handleSubmitOrder} className="checkout-page__content">
-                    {/* Left Column - Forms */}
-                    <div className="checkout-page__main">
-                        {/* Shipping Information */}
-                        <div className="checkout-section">
-                            <div className="checkout-section__header">
-                                <MapPin size={24} />
-                                <h2 className="checkout-section__title">Shipping Information</h2>
+                <div className="checkout-title-row">
+                    <button className="btn-back" onClick={() => navigate('/shop/cart')}>
+                        <ArrowLeft size={20} />
+                    </button>
+                    <h1>XÁC NHẬN THANH TOÁN</h1>
+                </div>
+
+                <form onSubmit={handleSubmitOrder} className="checkout-grid">
+                    {/* Left Column: Info Forms */}
+                    <div className="checkout-main-col">
+                        {/* Shipping Address Section */}
+                        <div className="checkout-card">
+                            <div className="card-header">
+                                <MapPin size={22} color="#C92127" />
+                                <h2>ĐỊA CHỈ GIAO HÀNG</h2>
                             </div>
-                            <div className="checkout-section__content">
-                                <div className="checkout-form">
-                                    <div className="checkout-form__row">
-                                        <div className="checkout-form__field">
-                                            <label className="checkout-form__label">
-                                                <User size={16} />
-                                                Full Name *
-                                            </label>
+                            <div className="card-body">
+                                <div className="form-group">
+                                    <label>Họ và tên người nhận</label>
+                                    <div className="input-with-icon">
+                                        <UserIcon size={18} />
+                                        <input
+                                            name="fullName"
+                                            value={formData.fullName}
+                                            onChange={handleInputChange}
+                                            placeholder="Nhập họ và tên"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="form-row">
+                                    <div className="form-group">
+                                        <label>Số điện thoại</label>
+                                        <div className="input-with-icon">
+                                            <Phone size={18} />
                                             <input
-                                                type="text"
-                                                name="fullName"
-                                                value={formData.fullName}
+                                                name="phone"
+                                                value={formData.phone}
                                                 onChange={handleInputChange}
-                                                className="checkout-form__input"
-                                                placeholder="John Doe"
+                                                placeholder="Nhập số điện thoại"
                                                 required
                                             />
                                         </div>
                                     </div>
-
-                                    <div className="checkout-form__row checkout-form__row--two">
-                                        <div className="checkout-form__field">
-                                            <label className="checkout-form__label">
-                                                <Mail size={16} />
-                                                Email *
-                                            </label>
+                                    <div className="form-group">
+                                        <label>Email</label>
+                                        <div className="input-with-icon">
+                                            <Mail size={18} />
                                             <input
                                                 type="email"
                                                 name="email"
                                                 value={formData.email}
                                                 onChange={handleInputChange}
-                                                className="checkout-form__input"
-                                                placeholder="john@example.com"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="checkout-form__field">
-                                            <label className="checkout-form__label">
-                                                <Phone size={16} />
-                                                Phone Number *
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                name="phone"
-                                                value={formData.phone}
-                                                onChange={handleInputChange}
-                                                className="checkout-form__input"
-                                                placeholder="+84 123 456 789"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="checkout-form__row">
-                                        <div className="checkout-form__field">
-                                            <label className="checkout-form__label">
-                                                <MapPin size={16} />
-                                                Address *
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="address"
-                                                value={formData.address}
-                                                onChange={handleInputChange}
-                                                className="checkout-form__input"
-                                                placeholder="123 Main Street"
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="checkout-form__row checkout-form__row--two">
-                                        <div className="checkout-form__field">
-                                            <label className="checkout-form__label">City *</label>
-                                            <input
-                                                type="text"
-                                                name="city"
-                                                value={formData.city}
-                                                onChange={handleInputChange}
-                                                className="checkout-form__input"
-                                                placeholder="Hanoi"
-                                                required
-                                            />
-                                        </div>
-                                        <div className="checkout-form__field">
-                                            <label className="checkout-form__label">Postal Code</label>
-                                            <input
-                                                type="text"
-                                                name="postalCode"
-                                                value={formData.postalCode}
-                                                onChange={handleInputChange}
-                                                className="checkout-form__input"
-                                                placeholder="100000"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div className="checkout-form__row">
-                                        <div className="checkout-form__field">
-                                            <label className="checkout-form__label">Order Notes (Optional)</label>
-                                            <textarea
-                                                name="notes"
-                                                value={formData.notes}
-                                                onChange={handleInputChange}
-                                                className="checkout-form__textarea"
-                                                placeholder="Any special instructions for your order..."
-                                                rows={3}
+                                                placeholder="Địa chỉ email"
                                             />
                                         </div>
                                     </div>
                                 </div>
+                                <div className="form-group">
+                                    <label>Địa chỉ nhận hàng</label>
+                                    <div className="input-with-icon">
+                                        <MapPin size={18} />
+                                        <input
+                                            name="address"
+                                            value={formData.address}
+                                            onChange={handleInputChange}
+                                            placeholder="Số nhà, tên đường, phường/xã..."
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="form-group">
+                                    <label>Ghi chú cho đơn hàng</label>
+                                    <textarea
+                                        name="notes"
+                                        value={formData.notes}
+                                        onChange={handleInputChange}
+                                        placeholder="Ví dụ: Giao giờ hành chính, gọi trước khi đến..."
+                                        rows={3}
+                                    />
+                                </div>
                             </div>
                         </div>
 
-                        {/* Selected Methods */}
-                        <div className="checkout-section">
-                            <div className="checkout-section__header">
-                                <Truck size={24} />
-                                <h2 className="checkout-section__title">Delivery & Payment</h2>
+                        {/* Review Methods Section */}
+                        <div className="checkout-card">
+                            <div className="card-header">
+                                <Package size={22} color="#C92127" />
+                                <h2>PHƯƠNG THỨC VẬN CHUYỂN & THANH TOÁN</h2>
                             </div>
-                            <div className="checkout-section__content">
-                                <div className="checkout-methods">
-                                    <div className="checkout-method">
-                                        <div className="checkout-method__icon">
-                                            <Truck size={20} />
-                                        </div>
-                                        <div className="checkout-method__content">
-                                            <div className="checkout-method__label">Shipping Method</div>
-                                            <div className="checkout-method__value">{selectedShipping.name}</div>
-                                            <div className="checkout-method__detail">{selectedShipping.description}</div>
-                                        </div>
-                                        <div className="checkout-method__price">
-                                            {formatCurrency(selectedShipping.price)}
-                                        </div>
+                            <div className="card-body methods-review">
+                                <div className="method-review-item">
+                                    <div className="icon-box"><Truck size={20} /></div>
+                                    <div className="method-info">
+                                        <span className="label">Vận chuyển:</span>
+                                        <span className="value">{shippingMethod?.name}</span>
+                                        <span className="price">({formatCurrency(shippingFee)})</span>
                                     </div>
-
-                                    <div className="checkout-method">
-                                        <div className="checkout-method__icon">
-                                            <CreditCard size={20} />
-                                        </div>
-                                        <div className="checkout-method__content">
-                                            <div className="checkout-method__label">Payment Method</div>
-                                            <div className="checkout-method__value">{selectedPayment.name}</div>
-                                        </div>
+                                </div>
+                                <div className="method-review-item">
+                                    <div className="icon-box"><CreditCard size={20} /></div>
+                                    <div className="method-info">
+                                        <span className="label">Thanh toán:</span>
+                                        <span className="value">{paymentMethod?.name}</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* Right Column - Order Summary */}
-                    <div className="checkout-page__sidebar">
-                        {/* Order Items */}
-                        <div className="checkout-summary">
-                            <div className="checkout-summary__header">
-                                <ShoppingBag size={20} />
-                                <h3 className="checkout-summary__title">Order Summary</h3>
+                    {/* Right Column: Order Summary */}
+                    <div className="checkout-sidebar-col">
+                        <div className="checkout-summary-card">
+                            <div className="card-header">
+                                <ShoppingBag size={20} color="#333" />
+                                <h3>KIỂM TRA ĐƠN HÀNG</h3>
                             </div>
 
-                            <div className="checkout-summary__items">
+                            <div className="checkout-items-preview">
                                 {cartItems.map(item => (
-                                    <div key={item.book.id} className="checkout-item">
-                                        <div className="checkout-item__image-wrapper">
-                                            <img
-                                                src={item.book.bookImageUrl}
-                                                alt={item.book.name}
-                                                className="checkout-item__image"
-                                            />
-                                            <span className="checkout-item__quantity">{item.quantity}</span>
+                                    <div key={item.bookId} className="preview-item">
+                                        <div className="item-img">
+                                            <img src={item.bookImageUrl} alt={item.bookName} />
                                         </div>
-                                        <div className="checkout-item__details">
-                                            <div className="checkout-item__title">{item.book.name}</div>
-                                            <div className="checkout-item__author">{item.book.authorName}</div>
+                                        <div className="item-meta">
+                                            <div className="name">{item.bookName}</div>
+                                            <div className="price">{formatCurrency(item.finalPrice)}</div>
                                         </div>
-                                        <div className="checkout-item__price">
-                                            {formatCurrency(item.book.originalCost * item.quantity)}
+                                        <div className="item-qty">
+                                            x{item.quantity}
+                                        </div>
+                                        <div className="item-total">
+                                            {formatCurrency(item.subtotal)}
                                         </div>
                                     </div>
                                 ))}
                             </div>
 
-
-
-                            {/* Price Breakdown */}
-                            <div className="checkout-summary__breakdown">
-                                <div className="checkout-summary__row">
-                                    <span>Subtotal</span>
+                            <div className="summary-breakdown">
+                                <div className="row">
+                                    <span>Tạm tính</span>
                                     <span>{formatCurrency(subtotal)}</span>
                                 </div>
-                                <div className="checkout-summary__row">
-                                    <span>Shipping</span>
+                                <div className="row">
+                                    <span>Phí vận chuyển</span>
                                     <span>{formatCurrency(shippingFee)}</span>
                                 </div>
-
-                                <div className="checkout-summary__row">
-                                    <span>Tax (10%)</span>
-                                    <span>{formatCurrency(tax)}</span>
+                                <div className="divider"></div>
+                                <div className="row total">
+                                    <span>Tổng cộng</span>
+                                    <span className="final-total">{formatCurrency(total)}</span>
                                 </div>
-                                <div className="checkout-summary__divider"></div>
-                                <div className="checkout-summary__row checkout-summary__row--total">
-                                    <span>Total</span>
-                                    <span>{formatCurrency(total)}</span>
-                                </div>
+                                <div className="vat-notice">(Đã bao gồm VAT nếu có)</div>
                             </div>
 
-                            {/* Submit Button */}
                             <button
                                 type="submit"
-                                className="checkout-submit"
+                                className={`btn-place-order ${isProcessing ? 'loading' : ''}`}
                                 disabled={isProcessing}
                             >
-                                {isProcessing ? (
-                                    <>Processing...</>
-                                ) : (
-                                    <>
-                                        <CheckCircle size={20} />
-                                        Confirm Payment
-                                    </>
-                                )}
+                                {isProcessing ? 'ĐANG XỬ LÝ...' : 'XÁC NHẬN ĐẶT HÀNG'}
                             </button>
 
-                            <div className="checkout-summary__notice">
+                            <div className="security-shield">
                                 <CheckCircle size={14} />
-                                Your payment information is secure
+                                Cam kết bảo mật thông tin thanh toán
                             </div>
                         </div>
                     </div>

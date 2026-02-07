@@ -7,6 +7,7 @@ import notificationService from '../api/notificationService';
 import { getCurrentUserId } from '../utils/auth';
 import type { Notification } from '../types/Notification';
 import { toast } from 'react-toastify';
+import { useWebSocket } from '../context/WebSocketContext';
 
 interface HeaderProps {
     onLogout: () => void;
@@ -25,6 +26,7 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
     const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
     const navigate = useNavigate();
     const userId = getCurrentUserId();
+    const { subscribe, isConnected } = useWebSocket();
 
     const categoryMenuRef = useRef<HTMLDivElement>(null);
     const notificationRef = useRef<HTMLDivElement>(null);
@@ -36,6 +38,53 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
             fetchUnreadCount();
         }
     }, [userId, isAuthenticated]);
+
+    const isNotificationOpenRef = useRef(isNotificationOpen);
+
+    useEffect(() => {
+        isNotificationOpenRef.current = isNotificationOpen;
+    }, [isNotificationOpen]);
+
+    // WebSocket subscription for real-time notifications
+    useEffect(() => {
+        if (isConnected && userId && isAuthenticated) {
+            console.log('Registering WebSocket subscription for notifications...');
+            const unsubscribe = subscribe(`/user/queue/notifications`, (message) => {
+                try {
+                    const newNotification: Notification = JSON.parse(message.body);
+                    console.log('Received new notification via WebSocket:', newNotification);
+
+                    setNotificationsList(prev => [newNotification, ...prev]);
+                    setUnreadCount(prev => prev + 1);
+
+                    // If it's a bill status notification, refresh the count from server
+                    if (newNotification.type === 'BILL_STATUS') {
+                        fetchUnreadCount();
+                    }
+
+                    if (!isNotificationOpenRef.current) {
+                        toast.info(
+                            <div>
+                                <h4 style={{ margin: 0, fontSize: '14px' }}>{newNotification.title}</h4>
+                                <p style={{ margin: '4px 0 0', fontSize: '12px' }}>{newNotification.content}</p>
+                            </div>,
+                            {
+                                icon: <span>🔔</span>,
+                                onClick: () => {
+                                    handleToggleNotification();
+                                }
+                            }
+                        );
+                    }
+                } catch (error) {
+                    console.error('Failed to parse WebSocket message:', error);
+                }
+            });
+            return () => {
+                if (unsubscribe) unsubscribe();
+            };
+        }
+    }, [isConnected, userId, isAuthenticated]);
 
     const fetchUnreadCount = async () => {
         if (!userId) return;

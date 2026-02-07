@@ -21,6 +21,7 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableMethodSecurity
 public class SecurityConfig {
     private final String[] PUBLIC_ENDPOINTS = {
+            "/ws/**", // SockJS + STOMP cần truy cập vào HẾT các đường dẫn "con" như /ws/info, /ws/234/random/websocket,...
             "/users",
             "/auth/token",
             "/auth/introspect",
@@ -50,14 +51,17 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .cors(Customizer.withDefaults())
+
                 .authorizeHttpRequests(request ->
                     request
                         .requestMatchers(API_DOC_ENDPOINTS).permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+
                         .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
 
                             // Các Request còn lại thì cần xác thực
                         .anyRequest().authenticated())
+
                 .oauth2ResourceServer(oauth2 ->
                         oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJwtDecoder)) // Custom cách ta Decode JWT Token (Do ta còn lưu Token Logout vào DB nữa)
                 )

@@ -9,6 +9,7 @@ import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.NotificationRepository;
 import com.example.bookland_be.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -19,6 +20,7 @@ import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class NotificationService {
 
     private final NotificationRepository notificationRepository;
@@ -83,8 +85,9 @@ public class NotificationService {
         NotificationResponse response = convertToResponse(saved);
 
         // Send WebSocket notification
+        log.info("Sending WebSocket notification to user: {} (email: {})", toUser.getUsername(), toUser.getEmail());
         messagingTemplate.convertAndSendToUser(
-                toUser.getUsername(),
+                toUser.getEmail(),
                 "/queue/notifications",
                 response
         );

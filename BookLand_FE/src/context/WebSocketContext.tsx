@@ -2,7 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { Client } from '@stomp/stompjs';
 import type { IFrame, IMessage } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
-import { getCustomerToken, getCurrentUserId } from '../utils/auth';
+import { useLocation } from 'react-router-dom';
 
 interface WebSocketContextType {
     isConnected: boolean;
@@ -22,8 +22,15 @@ export const useWebSocket = () => {
 export const WebSocketProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const [isConnected, setIsConnected] = useState(false);
     const clientRef = useRef<Client | null>(null);
-    const userId = getCurrentUserId();
-    const token = getCustomerToken();
+    const location = useLocation();
+
+    // Determine if we are in admin area
+    const isAdmin = location.pathname.startsWith('/admin');
+
+    // Get appropriate token and userId
+    const token = isAdmin ? localStorage.getItem('adminToken') : localStorage.getItem('customerToken');
+    // For admin, use ID 1 (or extract from token if implemented). For customer, get from storage
+    const userId = isAdmin ? 1 : (localStorage.getItem('customerUserId') ? Number(localStorage.getItem('customerUserId')) : null);
 
     useEffect(() => {
         // Only connect if user is logged in

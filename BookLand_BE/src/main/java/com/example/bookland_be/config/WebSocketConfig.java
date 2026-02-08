@@ -27,23 +27,35 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Autowired
     private CustomJwtDecoder customJwtDecoder;
 
+
+    // cấu hình message broker
+    // MessageBrokerRegistry: dùng để cấu hình message broker (nơi trung gian chuyển tiếp message giữa client và server)
     @Override
     public void configureMessageBroker(@NonNull MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic", "/queue");
-        config.setApplicationDestinationPrefixes("/app");
-        config.setUserDestinationPrefix("/user");
+        // /topic: dùng để gửi message đến nhiều người (publish-subscribe)
+        // /queue: dùng để gửi message đến một người (point-to-point)
+        config.enableSimpleBroker("/topic", "/queue"); // prefix gửi đi
+        // "/app": dùng để gửi message từ client đến server (client gửi message đến server với prefix này)
+        config.setApplicationDestinationPrefixes("/app"); // prefix nhận
+        // "/user": dùng để gửi message riêng tư đến một user cụ thể
+        config.setUserDestinationPrefix("/user"); // prefix cho private mesage 
     }   
 
+    // đăng ký endpoint để kết nối socket 
     @Override
     public void registerStompEndpoints(@NonNull StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
-                .setAllowedOriginPatterns("*")
-                .withSockJS();
+        registry.addEndpoint("/ws") // endpoint để kết nối socket 
+                .setAllowedOriginPatterns("*") // cho phép tất cả origin làm việc với socket
+                .withSockJS(); // sử dụng sockJS để fallback khi không hỗ trợ websocket
     }
 
+    // cấu hình interceptor để xác thực token và gán user vào socket 
+    // ChannelRegistration: dùng để cấu hình interceptor cho channel (interceptor là nơi xử lý logic trước khi message được gửi đi hoặc nhận về)
     @Override
     public void configureClientInboundChannel(@NonNull ChannelRegistration registration) {
         registration.interceptors(new ChannelInterceptor() {
+            // preSend: được gọi trước khi message được gửi đi 
+                // Nhiệm vụ preSend: xác thực token và gán user vào socket 
             @Override
             public Message<?> preSend(@NonNull Message<?> message, @NonNull MessageChannel channel) {
                 StompHeaderAccessor accessor = 

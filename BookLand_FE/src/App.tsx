@@ -35,6 +35,8 @@ import WishList from './pages/shop/WishList';
 import EventPage from './pages/admin/manage-business/EventPage';
 import EventFormPage from './pages/admin/manage-business/EventFormPage';
 import Gallery from './pages/admin/Gallery';
+import AdminChatListPage from './pages/admin/AdminChatListPage';
+import AdminChatDetailPage from './pages/admin/AdminChatDetailPage';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -78,6 +80,8 @@ function App() {
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="manage-user" element={<ManageUserPage />} />
               <Route path="gallery" element={<Gallery />} />
+              <Route path="chat" element={<AdminChatListPage />} />
+              <Route path="chat/:userId" element={<AdminChatDetailPage />} />
               <Route path="manage-user/:id" element={<AdminUserDetailPage />} />
 
               {/* Manage Business */}

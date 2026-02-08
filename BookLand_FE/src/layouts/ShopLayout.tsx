@@ -3,6 +3,7 @@ import { logoutCustomer, isCustomerAuthenticated, getCustomerRefreshToken } from
 import authService from '../api/authService';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
+import ChatWidget from '../components/ChatWidget';
 import cartService from '../api/cartService';
 import userService from '../api/userService';
 import { getCurrentUserId, setCustomerUserId, getCustomerEmailFromToken } from '../utils/auth';
@@ -97,6 +98,7 @@ const ShopLayout = () => {
                 <Outlet />
             </main>
             <Footer />
+            {isCustomerAuthenticated() && <ChatWidget />}
         </div>
     );
 };

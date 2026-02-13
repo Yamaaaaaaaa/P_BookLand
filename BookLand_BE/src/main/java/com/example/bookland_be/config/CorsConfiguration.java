@@ -14,7 +14,7 @@ public class CorsConfiguration {
 
         corsConfiguration.setAllowCredentials(true);
         corsConfiguration.addAllowedOrigin("http://localhost:5173");
-        corsConfiguration.addAllowedOrigin("http://booklandfe.s3-website-ap-southeast-2.amazonaws.com");
+        corsConfiguration.addAllowedOrigin("https://p-bookland.pages.dev");
         corsConfiguration.addAllowedMethod("*");
         corsConfiguration.addAllowedHeader("*");
 

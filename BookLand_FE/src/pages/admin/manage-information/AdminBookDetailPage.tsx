@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Save, ArrowLeft, Loader2, Image as ImageIcon } from 'lucide-react';
 import GalleryModal from '../../../components/admin/GalleryModal';
 import { BookStatus } from '../../../types/Book';
-import type { Book, BookRequest } from '../../../types/Book';
+import type { BookRequest } from '../../../types/Book';
 import type { Author } from '../../../types/Author';
 import type { Publisher } from '../../../types/Publisher';
 import type { Category } from '../../../types/Category';

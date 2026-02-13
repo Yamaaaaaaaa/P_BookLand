@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, User, Mail, Phone, Lock, Calendar } from 'lucide-react';
 import userService from '../../../api/userService';
 import { toast } from 'react-toastify';
-import type { User as UserType, UserRequest, UserUpdateRequest, UserStatus } from '../../../types/User';
+import type { UserRequest, UserUpdateRequest, UserStatus } from '../../../types/User';
 import type { Role } from '../../../types/Role';
 import '../../../styles/components/buttons.css';
 import '../../../styles/components/forms.css';
@@ -29,7 +29,7 @@ const AdminUserDetailPage = () => {
 
     // START: Temporary Role fetching/definition since we don't have roleService yet
     // In a real app, you'd fetch this from via roleService.getAllRoles()
-    const [availableRoles, setAvailableRoles] = useState<Role[]>([
+    const [availableRoles] = useState<Role[]>([
         { id: 2, name: 'ADMIN', description: 'Administrator' },
         { id: 1, name: 'USER', description: 'Standard User' }
     ]);

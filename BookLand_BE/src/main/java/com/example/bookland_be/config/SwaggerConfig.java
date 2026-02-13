@@ -26,7 +26,7 @@ public class SwaggerConfig {
     @Value("${app.openapi.dev-url:http://localhost:8080}")
     private String devUrl;
 
-    @Value("${app.openapi.prod-url:https://api.bookland.com}")
+    @Value("${app.openapi.prod-url:http://3.107.238.92:8080}")
     private String prodUrl;
 
     @Bean

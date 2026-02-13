@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, X, MessageCircle, Minimize2 } from 'lucide-react';
+import { Send, X, MessageCircle } from 'lucide-react';
 import { useWebSocket } from '../context/WebSocketContext';
 import chatService from '../api/chatService';
 import type { ChatMessage } from '../types/Chat';

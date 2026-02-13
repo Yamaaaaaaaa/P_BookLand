@@ -1,9 +1,6 @@
 import type { Book } from '../types/Book';
 import { BookStatus } from '../types/Book';
 import { mockAuthors, mockCategories, mockPublishers, mockSeries } from './mockMasterData';
-import { mockUsers } from './mockUsers';
-
-const admin = mockUsers[0];
 
 export const mockBooks: Book[] = [
     {

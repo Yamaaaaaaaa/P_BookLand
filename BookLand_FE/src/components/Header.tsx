@@ -8,7 +8,6 @@ import { getCurrentUserId } from '../utils/auth';
 import type { Notification } from '../types/Notification';
 import { toast } from 'react-toastify';
 import { useWebSocket } from '../context/WebSocketContext';
-
 interface HeaderProps {
     onLogout: () => void;
     cartItemCount?: number;

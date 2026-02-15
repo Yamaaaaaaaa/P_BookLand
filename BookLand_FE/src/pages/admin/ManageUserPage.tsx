@@ -2,7 +2,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, Trash2, Mail, Phone, ArrowUpDown, ArrowUp, ArrowDown, Loader2, Plus, Edit } from 'lucide-react';
 import type { User } from '../../types/User';
+import type { Role } from '../../types/Role';
 import userService from '../../api/userService';
+import roleService from '../../api/roleService';
 import Pagination from '../../components/admin/Pagination';
 import { toast } from 'react-toastify';
 import '../../styles/components/buttons.css';
@@ -13,6 +15,8 @@ const ManageUserPage = () => {
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
+    const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
@@ -29,6 +33,7 @@ const ManageUserPage = () => {
                 page: currentPage - 1,
                 size: itemsPerPage,
                 keyword: searchTerm,
+                roleId: selectedRoleId || undefined,
             };
 
             if (sortConfig) {
@@ -47,7 +52,22 @@ const ManageUserPage = () => {
         } finally {
             setIsLoading(false);
         }
-    }, [currentPage, itemsPerPage, searchTerm, sortConfig]);
+    }, [currentPage, itemsPerPage, searchTerm, selectedRoleId, sortConfig]);
+
+    // Fetch roles on mount
+    useEffect(() => {
+        const fetchRoles = async () => {
+            try {
+                const response = await roleService.getAllRoles({ size: 100 });
+                if (response.result) {
+                    setAvailableRoles(response.result.content);
+                }
+            } catch (error) {
+                console.error('Error fetching roles:', error);
+            }
+        };
+        fetchRoles();
+    }, []);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -93,11 +113,11 @@ const ManageUserPage = () => {
                 </div>
                 <button className="btn-primary" onClick={() => navigate('/admin/manage-user/new')}>
                     <Plus size={20} />
-                    Add User
+                    Add Staff / Admin / Supporter
                 </button>
             </div>
 
-            {/* Search */}
+            {/* Search and Filters */}
             <div className="admin-toolbar">
                 <div className="search-box">
                     <Search size={18} className="search-box-icon" />
@@ -112,6 +132,24 @@ const ManageUserPage = () => {
                         }}
                     />
                 </div>
+
+                {/* Role Filter */}
+                <select
+                    className="form-select"
+                    style={{ width: '200px' }}
+                    value={selectedRoleId || ''}
+                    onChange={(e) => {
+                        setSelectedRoleId(e.target.value ? Number(e.target.value) : null);
+                        setCurrentPage(1);
+                    }}
+                >
+                    <option value="">All Roles</option>
+                    {availableRoles.map(role => (
+                        <option key={role.id} value={role.id}>
+                            {role.name}
+                        </option>
+                    ))}
+                </select>
             </div>
 
             <div className="admin-table-container">

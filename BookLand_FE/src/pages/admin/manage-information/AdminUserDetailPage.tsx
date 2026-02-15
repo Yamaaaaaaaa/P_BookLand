@@ -107,6 +107,19 @@ const AdminUserDetailPage = () => {
         setIsLoading(true);
 
         try {
+            // Find ADMIN_LOGIN and USER role IDs
+            const adminLoginRole = availableRoles.find(role => role.name === 'ADMIN_LOGIN');
+            const userRole = availableRoles.find(role => role.name === 'USER');
+
+            // Only add ADMIN_LOGIN if user doesn't have USER role (i.e., they are admin/staff/supporter)
+            let finalRoleIds = formData.roleIds || [];
+            const hasUserRole = userRole && finalRoleIds.includes(userRole.id);
+
+            // If user is NOT a regular USER (i.e., they are admin/staff), ensure ADMIN_LOGIN is included
+            if (!hasUserRole && adminLoginRole && !finalRoleIds.includes(adminLoginRole.id)) {
+                finalRoleIds = [...finalRoleIds, adminLoginRole.id];
+            }
+
             if (isEditMode && id) {
                 // Update
                 const updateData: UserUpdateRequest = {
@@ -116,7 +129,7 @@ const AdminUserDetailPage = () => {
                     email: formData.email,
                     phone: formData.phone,
                     status: formData.status,
-                    roleIds: formData.roleIds
+                    roleIds: finalRoleIds
                 };
                 // Only include password if provided
                 if (formData.password) {
@@ -132,13 +145,17 @@ const AdminUserDetailPage = () => {
                 // Assuming adminUpdateUser handles basic info. 
 
                 // Explicitly call role update and status update to be safe as per service structure
-                await userService.adminUpdateUserRoles(parseInt(id), formData.roleIds || []);
+                await userService.adminUpdateUserRoles(parseInt(id), finalRoleIds);
                 await userService.adminUpdateUserStatus(parseInt(id), formData.status);
 
                 toast.success('User updated successfully');
             } else {
                 // Create
-                await userService.adminCreateUser(formData);
+                const createData = {
+                    ...formData,
+                    roleIds: finalRoleIds
+                };
+                await userService.adminCreateUser(createData);
                 toast.success('User created successfully');
             }
             navigate('/admin/manage-user');
@@ -299,27 +316,56 @@ const AdminUserDetailPage = () => {
 
                     <div className="form-group margin-bottom">
                         <label className="form-label">Roles <span style={{ color: 'red' }}>*</span></label>
-                        <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                            {availableRoles.map(role => (
-                                <label key={role.id} style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '0.5rem',
-                                    padding: '0.5rem 1rem',
-                                    backgroundColor: formData.roleIds?.includes(role.id) ? 'var(--shop-bg-secondary)' : 'transparent',
-                                    border: '1px solid var(--shop-border)',
-                                    borderRadius: 'var(--radius-md)',
-                                    cursor: 'pointer'
-                                }}>
-                                    <input
-                                        type="checkbox"
-                                        checked={formData.roleIds?.includes(role.id)}
-                                        onChange={() => handleRoleChange(role.id)}
-                                    />
-                                    {role.name}
-                                </label>
-                            ))}
-                        </div>
+                        {(() => {
+                            const userRole = availableRoles.find(role => role.name === 'USER');
+                            const hasUserRole = userRole && formData.roleIds?.includes(userRole.id);
+
+                            return (
+                                <>
+                                    {!hasUserRole && (
+                                        <p style={{ fontSize: '0.875rem', color: 'var(--shop-text-secondary)', marginBottom: '0.5rem' }}>
+                                            Note: ADMIN_LOGIN role is automatically assigned to all admin users
+                                        </p>
+                                    )}
+                                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                                        {availableRoles.map(role => {
+                                            const isAdminLogin = role.name === 'ADMIN_LOGIN';
+
+                                            // Hide ADMIN_LOGIN if user has USER role
+                                            if (isAdminLogin && hasUserRole) {
+                                                return null;
+                                            }
+
+                                            const isChecked = formData.roleIds?.includes(role.id) || (isAdminLogin && !hasUserRole);
+
+                                            return (
+                                                <label key={role.id} style={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: '0.5rem',
+                                                    padding: '0.5rem 1rem',
+                                                    backgroundColor: isChecked ? 'var(--shop-bg-secondary)' : 'transparent',
+                                                    border: '1px solid var(--shop-border)',
+                                                    borderRadius: 'var(--radius-md)',
+                                                    cursor: isAdminLogin ? 'not-allowed' : 'pointer',
+                                                    opacity: isAdminLogin ? 0.7 : 1
+                                                }}>
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isChecked}
+                                                        onChange={() => !isAdminLogin && handleRoleChange(role.id)}
+                                                        disabled={isAdminLogin}
+                                                        style={{ cursor: isAdminLogin ? 'not-allowed' : 'pointer' }}
+                                                    />
+                                                    {role.name}
+                                                    {isAdminLogin && <span style={{ fontSize: '0.75rem', color: 'var(--shop-text-secondary)' }}>(Required)</span>}
+                                                </label>
+                                            );
+                                        })}
+                                    </div>
+                                </>
+                            );
+                        })()}
                     </div>
 
                     <div className="form-actions" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>

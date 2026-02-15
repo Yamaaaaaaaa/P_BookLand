@@ -12,6 +12,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -53,11 +54,13 @@ public class BookController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<BookDTO> createBook(@Valid @RequestBody BookRequest request) {
         return ApiResponse.<BookDTO>builder().result(bookService.createBook(request)).build();
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<BookDTO> updateBook(
             @PathVariable Long id,
             @Valid @RequestBody BookRequest request) {
@@ -65,6 +68,7 @@ public class BookController {
     }
 
     @PatchMapping("/{id}/stock")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<BookDTO> updateBookStock(
             @PathVariable Long id,
             @RequestParam Integer quantity) {
@@ -72,6 +76,7 @@ public class BookController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<Void> deleteBook(@PathVariable Long id) {
         bookService.deleteBook(id);
         return ApiResponse.<Void>builder().build();

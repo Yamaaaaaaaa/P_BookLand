@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { logoutAdmin, getAdminRefreshToken } from '../utils/auth';
 import authService from '../api/authService';
-import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt, ImageIcon, MessageCircle } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt, ImageIcon, MessageCircle, Shield } from 'lucide-react';
 import '../styles/layouts/admin.css';
 
 const AdminLayout = () => {
@@ -74,6 +74,9 @@ const AdminLayout = () => {
                         <div className="admin-nav-title">Users</div>
                         <Link to="/admin/manage-user" className={`admin-nav-item ${isActive('/manage-user') ? 'active' : ''}`}>
                             <Users /> User Management
+                        </Link>
+                        <Link to="/admin/manage-role" className={`admin-nav-item ${isActive('/manage-role') ? 'active' : ''}`}>
+                            <Shield /> Role Management
                         </Link>
                     </div>
 

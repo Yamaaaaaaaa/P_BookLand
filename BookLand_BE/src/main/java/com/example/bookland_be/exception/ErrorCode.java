@@ -78,6 +78,8 @@ public enum ErrorCode {
     // Role errors
     ROLE_NOT_FOUND(3101, "Role not found", HttpStatus.NOT_FOUND),
     SOME_ROLES_NOT_FOUND(3102, "Some roles not found", HttpStatus.NOT_FOUND),
+    ROLE_NAME_EXISTED(3103, "Role name already exists", HttpStatus.BAD_REQUEST),
+    ROLE_HAS_USERS(3104, "Cannot delete role with existing users", HttpStatus.BAD_REQUEST),
 
     // File errors (4000-4010)
     FILE_UPLOAD_FAILED(4001, "File upload failed", HttpStatus.INTERNAL_SERVER_ERROR),

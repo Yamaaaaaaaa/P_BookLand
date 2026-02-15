@@ -69,6 +69,34 @@ public class BillService {
         return convertToDTO(bill);
     }
 
+    @Transactional(readOnly = true)
+    public Page<BillDTO> getOwnBills(String email, BillStatus status,
+                                      LocalDateTime fromDate, LocalDateTime toDate,
+                                      Double minCost, Double maxCost,
+                                      Pageable pageable) {
+        // Tìm user từ email
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        
+        // Tạo specification với userId
+        Specification<Bill> spec = BillSpecification.hasUser(user.getId());
+
+        if (status != null) {
+            spec = spec.and(BillSpecification.hasStatus(status));
+        }
+
+        if (fromDate != null || toDate != null) {
+            spec = spec.and(BillSpecification.createdBetween(fromDate, toDate));
+        }
+
+        if (minCost != null || maxCost != null) {
+            spec = spec.and(BillSpecification.totalCostBetween(minCost, maxCost));
+        }
+
+        return billRepository.findAll(spec, pageable)
+                .map(this::convertToDTO);
+    }
+
     @Transactional
     public BillDTO createBill(CreateBillRequest request) {
         User user = userRepository.findById(request.getUserId())

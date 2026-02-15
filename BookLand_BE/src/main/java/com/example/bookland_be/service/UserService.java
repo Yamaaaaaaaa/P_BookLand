@@ -48,6 +48,13 @@ public class UserService {
         return UserResponse.fromEntity(user);
     }
 
+    @Transactional(readOnly = true)
+    public UserResponse getUserByEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return UserResponse.fromEntity(user);
+    }
+
     @Transactional
     public UserResponse createUser(UserRequest request) {
         if (userRepository.existsByUsername(request.getUsername())) {

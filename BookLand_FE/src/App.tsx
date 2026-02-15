@@ -21,6 +21,7 @@ import PaymentPage from './pages/shop/PaymentPage';
 import DashboardPage from './pages/admin/DashboardPage';
 import AdminLoginPage from './pages/admin/auth/AdminLoginPage';
 import ManageUserPage from './pages/admin/ManageUserPage';
+import ManageRolePage from './pages/admin/ManageRolePage';
 import AllBillsPage from './pages/admin/manage-business/AllBillsPage';
 import PaymentMethodPage from './pages/admin/manage-business/PaymentMethodPage';
 import ShippingMethodPage from './pages/admin/manage-business/ShippingMethodPage';
@@ -79,6 +80,7 @@ function App() {
             <Route element={<AdminLayout />}>
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="manage-user" element={<ManageUserPage />} />
+              <Route path="manage-role" element={<ManageRolePage />} />
               <Route path="gallery" element={<Gallery />} />
               <Route path="chat" element={<AdminChatListPage />} />
               <Route path="chat/:userId" element={<AdminChatDetailPage />} />

@@ -11,6 +11,7 @@ import com.example.bookland_be.repository.UserRepository;
 import com.example.bookland_be.service.ChatMessageService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +36,7 @@ public class ChatMessageController {
     }
 
     @GetMapping("/conversations")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_SERVICE_SUPPORTER', 'ROLE_MANAGER')")
     public ApiResponse<List<ConversationUserResponse>> getConversations() {
         Long currentUserId = getCurrentUserId();
         return ApiResponse.<List<ConversationUserResponse>>builder()

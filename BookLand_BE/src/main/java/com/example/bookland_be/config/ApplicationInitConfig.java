@@ -50,17 +50,38 @@ public class ApplicationInitConfig {
                 System.out.println("CẦN TAO ADMIN");
                 roleRepository.save(Role.builder()
                         .name(PredefinedRole.USER_ROLE)
-                        .description("User role")
+                        .description("User role - Khách hàng")
                         .build());
 
                 Role adminRole = roleRepository.save(Role.builder()
                         .name(PredefinedRole.ADMIN_ROLE)
-                        .description("Admin role")
+                        .description("Admin role - Quản trị toàn bộ hệ thống")
+                        .build());
+ 
+                // Tạo 3 role mới: MANAGER, ORDER_STAFF, SERVICE_SUPPORTER
+                 Role managerRole =roleRepository.save(Role.builder()
+                        .name(PredefinedRole.MANAGER_ROLE)
+                        .description("Manager role - Quản lý toàn bộ hệ thống")
+                        .build());
+
+                Role orderStaffRole =roleRepository.save(Role.builder()
+                        .name(PredefinedRole.ORDER_STAFF_ROLE)
+                        .description("Order Staff role - Nhân viên xử lý đơn hàng")
+                        .build());
+
+                Role serviceSupporterRole =roleRepository.save(Role.builder()
+                        .name(PredefinedRole.SERVICE_SUPPORTER_ROLE)
+                        .description("Service Supporter role - Nhân viên hỗ trợ khách hàng")
+                        .build());
+
+                Role adminLoginRole =roleRepository.save(Role.builder()
+                        .name(PredefinedRole.ADMIN_LOGIN_ROLE)
+                        .description("Admin Login role - Nhân viên hỗ trợ khách hàng")
                         .build());
 
                 var roles = new HashSet<Role>();
                 roles.add(adminRole);
-
+                roles.add(adminLoginRole);
                 User user = User.builder()
                         .username(ADMIN_USER_NAME)
                         .email(ADMIN_USER_NAME + "@gmail.com")

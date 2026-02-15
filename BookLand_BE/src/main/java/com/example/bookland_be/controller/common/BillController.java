@@ -16,6 +16,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -30,6 +33,7 @@ public class BillController {
     private final BillPreviewService billPreviewService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER', 'ROLE_ORDER_STAFF')")
     public ApiResponse<Page<BillDTO>> getAllBills(
             @RequestParam(required = false) Long userId,
             @RequestParam(required = false) BillStatus status,
@@ -48,6 +52,35 @@ public class BillController {
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
         Page<BillDTO> bills = billService.getAllBills(userId, status, fromDate, toDate,
+                minCost, maxCost, pageable);
+        return ApiResponse.<Page<BillDTO>>builder().result(bills).build();
+    }
+
+    /**
+     * Get own bills - Lấy danh sách đơn hàng của chính mình
+     */
+    @GetMapping("/my-bills")
+    public ApiResponse<Page<BillDTO>> getOwnBills(
+            @RequestParam(required = false) BillStatus status,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fromDate,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime toDate,
+            @RequestParam(required = false) Double minCost,
+            @RequestParam(required = false) Double maxCost,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection
+    ) {
+        // Lấy userId từ token
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC")
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+
+        Page<BillDTO> bills = billService.getOwnBills(email, status, fromDate, toDate,
                 minCost, maxCost, pageable);
         return ApiResponse.<Page<BillDTO>>builder().result(bills).build();
     }
@@ -74,6 +107,7 @@ public class BillController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_MANAGER', 'ROLE_ORDER_STAFF')")
     public ApiResponse<BillDTO> updateBillStatus(
             @PathVariable Long id,
             @Valid @RequestBody UpdateBillStatusRequest request) {
@@ -81,6 +115,7 @@ public class BillController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<Void> deleteBill(@PathVariable Long id) {
         billService.deleteBill(id);
         return ApiResponse.<Void>builder().build();

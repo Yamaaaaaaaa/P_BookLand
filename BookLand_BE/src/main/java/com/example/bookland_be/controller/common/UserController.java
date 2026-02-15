@@ -12,6 +12,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -23,6 +26,7 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN','ROLE_MANAGER')")
     public ApiResponse<Page<UserResponse>> getAllUsers(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) UserStatus status,
@@ -41,13 +45,28 @@ public class UserController {
         return ApiResponse.<Page<UserResponse>>builder().result(users).build();
     }
 
+    /**
+     * Get own profile - Lấy thông tin profile của chính mình
+     */
+    @GetMapping("/me")
+    public ApiResponse<UserResponse> getOwnProfile() {
+        // Lấy email từ token
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        
+        UserResponse user = userService.getUserByEmail(email);
+        return ApiResponse.<UserResponse>builder().result(user).build();
+    }
+
     @GetMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<UserResponse> getUserById(@PathVariable Long id) {
         UserResponse user = userService.getUserById(id);
         return ApiResponse.<UserResponse>builder().result(user).build();
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<UserResponse> createUser(@Valid @RequestBody UserRequest request) {
         UserResponse createdUser = userService.createUser(request);
         return ApiResponse.<UserResponse>builder().result(createdUser).build();
@@ -63,6 +82,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}/roles")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<UserResponse> updateUserRoles(
             @PathVariable Long id,
             @Valid @RequestBody UpdateRolesRequest request
@@ -72,6 +92,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<UserResponse> updateUserStatus(
             @PathVariable Long id,
             @RequestParam UserStatus status
@@ -81,6 +102,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ApiResponse.<Void>builder().build();

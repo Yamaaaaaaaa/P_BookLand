@@ -105,7 +105,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         System.out.println("role: "+ user.getRoles());
         // Kiểm tra xem user có role ADMIN không
         boolean isAdmin = user.getRoles().stream()
-                .anyMatch(role -> "ADMIN".equals(role.getName()));
+                .anyMatch(role -> "ADMIN_LOGIN".equals(role.getName()));
 
         if (!isAdmin) {
             throw new AppException(ErrorCode.UNAUTHORIZED);

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, User, Mail, Phone, Lock, Calendar } from 'lucide-react';
 import userService from '../../../api/userService';
+import roleService from '../../../api/roleService';
 import { toast } from 'react-toastify';
 import type { UserRequest, UserUpdateRequest, UserStatus } from '../../../types/User';
 import type { Role } from '../../../types/Role';
@@ -27,19 +28,34 @@ const AdminUserDetailPage = () => {
         roleIds: []
     });
 
-    // START: Temporary Role fetching/definition since we don't have roleService yet
-    // In a real app, you'd fetch this from via roleService.getAllRoles()
-    const [availableRoles] = useState<Role[]>([
-        { id: 2, name: 'ADMIN', description: 'Administrator' },
-        { id: 1, name: 'USER', description: 'Standard User' }
-    ]);
-    // END: Temporary Role fetching
+    // Fetch available roles from API
+    const [availableRoles, setAvailableRoles] = useState<Role[]>([]);
+
+    useEffect(() => {
+        fetchRoles();
+    }, []);
+
+    useEffect(() => {
+        fetchRoles();
+    }, []);
 
     useEffect(() => {
         if (isEditMode && id) {
             fetchUser(parseInt(id));
         }
     }, [isEditMode, id]);
+
+    const fetchRoles = async () => {
+        try {
+            const response = await roleService.getAllRoles({ size: 100 }); // Get all roles
+            if (response.result) {
+                setAvailableRoles(response.result.content);
+            }
+        } catch (error) {
+            console.error('Error fetching roles:', error);
+            toast.error('Failed to load roles');
+        }
+    };
 
     const fetchUser = async (userId: number) => {
         setIsLoading(true);

@@ -8,3 +8,16 @@ export interface Role {
     users?: User[];
     permissions?: Permission[];
 }
+
+export interface RoleRequest {
+    name: string;
+    description?: string;
+}
+
+export interface RoleQueryParams {
+    keyword?: string;
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDirection?: string;
+}

@@ -17,6 +17,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -97,11 +98,13 @@ public class EventController {
     }
 
     @PostMapping
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<EventDTO> createEvent(@Valid @RequestBody EventRequest request) {
         return ApiResponse.<EventDTO>builder().result(eventService.createEvent(request)).build();
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<EventDTO> updateEvent(
             @PathVariable Long id,
             @Valid @RequestBody EventRequest request) {
@@ -109,6 +112,7 @@ public class EventController {
     }
 
     @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<EventDTO> updateEventStatus(
             @PathVariable Long id,
             @RequestParam EventStatus status) {
@@ -116,6 +120,7 @@ public class EventController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<Void> deleteEvent(@PathVariable Long id) {
         eventService.deleteEvent(id);
         return ApiResponse.<Void>builder().build();

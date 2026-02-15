@@ -67,7 +67,7 @@ const CheckoutPage = () => {
             setIsLoading(true);
             try {
                 // Load User Info
-                const userRes = await userService.getUserById(userId);
+                const userRes = await userService.getOwnProfile();
                 if (userRes.result) {
                     const u = userRes.result;
                     setFormData(prev => ({

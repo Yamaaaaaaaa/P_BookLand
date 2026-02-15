@@ -6,7 +6,7 @@ import Footer from '../components/Footer';
 import ChatWidget from '../components/ChatWidget';
 import cartService from '../api/cartService';
 import userService from '../api/userService';
-import { getCurrentUserId, setCustomerUserId, getCustomerEmailFromToken } from '../utils/auth';
+import { getCurrentUserId, setCustomerUserId } from '../utils/auth';
 import { useState, useEffect } from 'react';
 import '../styles/variables.css';
 import '../styles/base.css';
@@ -42,20 +42,13 @@ const ShopLayout = () => {
                 // If ID is missing, fetch it from API
                 if (!userId) {
                     try {
-                        const email = getCustomerEmailFromToken();
-                        if (email) {
-                            const response = await userService.getAllUsers({ keyword: email });
-                            if (response.result && response.result.content.length > 0) {
-                                // Find exact match by email
-                                const user = response.result.content.find((u: any) => u.email === email);
-                                if (user) {
-                                    userId = user.id;
-                                    setCustomerUserId(userId);
-                                }
-                            }
+                        const response = await userService.getOwnProfile();
+                        if (response.result) {
+                            userId = response.result.id;
+                            setCustomerUserId(userId);
                         }
                     } catch (error) {
-                        console.error("Failed to fetch user info by email", error);
+                        console.error("Failed to fetch user info", error);
                     }
                 }
 

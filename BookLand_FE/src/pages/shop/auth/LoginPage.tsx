@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
-import { setCustomerToken, setCustomerRefreshToken, setCustomerUserId, getCustomerEmailFromToken } from '../../../utils/auth';
+import { setCustomerToken, setCustomerRefreshToken, setCustomerUserId } from '../../../utils/auth';
 import authService from '../../../api/authService';
 import userService from '../../../api/userService';
 import '../../../styles/pages/auth.css';
@@ -25,15 +25,9 @@ const LoginPage = () => {
 
                 // Fetch and set user ID
                 try {
-                    const email = getCustomerEmailFromToken();
-                    if (email) {
-                        const userRes = await userService.getAllUsers({ keyword: email });
-                        if (userRes.result && userRes.result.content.length > 0) {
-                            const user = userRes.result.content.find((u: any) => u.email === email);
-                            if (user) {
-                                setCustomerUserId(user.id);
-                            }
-                        }
+                    const userRes = await userService.getOwnProfile();
+                    if (userRes.result) {
+                        setCustomerUserId(userRes.result.id);
                     }
                 } catch (userErr) {
                     console.error("Failed to fetch user ID after login:", userErr);

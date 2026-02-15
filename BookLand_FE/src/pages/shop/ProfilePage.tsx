@@ -59,9 +59,8 @@ const ProfilePage = () => {
     }, [userId, activeTab]);
 
     const fetchUserData = async () => {
-        if (!userId) return;
         try {
-            const response = await userService.getUserById(userId);
+            const response = await userService.getOwnProfile();
             if (response.result) {
                 setUserData(response.result);
                 setProfileForm({
@@ -81,9 +80,8 @@ const ProfilePage = () => {
     };
 
     const fetchOrders = async () => {
-        if (!userId) return;
         try {
-            const response = await billService.getAllBills({ userId, size: 50 });
+            const response = await billService.getOwnBills({ size: 50 });
             if (response.result) {
                 setOrders(response.result.content);
             }

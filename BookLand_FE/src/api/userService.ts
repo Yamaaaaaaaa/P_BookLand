@@ -35,6 +35,11 @@ const userService = {
         return axiosClient.put<any, ApiResponse<User>>(`/api/users/${id}/roles`, { roleIds });
     },
     
+    // Customer own profile
+    getOwnProfile: () => {
+        return axiosClient.get<any, ApiResponse<User>>('/api/users/me');
+    },
+    
     // Admin specific endpoints (mapping to /admin/users based on docs, though some seem duplicate)
     adminGetUserById: (id: number) => {
         return axiosClient.get<any, ApiResponse<User>>(`/admin/users/${id}`);

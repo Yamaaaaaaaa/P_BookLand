@@ -64,6 +64,11 @@ const billService = {
     },
     deleteBill: (id: number) => {
         return axiosClient.delete<any, ApiResponse<void>>(`/api/bills/${id}`);
+    },
+    
+    // Customer own bills
+    getOwnBills: (params?: Omit<BillQueryParams, 'userId'>) => {
+        return axiosClient.get<any, ApiResponse<Page<Bill>>>('/api/bills/my-bills', { params });
     }
 };
 

@@ -11,7 +11,6 @@ import { ImageType } from '../../../types/EventImage';
 import type { EventRequest, EventPayload } from '../../../types/Event';
 import type { Category } from '../../../types/Category';
 import type { PaymentMethod } from '../../../types/PaymentMethod';
-import { jwtDecode } from 'jwt-decode';
 import eventService from '../../../api/eventService';
 import categoryService from '../../../api/categoryService';
 import paymentMethodService from '../../../api/paymentMethodService';
@@ -74,15 +73,11 @@ const EventFormPage = () => {
             const token = localStorage.getItem('adminToken');
             if (token) {
                 try {
-                    const decoded: any = jwtDecode(token);
-                    const email = decoded.sub; // Assuming 'sub' holds the email based on user info
-                    if (email) {
-                        const userRes = await userService.getAllUsers({ keyword: email });
-                        if (userRes.result?.content && userRes.result.content.length > 0) {
-                            const user = userRes.result.content[0];
-                            setCurrentUserId(user.id);
-                            setCreatorName(`${user.firstName || ''} ${user.lastName || ''} (${user.username || user.email})`.trim());
-                        }
+                    const userRes = await userService.getOwnProfile();
+                    if (userRes.result) {
+                        const user = userRes.result;
+                        setCurrentUserId(user.id);
+                        setCreatorName(`${user.firstName || ''} ${user.lastName || ''} (${user.username || user.email})`.trim());
                     }
                 } catch (error) {
                     console.error('Error fetching current user:', error);

@@ -86,6 +86,15 @@ public enum ErrorCode {
     FILE_DELETE_FAILED(4002, "File delete failed", HttpStatus.INTERNAL_SERVER_ERROR),
     FILE_TOO_LARGE(4003, "File too large", HttpStatus.BAD_REQUEST),
     FILE_INVALID_FORMAT(4004, "Invalid file format", HttpStatus.BAD_REQUEST),
+
+    // Comment errors
+    COMMENT_NOT_FOUND(5001, "Comment not found", HttpStatus.NOT_FOUND),
+    ALREADY_COMMENTED(5002, "You have already commented on this book in this bill", HttpStatus.BAD_REQUEST),
+
+    // Additional Bill/Order errors
+    BILL_NOT_COMPLETED(3002, "Bill is not completed", HttpStatus.BAD_REQUEST),
+    USER_NOT_OWN_BILL(3003, "You do not own this bill", HttpStatus.FORBIDDEN),
+    BOOK_NOT_IN_BILL(3004, "Book is not in this bill", HttpStatus.BAD_REQUEST),
     ;
 
 

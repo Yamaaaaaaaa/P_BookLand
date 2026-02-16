@@ -35,4 +35,8 @@ public interface BookCommentRepository extends JpaRepository<BookComment, Long> 
 
     @Query("SELECT COUNT(bc) FROM BookComment bc WHERE bc.book.id = :bookId AND bc.rating = :rating")
     long countByBookIdAndRating(@Param("bookId") Long bookId, @Param("rating") Long rating);
+
+    List<BookComment> findByBillId(Long billId);
+
+    boolean existsByUserIdAndBookIdAndBillId(Long userId, Long bookId, Long billId);
 }

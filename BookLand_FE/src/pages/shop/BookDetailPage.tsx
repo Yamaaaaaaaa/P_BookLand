@@ -30,6 +30,10 @@ const BookDetailPage = () => {
     const [commentTotalPages, setCommentTotalPages] = useState(1);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
 
+    // Add helper function or state at top
+    // Rating Stats State
+    const [ratingDistribution, setRatingDistribution] = useState<Record<number, number>>({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
+
     useEffect(() => {
         const fetchBookDetail = async () => {
             if (!id) return;
@@ -55,7 +59,33 @@ const BookDetailPage = () => {
             }
         };
 
+        const fetchAllCommentsForStats = async () => {
+            if (!id) return;
+            try {
+                // Fetch up to 1000 comments for stats
+                const response = await bookCommentApi.getCommentsByBook(Number(id), {
+                    page: 1,
+                    size: 1000, // Fetch large number to get all for stats
+                    sortBy: 'createdAt',
+                    sortDirection: 'DESC'
+                });
+                if (response.result) {
+                    const allComments = response.result.comments.content;
+                    const stats: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
+                    allComments.forEach(comment => {
+                        if (comment.rating >= 1 && comment.rating <= 5) {
+                            stats[comment.rating] = (stats[comment.rating] || 0) + 1;
+                        }
+                    });
+                    setRatingDistribution(stats);
+                }
+            } catch (error) {
+                console.error("Failed to fetch comments for stats:", error);
+            }
+        };
+
         fetchBookDetail();
+        fetchAllCommentsForStats();
     }, [id]);
 
     useEffect(() => {
@@ -167,6 +197,12 @@ const BookDetailPage = () => {
             </div>
         );
     }
+
+    // Determine total ratings from our local stats or fallback to summary
+    // Just sum up values in ratingDistribution
+    const totalRatingsCalculated = Object.values(ratingDistribution).reduce((a, b) => a + b, 0);
+    // Use the calculated total if available and > 0, otherwise fallback
+    const displayTotalReviews = totalRatingsCalculated > 0 ? totalRatingsCalculated : (commentSummary?.totalComments || 0);
 
     return (
         <div className="book-detail-page">
@@ -374,13 +410,16 @@ const BookDetailPage = () => {
                                             color={s <= Math.round(commentSummary.averageRating) ? "#F69113" : "#ddd"}
                                         />
                                     ))}
-                                    <div className="rev-count">({commentSummary.totalComments} đánh giá)</div>
+                                    <div className="rev-count">({displayTotalReviews} đánh giá)</div>
                                 </div>
                                 <div className="rev-chart">
                                     {[5, 4, 3, 2, 1].map(r => {
-                                        const count = commentSummary.ratingCounts?.[r] || 0;
-                                        const percent = commentSummary.totalComments > 0
-                                            ? (count / commentSummary.totalComments) * 100
+                                        // Use our calculated distribution
+                                        const count = ratingDistribution[r] || 0;
+                                        // Use calculated total
+                                        const total = displayTotalReviews;
+                                        const percent = total > 0
+                                            ? (count / total) * 100
                                             : 0;
                                         return (
                                             <div key={r} className="chart-item">
@@ -401,30 +440,56 @@ const BookDetailPage = () => {
                                 <p>Đang tải đánh giá...</p>
                             ) : comments.length > 0 ? (
                                 comments.map(comment => (
-                                    <div key={comment.id} className="review-item">
-                                        <div className="review-header">
-                                            <div className="reviewer-name">{comment.userName}</div>
-                                            <div className="review-rating">
+                                    <div key={comment.id} className="review-item" style={{
+                                        display: 'flex',
+                                        padding: '20px 0',
+                                        borderBottom: '1px solid #eee'
+                                    }}>
+                                        {/* Left Column: User Info */}
+                                        <div className="review-user-col" style={{
+                                            width: '200px',
+                                            flexShrink: 0,
+                                            paddingRight: '20px'
+                                        }}>
+                                            <div className="reviewer-name" style={{
+                                                fontWeight: '600',
+                                                color: '#333',
+                                                marginBottom: '4px'
+                                            }}>
+                                                {comment.userName}
+                                            </div>
+                                            <div className="review-date" style={{
+                                                fontSize: '12px',
+                                                color: '#999'
+                                            }}>
+                                                {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
+                                            </div>
+                                        </div>
+
+                                        {/* Right Column: Rating & Content */}
+                                        <div className="review-content-col" style={{ flex: 1 }}>
+                                            <div className="review-rating" style={{ marginBottom: '8px' }}>
                                                 {[...Array(5)].map((_, i) => (
                                                     <Star
                                                         key={i}
-                                                        size={12}
+                                                        size={14}
                                                         fill={i < comment.rating ? "#F69113" : "none"}
                                                         color={i < comment.rating ? "#F69113" : "#ddd"}
                                                     />
                                                 ))}
                                             </div>
-                                        </div>
-                                        <div className="review-content" style={{ marginTop: '8px', color: '#555' }}>
-                                            {comment.comment}
-                                        </div>
-                                        <div className="review-date" style={{ marginTop: '4px', fontSize: '12px', color: '#999' }}>
-                                            {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
+                                            <div className="review-text" style={{
+                                                color: '#333',
+                                                lineHeight: '1.5',
+                                                fontSize: '14px'
+                                            }}>
+                                                {comment.comment}
+                                            </div>
                                         </div>
                                     </div>
                                 ))
                             ) : (
-                                <p className="no-reviews">Chưa có đánh giá nào cho sản phẩm này.</p>
+                                <p className="no-reviews" style={{ color: '#999', fontStyle: 'italic' }}>Chưa có đánh giá nào cho sản phẩm này.</p>
                             )}
                         </div>
 

@@ -139,6 +139,18 @@ export const userMenuItems: UserMenuItem[] = [
   //   href: '/shop/orders'
   // },
   {
+    id: 'my-orders',
+    label: 'Đơn hàng của tôi',
+    icon: '📋',
+    href: '/shop/my-orders'
+  },
+  {
+    id: 'my-reviews',
+    label: 'Đánh giá của tôi',
+    icon: '⭐',
+    href: '/shop/my-reviews'
+  },
+  {
     id: 'wishlist',
     label: 'Sản phẩm yêu thích',
     icon: '❤️',

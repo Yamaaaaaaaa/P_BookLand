@@ -8,6 +8,8 @@ import cartService from '../../api/cartService';
 import wishlistService from '../../api/wishlistService';
 import { getCurrentUserId } from '../../utils/auth';
 import type { Book } from '../../types/Book';
+import type { BookComment, BookCommentSummaryResponse } from '../../types/BookComment';
+import bookCommentApi from '../../api/bookCommentApi';
 import { toast } from 'react-toastify';
 import { formatCurrency } from '../../utils/formatters';
 
@@ -20,6 +22,13 @@ const BookDetailPage = () => {
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
     const [relatedBooks, setRelatedBooks] = useState<Book[]>([]);
+
+    // Comment State
+    const [comments, setComments] = useState<BookComment[]>([]);
+    const [commentSummary, setCommentSummary] = useState<BookCommentSummaryResponse | null>(null);
+    const [commentPage, setCommentPage] = useState(1);
+    const [commentTotalPages, setCommentTotalPages] = useState(1);
+    const [isCommentsLoading, setIsCommentsLoading] = useState(false);
 
     useEffect(() => {
         const fetchBookDetail = async () => {
@@ -48,6 +57,33 @@ const BookDetailPage = () => {
 
         fetchBookDetail();
     }, [id]);
+
+    useEffect(() => {
+        if (!id) return;
+        const fetchComments = async () => {
+            setIsCommentsLoading(true);
+            try {
+                const response = await bookCommentApi.getCommentsByBook(Number(id), {
+                    page: commentPage,
+                    size: 5,
+                    sortBy: 'createdAt',
+                    sortDirection: 'DESC'
+                });
+                if (response.result) {
+                    setCommentSummary(response.result);
+                    setComments(response.result.comments.content);
+                    console.log("comments: ", response.result.comments.content);
+                    console.log("commentSummary: ", response.result);
+                    setCommentTotalPages(response.result.comments.totalPages);
+                }
+            } catch (error) {
+                console.error('Failed to fetch comments:', error);
+            } finally {
+                setIsCommentsLoading(false);
+            }
+        };
+        fetchComments();
+    }, [id, commentPage]);
 
     const handleQuantityChange = (type: 'inc' | 'dec') => {
         if (type === 'inc') setQuantity(q => q + 1);
@@ -225,11 +261,11 @@ const BookDetailPage = () => {
                                         <Star
                                             key={s}
                                             size={14}
-                                            fill={s <= (book.rating || 5) ? "#F69113" : "none"}
+                                            fill={s <= (commentSummary?.averageRating || book.rating || 5) ? "#F69113" : "none"}
                                             color="#F69113"
                                         />
                                     ))}
-                                    <span className="rating-count">({book.ratingCount || 0} đánh giá)</span>
+                                    <span className="rating-count">({comments.length || book.ratingCount || 0} đánh giá)</span>
                                 </div>
                                 <div className="sold-count">| Đã bán {book.ratingCount ? book.ratingCount * 12 : 24}</div>
                             </div>
@@ -320,32 +356,92 @@ const BookDetailPage = () => {
                         </div>
                     )}
 
-                    {/* Reviews (Skeleton) */}
+                    {/* Reviews */}
                     <div className="detail-reviews-card">
                         <h3>Đánh giá sản phẩm</h3>
-                        <div className="reviews-summary">
-                            <div className="rev-score">{book.rating || 5}<span>/5</span></div>
-                            <div className="rev-stars">
-                                {[1, 2, 3, 4, 5].map(s => (
-                                    <Star
-                                        key={s}
-                                        size={18}
-                                        fill={s <= (book.rating || 5) ? "#F69113" : "none"}
-                                        color={s <= (book.rating || 5) ? "#F69113" : "#ddd"}
-                                    />
-                                ))}
-                                <div className="rev-count">({book.ratingCount || 0} đánh giá)</div>
+
+                        {commentSummary && (
+                            <div className="reviews-summary">
+                                <div className="rev-score">
+                                    {commentSummary.averageRating.toFixed(1)}<span>/5</span>
+                                </div>
+                                <div className="rev-stars">
+                                    {[1, 2, 3, 4, 5].map(s => (
+                                        <Star
+                                            key={s}
+                                            size={18}
+                                            fill={s <= Math.round(commentSummary.averageRating) ? "#F69113" : "none"}
+                                            color={s <= Math.round(commentSummary.averageRating) ? "#F69113" : "#ddd"}
+                                        />
+                                    ))}
+                                    <div className="rev-count">({commentSummary.totalComments} đánh giá)</div>
+                                </div>
+                                <div className="rev-chart">
+                                    {[5, 4, 3, 2, 1].map(r => {
+                                        const count = commentSummary.ratingCounts?.[r] || 0;
+                                        const percent = commentSummary.totalComments > 0
+                                            ? (count / commentSummary.totalComments) * 100
+                                            : 0;
+                                        return (
+                                            <div key={r} className="chart-item">
+                                                <span>{r} sao</span>
+                                                <div className="bar-bg">
+                                                    <div className="bar-fill" style={{ width: `${percent}%` }}></div>
+                                                </div>
+                                                <span>{percent.toFixed(0)}%</span>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
                             </div>
-                            <div className="rev-chart">
-                                {[5, 4, 3, 2, 1].map(r => (
-                                    <div key={r} className="chart-item">
-                                        <span>{r} sao</span>
-                                        <div className="bar-bg"><div className="bar-fill" style={{ width: r === 5 ? '100%' : '0%' }}></div></div>
-                                        <span>{r === 5 ? '100%' : '0%'}</span>
+                        )}
+
+                        <div className="reviews-list">
+                            {isCommentsLoading ? (
+                                <p>Đang tải đánh giá...</p>
+                            ) : comments.length > 0 ? (
+                                comments.map(comment => (
+                                    <div key={comment.id} className="review-item">
+                                        <div className="review-header">
+                                            <div className="reviewer-name">{comment.userName}</div>
+                                            <div className="review-rating">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <Star
+                                                        key={i}
+                                                        size={12}
+                                                        fill={i < comment.rating ? "#F69113" : "none"}
+                                                        color={i < comment.rating ? "#F69113" : "#ddd"}
+                                                    />
+                                                ))}
+                                            </div>
+                                        </div>
+                                        <div className="review-content" style={{ marginTop: '8px', color: '#555' }}>
+                                            {comment.comment}
+                                        </div>
+                                        <div className="review-date" style={{ marginTop: '4px', fontSize: '12px', color: '#999' }}>
+                                            {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
+                                        </div>
                                     </div>
+                                ))
+                            ) : (
+                                <p className="no-reviews">Chưa có đánh giá nào cho sản phẩm này.</p>
+                            )}
+                        </div>
+
+                        {/* Pagination */}
+                        {commentTotalPages > 1 && (
+                            <div className="pagination">
+                                {Array.from({ length: commentTotalPages }, (_, i) => i + 1).map(page => (
+                                    <button
+                                        key={page}
+                                        className={`page-btn ${commentPage === page ? 'active' : ''}`}
+                                        onClick={() => setCommentPage(page)}
+                                    >
+                                        {page}
+                                    </button>
                                 ))}
                             </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

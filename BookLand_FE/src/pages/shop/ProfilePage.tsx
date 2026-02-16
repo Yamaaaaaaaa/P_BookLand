@@ -7,29 +7,24 @@ import {
     Info,
     MapPin,
     Loader2,
-    Eye,
-    X,
+    MessageSquare,
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import '../../styles/pages/profile.css';
 import userService from '../../api/userService';
-import billService from '../../api/billService';
 import { getCurrentUserId } from '../../utils/auth';
-import { formatCurrency } from '../../utils/formatters';
 import type { User as UserType } from '../../types/User';
-import type { Bill } from '../../types/Bill';
 import { toast } from 'react-toastify';
 
-type TabType = 'profile' | 'orders' | 'addresses' | 'notifications' | 'password';
+type TabType = 'profile' | 'addresses' | 'notifications' | 'password';
 
 const ProfilePage = () => {
+    const navigate = useNavigate();
     const userId = getCurrentUserId();
     const [activeTab, setActiveTab] = useState<TabType>('profile');
     const [userData, setUserData] = useState<UserType | null>(null);
-    const [orders, setOrders] = useState<Bill[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isProcessing, setIsProcessing] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState<Bill | null>(null);
-    const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false);
 
     // Form states
     const [profileForm, setProfileForm] = useState({
@@ -52,12 +47,6 @@ const ProfilePage = () => {
         }
     }, [userId]);
 
-    useEffect(() => {
-        if (userId && activeTab === 'orders') {
-            fetchOrders();
-        }
-    }, [userId, activeTab]);
-
     const fetchUserData = async () => {
         try {
             const response = await userService.getOwnProfile();
@@ -79,16 +68,7 @@ const ProfilePage = () => {
         }
     };
 
-    const fetchOrders = async () => {
-        try {
-            const response = await billService.getOwnBills({ size: 50 });
-            if (response.result) {
-                setOrders(response.result.content);
-            }
-        } catch (error) {
-            console.error('Failed to fetch orders:', error);
-        }
-    };
+
 
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
@@ -141,21 +121,7 @@ const ProfilePage = () => {
         }
     };
 
-    const handleViewOrderDetails = async (orderId: number) => {
-        setIsProcessing(true);
-        try {
-            const response = await billService.getBillById(orderId);
-            if (response.result) {
-                setSelectedOrder(response.result);
-                setIsOrderDetailOpen(true);
-            }
-        } catch (error) {
-            console.error('Failed to fetch bill details:', error);
-            toast.error('Không thể lấy chi tiết đơn hàng');
-        } finally {
-            setIsProcessing(false);
-        }
-    };
+
 
     if (isLoading) {
         return (
@@ -200,11 +166,19 @@ const ProfilePage = () => {
                                         <div className={`sub-nav-item ${activeTab === 'password' ? 'active' : ''}`} onClick={() => setActiveTab('password')}>Đổi mật khẩu</div>
                                     </div>
                                 </div>
-                                <div className={`nav-item ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => setActiveTab('orders')}>
+                                <div className="nav-item" onClick={() => navigate('/shop/my-orders')}>
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <ClipboardList size={20} />
                                             <span>Đơn hàng của tôi</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="nav-item" onClick={() => navigate('/shop/my-reviews')}>
+                                    <div className="nav-item-header">
+                                        <div className="nav-item-wrapper">
+                                            <MessageSquare size={20} />
+                                            <span>Đánh giá của tôi</span>
                                         </div>
                                     </div>
                                 </div>
@@ -238,10 +212,7 @@ const ProfilePage = () => {
                                     <div className="stat-card">
                                         <h4>Thành tích mua sắm</h4>
                                         <div className="stat-items">
-                                            <div className="stat-item">
-                                                <span className="stat-label">Tổng số đơn hàng</span>
-                                                <span className="stat-value highlight-blue">{orders.length} đơn hàng</span>
-                                            </div>
+                                            {/* Stats removed as they require separate API calls now or moved to respective pages */}
                                         </div>
                                     </div>
                                 </div>
@@ -343,62 +314,7 @@ const ProfilePage = () => {
                             </div>
                         )}
 
-                        {/* Orders Tab */}
-                        {activeTab === 'orders' && (
-                            <div className="profile-form-section">
-                                <h2 className="section-title">Đơn hàng của tôi</h2>
-                                <div className="orders-list">
-                                    {orders.length === 0 ? (
-                                        <div className="empty-state" style={{ textAlign: 'center', padding: '40px' }}>
-                                            <ClipboardList size={48} color="#ddd" style={{ marginBottom: '10px' }} />
-                                            <p color="#666">Bạn chưa có đơn hàng nào.</p>
-                                        </div>
-                                    ) : (
-                                        <div className="orders-table-wrapper" style={{ overflowX: 'auto' }}>
-                                            <table className="orders-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
-                                                <thead>
-                                                    <tr style={{ textAlign: 'left', borderBottom: '2px solid #f0f0f0' }}>
-                                                        <th style={{ padding: '12px' }}>Mã đơn</th>
-                                                        <th style={{ padding: '12px' }}>Ngày mua</th>
-                                                        <th style={{ padding: '12px' }}>Tổng tiền</th>
-                                                        <th style={{ padding: '12px' }}>Trạng thái</th>
-                                                        <th style={{ padding: '12px' }}></th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody>
-                                                    {orders.map(order => (
-                                                        <tr key={order.id} style={{ borderBottom: '1px solid #f0f0f0' }}>
-                                                            <td style={{ padding: '12px', fontWeight: 600 }}>#{order.id}</td>
-                                                            <td style={{ padding: '12px' }}>{order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : '---'}</td>
-                                                            <td style={{ padding: '12px', color: '#C92127', fontWeight: 700 }}>{formatCurrency(order.totalCost)}</td>
-                                                            <td style={{ padding: '12px' }}>
-                                                                <span className={`status-badge ${order.status.toLowerCase()}`} style={{
-                                                                    fontSize: '11px',
-                                                                    padding: '2px 8px',
-                                                                    borderRadius: '10px',
-                                                                    backgroundColor: order.status === 'COMPLETED' ? '#e6f4ea' : '#fff8e1',
-                                                                    color: order.status === 'COMPLETED' ? '#1e7e34' : '#f57c00'
-                                                                }}>
-                                                                    {order.status}
-                                                                </span>
-                                                            </td>
-                                                            <td style={{ padding: '12px', textAlign: 'right' }}>
-                                                                <button
-                                                                    onClick={() => handleViewOrderDetails(order.id)}
-                                                                    style={{ background: 'none', border: '1px solid #ddd', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
-                                                                >
-                                                                    <Eye size={14} />
-                                                                </button>
-                                                            </td>
-                                                        </tr>
-                                                    ))}
-                                                </tbody>
-                                            </table>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        )}
+
 
 
                         {/* Addresses Placeholder */}
@@ -426,105 +342,7 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            {/* Order Detail Modal */}
-            {isOrderDetailOpen && selectedOrder && (
-                <div className="modal-backdrop" onClick={() => setIsOrderDetailOpen(false)}>
-                    <div className="modal-container" onClick={(e) => e.stopPropagation()}>
-                        <div className="modal-header">
-                            <h3>Chi tiết đơn hàng #{selectedOrder.id}</h3>
-                            <button className="btn-close-modal" onClick={() => setIsOrderDetailOpen(false)}>
-                                <X size={20} />
-                            </button>
-                        </div>
-                        <div className="modal-body">
-                            <div className="order-detail-info">
-                                <div className="info-column">
-                                    <h4>Thông tin khách hàng</h4>
-                                    <div className="info-item">
-                                        <span className="info-label">Người nhận:</span>
-                                        <span className="info-value">{selectedOrder.fullName || selectedOrder.userName}</span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">Số điện thoại:</span>
-                                        <span className="info-value">{selectedOrder.phone || 'N/A'}</span>
-                                    </div>
-                                </div>
-                                <div className="info-column">
-                                    <h4>Phương thức vận chuyển</h4>
-                                    <div className="info-item">
-                                        <span className="info-label">Hình thức:</span>
-                                        <span className="info-value">{selectedOrder.shippingMethodName}</span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">Phí vận chuyển:</span>
-                                        <span className="info-value">{formatCurrency(selectedOrder.shippingCost)}</span>
-                                    </div>
-                                    <div className="info-item" style={{ marginTop: '12px' }}>
-                                        <h4>Thanh toán</h4>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">Hình thức:</span>
-                                        <span className="info-value">{selectedOrder.paymentMethodName}</span>
-                                    </div>
-                                    <div className="info-item">
-                                        <span className="info-label">Trạng thái:</span>
-                                        <span className="info-value highlight-blue">{selectedOrder.status}</span>
-                                    </div>
-                                </div>
-                            </div>
 
-                            <div className="detail-books-section">
-                                <h4>Sản phẩm đã mua</h4>
-                                <table className="detail-books-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Sản phẩm</th>
-                                            <th>Đơn giá</th>
-                                            <th>Số lượng</th>
-                                            <th style={{ textAlign: 'right' }}>Thành tiền</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {selectedOrder.books?.map((book, index) => (
-                                            <tr key={index}>
-                                                <td>
-                                                    <div className="detail-book-item">
-                                                        <img src={book.bookImageUrl} alt={book.bookName} className="detail-book-img" />
-                                                        <span className="detail-book-name">{book.bookName}</span>
-                                                    </div>
-                                                </td>
-                                                <td>{formatCurrency(book.priceSnapshot)}</td>
-                                                <td>{book.quantity}</td>
-                                                <td style={{ textAlign: 'right', fontWeight: 600 }}>
-                                                    {formatCurrency(book.subtotal || (book.priceSnapshot * book.quantity))}
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            <div className="detail-summary">
-                                <div className="summary-row">
-                                    <span>Tạm tính:</span>
-                                    <span>{formatCurrency(selectedOrder.totalCost - selectedOrder.shippingCost)}</span>
-                                </div>
-                                <div className="summary-row">
-                                    <span>Phí vận chuyển:</span>
-                                    <span>{formatCurrency(selectedOrder.shippingCost)}</span>
-                                </div>
-                                <div className="summary-row grand-total">
-                                    <span>Tổng cộng:</span>
-                                    <span>{formatCurrency(selectedOrder.totalCost)}</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button className="btn-modal-primary" onClick={() => setIsOrderDetailOpen(false)}>Đóng</button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };

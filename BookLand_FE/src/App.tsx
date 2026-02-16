@@ -13,6 +13,8 @@ import BookDetailPage from './pages/shop/BookDetailPage';
 import CartPage from './pages/shop/CartPage';
 import CheckoutPage from './pages/shop/CheckoutPage';
 import ProfilePage from './pages/shop/ProfilePage';
+import MyOrdersPage from './pages/shop/MyOrdersPage';
+import MyReviewsPage from './pages/shop/MyReviewsPage';
 import LoginPage from './pages/shop/auth/LoginPage';
 import RegisterPage from './pages/shop/auth/RegisterPage';
 import PaymentPage from './pages/shop/PaymentPage';
@@ -66,6 +68,8 @@ function App() {
             <Route path="checkout" element={<CheckoutPage />} />
             <Route path="payment/:billId" element={<PaymentPage />} />
             <Route path="profile" element={<ProfilePage />} />
+            <Route path="my-orders" element={<MyOrdersPage />} />
+            <Route path="my-reviews" element={<MyReviewsPage />} />
           </Route>
         </Route>
 

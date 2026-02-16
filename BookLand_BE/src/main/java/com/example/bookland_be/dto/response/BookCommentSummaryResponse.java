@@ -14,5 +14,7 @@ import org.springframework.data.domain.Page;
 @AllArgsConstructor
 public class BookCommentSummaryResponse {
     private Double averageRating;
+    private Long totalComments;
+    private java.util.Map<Integer, Integer> ratingCounts;
     private Page<BookCommentResponse> comments;
 }

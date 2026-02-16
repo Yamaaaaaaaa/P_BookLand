@@ -121,9 +121,18 @@ public class BookCommentService {
     public BookCommentSummaryResponse getCommentsByBook(Long bookId, Pageable pageable) {
         Page<BookComment> comments = bookCommentRepository.findByBookId(bookId, pageable);
         Double averageRating = bookCommentRepository.getAverageRatingByBookId(bookId);
+        long totalComments = bookCommentRepository.countByBookId(bookId);
+
+        List<Object[]> ratingCountsList = bookCommentRepository.countRatingsByBookId(bookId);
+        java.util.Map<Integer, Integer> ratingCounts = new java.util.HashMap<>();
+        for (Object[] row : ratingCountsList) {
+             ratingCounts.put((Integer) row[0], ((Long) row[1]).intValue());
+        }
 
         return BookCommentSummaryResponse.builder()
                 .averageRating(averageRating != null ? averageRating : 0.0)
+                .totalComments(totalComments)
+                .ratingCounts(ratingCounts)
                 .comments(comments.map(bookCommentMapper::toResponse))
                 .build();
     }

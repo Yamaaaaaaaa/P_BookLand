@@ -26,6 +26,10 @@ public class BookComment {
     @JoinColumn(name = "userId", nullable = false)
     private User user;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "billId", nullable = false)
+    private Bill bill;
+
     @Column(columnDefinition = "TEXT")
     private String comment;
 

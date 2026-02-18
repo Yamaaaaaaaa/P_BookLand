@@ -18,6 +18,7 @@ import MyReviewsPage from './pages/shop/MyReviewsPage';
 import LoginPage from './pages/shop/auth/LoginPage';
 import RegisterPage from './pages/shop/auth/RegisterPage';
 import PaymentPage from './pages/shop/PaymentPage';
+import PaymentResultPage from './pages/shop/PaymentResultPage';
 
 // Admin Pages
 import DashboardPage from './pages/admin/DashboardPage';
@@ -58,6 +59,7 @@ function App() {
           <Route path="login" element={<LoginPage />} />
           <Route path="register" element={<RegisterPage />} />
           <Route path="home" element={<HomePage />} />
+          <Route path="payment-result" element={<PaymentResultPage />} />
           <Route path="books" element={<BooksPage />} />
           <Route path="book-detail/:id" element={<BookDetailPage />} />
 

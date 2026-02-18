@@ -1,5 +1,5 @@
 import axiosClient from './axiosClient';
-import type { ApiResponse, Page } from '../types/api';
+import type { ApiResponse } from '../types/api';
 import type { BookComment, BookCommentRequest, BookCommentSummaryResponse } from '../types/BookComment';
 
 const bookCommentApi = {

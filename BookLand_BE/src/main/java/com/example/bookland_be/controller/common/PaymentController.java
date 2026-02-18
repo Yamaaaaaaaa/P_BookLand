@@ -176,6 +176,12 @@ public class PaymentController {
 
         PaymentTransactionDTO transactionStatusDTO = new PaymentTransactionDTO();
 
+        System.out.println("vnp_Amount: " + amount);
+        System.out.println("vnp_BankCode: " + bankCode);
+        System.out.println("vnp_OrderInfo: " + order);
+        System.out.println("vnp_ResponseCode: " + responseCode);
+        System.out.println("Full Query String: " + req.getQueryString());
+
         // 1. Validate Checksum
         // Collect all vnp params to verify hash
         Map<String, String> fields = new HashMap<>();
@@ -197,6 +203,7 @@ public class PaymentController {
         // Check checksum
         String signValue = VnpayConfig.hashAllFields(fields);
         if (!signValue.equals(vnp_SecureHash)) {
+             System.out.println("Invalid Checksum: Calculated " + signValue + " != Received " + vnp_SecureHash);
              transactionStatusDTO.setStatus("NO");
              transactionStatusDTO.setMessage("Invalid Checksum");
              transactionStatusDTO.setData("");
@@ -212,6 +219,7 @@ public class PaymentController {
                 .orElse(null);
 
         if(transaction == null) {
+            System.out.println("Transaction not found for code: " + vnp_TxnRef);
             transactionStatusDTO.setStatus("NO");
             transactionStatusDTO.setMessage("Transaction not found");
             return ApiResponse.<PaymentTransactionDTO>builder().result(transactionStatusDTO).build();

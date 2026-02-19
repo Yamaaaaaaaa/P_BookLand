@@ -4,8 +4,10 @@ import { setCustomerToken, setCustomerRefreshToken, setCustomerUserId } from '..
 import authService from '../../../api/authService';
 import userService from '../../../api/userService';
 import '../../../styles/pages/auth.css';
+import { useTranslation } from 'react-i18next';
 
 const LoginPage = () => {
+    const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -37,7 +39,7 @@ const LoginPage = () => {
             }
         } catch (err: any) {
             console.error(err);
-            setError('Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.');
+            setError(t('auth.error_login'));
         }
     };
 
@@ -50,13 +52,13 @@ const LoginPage = () => {
                         to="/shop/login"
                         className={`auth-tab-item ${location.pathname === '/shop/login' ? 'active' : ''}`}
                     >
-                        Đăng nhập
+                        {t('auth.login_tab')}
                     </Link>
                     <Link
                         to="/shop/register"
                         className={`auth-tab-item ${location.pathname === '/shop/register' ? 'active' : ''}`}
                     >
-                        Đăng ký
+                        {t('auth.register_tab')}
                     </Link>
                 </div>
 
@@ -64,12 +66,12 @@ const LoginPage = () => {
                 <div className="auth-form-content">
                     <form onSubmit={handleSubmit} className="auth-form__form">
                         <div className="form-group">
-                            <label className="form-group__label">Số điện thoại/Email</label>
+                            <label className="form-group__label">{t('auth.label_email_phone')}</label>
                             <div className="form-group__input-wrapper">
                                 <input
                                     type="email"
                                     className="form-group__input"
-                                    placeholder="Nhập số điện thoại hoặc email"
+                                    placeholder={t('auth.placeholder_email_phone')}
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -78,12 +80,12 @@ const LoginPage = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-group__label">Mật khẩu</label>
+                            <label className="form-group__label">{t('auth.label_password')}</label>
                             <div className="form-group__input-wrapper">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     className="form-group__input"
-                                    placeholder="Nhập mật khẩu"
+                                    placeholder={t('auth.placeholder_password')}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -93,13 +95,13 @@ const LoginPage = () => {
                                     className="btn-toggle-password"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    {showPassword ? 'Ẩn' : 'Hiện'}
+                                    {showPassword ? t('auth.hide_password') : t('auth.show_password')}
                                 </button>
                             </div>
                         </div>
 
                         <Link to="/forgot-password" className="auth-form__forgot-link">
-                            Quên mật khẩu?
+                            {t('auth.forgot_password')}
                         </Link>
 
                         {error && (
@@ -109,7 +111,7 @@ const LoginPage = () => {
                         )}
 
                         <button type="submit" className="btn-auth-submit">
-                            Đăng nhập
+                            {t('auth.login_button')}
                         </button>
                     </form>
                 </div>

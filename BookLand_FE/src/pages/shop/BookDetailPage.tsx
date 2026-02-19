@@ -13,8 +13,10 @@ import type { BookComment, BookCommentSummaryResponse } from '../../types/BookCo
 import bookCommentApi from '../../api/bookCommentApi';
 import { toast } from 'react-toastify';
 import { formatCurrency } from '../../utils/formatters';
+import { useTranslation } from 'react-i18next';
 
 const BookDetailPage = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const [book, setBook] = useState<Book | null>(null);
@@ -31,7 +33,6 @@ const BookDetailPage = () => {
     const [commentTotalPages, setCommentTotalPages] = useState(1);
     const [isCommentsLoading, setIsCommentsLoading] = useState(false);
 
-    // Add helper function or state at top
     // Rating Stats State
     const [ratingDistribution, setRatingDistribution] = useState<Record<number, number>>({ 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 });
 
@@ -54,7 +55,7 @@ const BookDetailPage = () => {
                 }
             } catch (error) {
                 console.error('Failed to fetch book details:', error);
-                toast.error('Không thể tải thông tin sản phẩm');
+                toast.error(t('product.load_error'));
             } finally {
                 setIsLoading(false);
             }
@@ -87,7 +88,7 @@ const BookDetailPage = () => {
 
         fetchBookDetail();
         fetchAllCommentsForStats();
-    }, [id]);
+    }, [id, t]);
 
     useEffect(() => {
         if (!id) return;
@@ -124,7 +125,7 @@ const BookDetailPage = () => {
     const handleAddToCart = async () => {
         const userId = getCurrentUserId();
         if (!userId) {
-            toast.warning('Vui lòng đăng nhập để thêm vào giỏ hàng');
+            toast.warning(t('product.login_required_cart'));
             navigate('/shop/login');
             return;
         }
@@ -137,11 +138,11 @@ const BookDetailPage = () => {
                 bookId: book.id,
                 quantity: quantity
             });
-            toast.success(`Đã thêm ${quantity} cuốn "${book.name}" vào giỏ hàng`);
+            toast.success(t('product.add_cart_success', { quantity, name: book.name }));
             window.dispatchEvent(new Event('cart:updated'));
         } catch (error) {
             console.error('Failed to add to cart:', error);
-            toast.error('Không thể thêm vào giỏ hàng. Vui lòng thử lại.');
+            toast.error(t('product.add_cart_error'));
         } finally {
             setIsAddingToCart(false);
         }
@@ -150,7 +151,7 @@ const BookDetailPage = () => {
     const handleAddToWishlist = async () => {
         const userId = getCurrentUserId();
         if (!userId) {
-            toast.warning('Vui lòng đăng nhập để thêm vào danh sách yêu thích');
+            toast.warning(t('product.login_required_wishlist'));
             navigate('/shop/login');
             return;
         }
@@ -162,10 +163,10 @@ const BookDetailPage = () => {
             await wishlistService.addToWishlist(userId, {
                 bookId: book.id
             });
-            toast.success(`Đã thêm "${book.name}" vào danh sách yêu thích`);
+            toast.success(t('product.add_wishlist_success', { name: book.name }));
         } catch (error) {
             console.error('Failed to add to wishlist:', error);
-            toast.error('Không thể thêm vào danh sách yêu thích.');
+            toast.error(t('product.add_wishlist_error'));
         } finally {
             setIsAddingToWishlist(false);
         }
@@ -177,7 +178,7 @@ const BookDetailPage = () => {
                 <div className="shop-container">
                     <div className="loading-state">
                         <div className="loader"></div>
-                        <p>Đang tải thông tin sản phẩm...</p>
+                        <p>{t('shop.loading')}</p>
                     </div>
                 </div>
             </div>
@@ -189,9 +190,9 @@ const BookDetailPage = () => {
             <div className="book-not-found-page">
                 <div className="shop-container">
                     <div className="not-found-content">
-                        <h2>Không tìm thấy sản phẩm</h2>
+                        <h2>{t('product.not_found')}</h2>
                         <Link to="/shop/books" className="btn-back-home">
-                            <ArrowLeft size={16} /> Quay lại cửa hàng
+                            <ArrowLeft size={16} /> {t('product.back_home')}
                         </Link>
                     </div>
                 </div>
@@ -211,8 +212,8 @@ const BookDetailPage = () => {
                 {/* Breadcrumb */}
                 <Breadcrumb
                     items={[
-                        { label: 'Trang chủ', link: '/shop/home' },
-                        { label: 'Sách', link: '/shop/books' },
+                        { label: t('shop.home_breadcrumb'), link: '/shop/home' },
+                        { label: t('shop.books_breadcrumb'), link: '/shop/books' },
                         { label: book.name }
                     ]}
                 />
@@ -238,7 +239,7 @@ const BookDetailPage = () => {
                                         disabled={isAddingToCart}
                                     >
                                         <ShoppingCart size={20} />
-                                        <span style={{ marginLeft: '10px' }}>{isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}</span>
+                                        <span style={{ marginLeft: '10px' }}>{isAddingToCart ? t('product.adding_to_cart') : t('product.add_to_cart')}</span>
                                     </button>
                                     <button
                                         className={`btn-add-wishlist ${isAddingToWishlist ? 'loading' : ''}`}
@@ -251,25 +252,25 @@ const BookDetailPage = () => {
                             </div>
 
                             <div className="detail-policy-card">
-                                <h3>Chính sách ưu đãi của BookLand</h3>
+                                <h3>{t('product.policy_title')}</h3>
                                 <div className="policy-item">
                                     <Truck size={20} color="#C92127" />
                                     <div className="policy-text">
-                                        <div className="p-title">Thời gian giao hàng: <span>Giao nhanh và uy tín</span></div>
+                                        <div className="p-title">{t('product.policy_delivery')} <span>{t('product.policy_delivery_desc')}</span></div>
                                     </div>
                                     <ChevronRight size={16} color="#999" />
                                 </div>
                                 <div className="policy-item">
                                     <RotateCcw size={20} color="#C92127" />
                                     <div className="policy-text">
-                                        <div className="p-title">Chính sách đổi trả: <span>Đổi trả miễn phí toàn quốc</span></div>
+                                        <div className="p-title">{t('product.policy_return')} <span>{t('product.policy_return_desc')}</span></div>
                                     </div>
                                     <ChevronRight size={16} color="#999" />
                                 </div>
                                 <div className="policy-item">
                                     <ShieldCheck size={20} color="#C92127" />
                                     <div className="policy-text">
-                                        <div className="p-title">Chính sách khách sỉ: <span>Ưu đãi khi mua số lượng lớn</span></div>
+                                        <div className="p-title">{t('product.policy_wholesale')} <span>{t('product.policy_wholesale_desc')}</span></div>
                                     </div>
                                     <ChevronRight size={16} color="#999" />
                                 </div>
@@ -283,12 +284,12 @@ const BookDetailPage = () => {
                             <h1 className="detail-book-title">{book.name}</h1>
                             <div className="detail-quick-meta">
                                 <div className="meta-row">
-                                    <span>Nhà cung cấp: <strong>{book.publisherName}</strong></span>
-                                    <span>Tác giả: <strong>{book.authorName}</strong></span>
+                                    <span>{t('product.spec_supplier')}: <strong>{book.publisherName}</strong></span>
+                                    <span>{t('product.spec_author')}: <strong>{book.authorName}</strong></span>
                                 </div>
                                 <div className="meta-row">
-                                    <span>Nhà xuất bản: <strong>{book.publisherName}</strong></span>
-                                    <span>Hình thức bìa: <strong>Bìa Mềm</strong></span>
+                                    <span>{t('product.spec_publisher')}: <strong>{book.publisherName}</strong></span>
+                                    <span>{t('product.spec_cover')}: <strong>{t('product.spec_cover_value')}</strong></span>
                                 </div>
                             </div>
 
@@ -302,9 +303,9 @@ const BookDetailPage = () => {
                                             color="#F69113"
                                         />
                                     ))}
-                                    <span className="rating-count">({comments.length || book.ratingCount || 0} đánh giá)</span>
+                                    <span className="rating-count">{t('product.reviews_count', { count: comments.length || book.ratingCount || 0 })}</span>
                                 </div>
-                                <div className="sold-count">| Đã bán {book.ratingCount ? book.ratingCount * 12 : 24}</div>
+                                <div className="sold-count">| {t('product.sold_count', { count: book.ratingCount ? book.ratingCount * 12 : 24 })}</div>
                             </div>
 
                             <div className="detail-price-box">
@@ -317,11 +318,11 @@ const BookDetailPage = () => {
                                         </>
                                     )}
                                 </div>
-                                <div className="price-note">Chính sách khuyến mãi trên chỉ áp dụng tại BookLand.com</div>
+                                <div className="price-note">{t('product.price_note')}</div>
                             </div>
 
                             <div className="quantity-section">
-                                <label>Số lượng:</label>
+                                <label>{t('product.quantity')}</label>
                                 <div className="quantity-control">
                                     <button onClick={() => handleQuantityChange('dec')}><Minus size={14} /></button>
                                     <input type="text" value={quantity} readOnly />
@@ -332,48 +333,48 @@ const BookDetailPage = () => {
 
                         {/* Detailed Table */}
                         <div className="detail-specs-card">
-                            <h3>Thông tin chi tiết</h3>
+                            <h3>{t('product.specs_title')}</h3>
                             <div className="specs-table">
                                 <div className="spec-row">
-                                    <div className="spec-label">Mã hàng</div>
+                                    <div className="spec-label">{t('product.spec_sku')}</div>
                                     <div className="spec-value">{8935278600000 + book.id}</div>
                                 </div>
                                 <div className="spec-row">
-                                    <div className="spec-label">Tên Nhà Cung Cấp</div>
+                                    <div className="spec-label">{t('product.spec_supplier')}</div>
                                     <div className="spec-value">{book.publisherName}</div>
                                 </div>
                                 <div className="spec-row">
-                                    <div className="spec-label">Tác giả</div>
+                                    <div className="spec-label">{t('product.spec_author')}</div>
                                     <div className="spec-value">{book.authorName}</div>
                                 </div>
                                 <div className="spec-row">
-                                    <div className="spec-label">NXB</div>
+                                    <div className="spec-label">{t('product.spec_publisher')}</div>
                                     <div className="spec-value">{book.publisherName}</div>
                                 </div>
                                 <div className="spec-row">
-                                    <div className="spec-label">Series</div>
+                                    <div className="spec-label">{t('product.spec_series')}</div>
                                     <div className="spec-value">{book.seriesName || 'N/A'}</div>
                                 </div>
                                 <div className="spec-row">
-                                    <div className="spec-label">Volume</div>
+                                    <div className="spec-label">{t('product.spec_volume')}</div>
                                     <div className="spec-value">{book.volume || '1'}</div>
                                 </div>
                                 <div className="spec-row">
-                                    <div className="spec-label">Hình thức</div>
-                                    <div className="spec-value">Bìa Mềm</div>
+                                    <div className="spec-label">{t('product.spec_cover')}</div>
+                                    <div className="spec-value">{t('product.spec_cover_value')}</div>
                                 </div>
                             </div>
                         </div>
 
                         {/* Description */}
                         <div className="detail-desc-card">
-                            <h3>Mô tả sản phẩm</h3>
+                            <h3>{t('product.desc_title')}</h3>
                             <div className="desc-content">
                                 <strong>{book.name}</strong>
-                                <p>{book.description || "Đang cập nhật nội dung mô tả sản phẩm..."}</p>
+                                <p>{book.description || t('product.desc_loading')}</p>
                             </div>
                             <div className="desc-footer">
-                                <button className="btn-show-more">Xem thêm</button>
+                                <button className="btn-show-more">{t('product.view_more')}</button>
                             </div>
                         </div>
                     </div>
@@ -384,7 +385,7 @@ const BookDetailPage = () => {
                     {/* Related Products Section */}
                     {relatedBooks.length > 0 && (
                         <div className="detail-related-card">
-                            <h3>SẢN PHẨM KHÁC TỪ BOOKLAND</h3>
+                            <h3>{t('product.related_products_title')}</h3>
                             <div className="related-grid">
                                 {relatedBooks.map(item => (
                                     <BookCard key={item.id} book={item} />
@@ -395,7 +396,7 @@ const BookDetailPage = () => {
 
                     {/* Reviews */}
                     <div className="detail-reviews-card">
-                        <h3>Đánh giá sản phẩm</h3>
+                        <h3>{t('product.reviews_title')}</h3>
 
                         {commentSummary && (
                             <div className="reviews-summary">
@@ -438,7 +439,7 @@ const BookDetailPage = () => {
 
                         <div className="reviews-list">
                             {isCommentsLoading ? (
-                                <p>Đang tải đánh giá...</p>
+                                <p>{t('product.review_loading')}</p>
                             ) : comments.length > 0 ? (
                                 comments.map(comment => (
                                     <div key={comment.id} className="review-item" style={{
@@ -463,7 +464,7 @@ const BookDetailPage = () => {
                                                 fontSize: '12px',
                                                 color: '#999'
                                             }}>
-                                                {new Date(comment.createdAt).toLocaleDateString('vi-VN')}
+                                                {new Date(comment.createdAt).toLocaleDateString(t('language') === 'en' ? 'en-US' : 'vi-VN')}
                                             </div>
                                         </div>
 
@@ -490,7 +491,7 @@ const BookDetailPage = () => {
                                     </div>
                                 ))
                             ) : (
-                                <p className="no-reviews" style={{ color: '#999', fontStyle: 'italic' }}>Chưa có đánh giá nào cho sản phẩm này.</p>
+                                <p className="no-reviews" style={{ color: '#999', fontStyle: 'italic' }}>{t('product.no_reviews')}</p>
                             )}
                         </div>
 

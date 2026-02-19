@@ -15,10 +15,12 @@ import userService from '../../api/userService';
 import { getCurrentUserId } from '../../utils/auth';
 import type { User as UserType } from '../../types/User';
 import { toast } from 'react-toastify';
+import { useTranslation, Trans } from 'react-i18next';
 
 type TabType = 'profile' | 'addresses' | 'notifications' | 'password';
 
 const ProfilePage = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const userId = getCurrentUserId();
     const [activeTab, setActiveTab] = useState<TabType>('profile');
@@ -62,7 +64,7 @@ const ProfilePage = () => {
             }
         } catch (error) {
             console.error('Failed to fetch user data:', error);
-            toast.error('Không thể tải thông tin người dùng');
+            toast.error(t('profile.update_fail'));
         } finally {
             setIsLoading(false);
         }
@@ -85,11 +87,11 @@ const ProfilePage = () => {
             });
             if (response.result) {
                 setUserData(response.result);
-                toast.success('Cập nhật thông tin thành công!');
+                toast.success(t('profile.update_success'));
             }
         } catch (error) {
             console.error('Update profile error:', error);
-            toast.error('Cập nhật thất bại. Vui lòng thử lại.');
+            toast.error(t('profile.update_fail'));
         } finally {
             setIsProcessing(false);
         }
@@ -98,7 +100,7 @@ const ProfilePage = () => {
     const handleChangePassword = async (e: React.FormEvent) => {
         e.preventDefault();
         if (passwordForm.newPassword !== passwordForm.confirmPassword) {
-            toast.error('Mật khẩu xác nhận không khớp');
+            toast.error(t('profile.password_mismatch'));
             return;
         }
 
@@ -109,13 +111,13 @@ const ProfilePage = () => {
                 password: passwordForm.newPassword
             });
             if (response.result) {
-                toast.success('Đổi mật khẩu thành công!');
+                toast.success(t('profile.change_password_success'));
                 setPasswordForm({ oldPassword: '', newPassword: '', confirmPassword: '' });
                 setActiveTab('profile');
             }
         } catch (error) {
             console.error('Change password error:', error);
-            toast.error('Đổi mật khẩu thất bại. Vui lòng thử lại.');
+            toast.error(t('profile.change_password_fail'));
         } finally {
             setIsProcessing(false);
         }
@@ -156,21 +158,21 @@ const ProfilePage = () => {
                                     <div className="nav-item-header" onClick={() => setActiveTab('profile')}>
                                         <div className="nav-item-wrapper">
                                             <User size={20} />
-                                            <span>Thông tin tài khoản</span>
+                                            <span>{t('profile.profile_tab_title')}</span>
                                         </div>
                                         <ChevronDown size={14} className="arrow" />
                                     </div>
                                     <div className="sub-nav">
-                                        <div className={`sub-nav-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>Hồ sơ cá nhân</div>
-                                        <div className={`sub-nav-item ${activeTab === 'addresses' ? 'active' : ''}`} onClick={() => setActiveTab('addresses')}>Số địa chỉ</div>
-                                        <div className={`sub-nav-item ${activeTab === 'password' ? 'active' : ''}`} onClick={() => setActiveTab('password')}>Đổi mật khẩu</div>
+                                        <div className={`sub-nav-item ${activeTab === 'profile' ? 'active' : ''}`} onClick={() => setActiveTab('profile')}>{t('profile.profile_tab_title')}</div>
+                                        <div className={`sub-nav-item ${activeTab === 'addresses' ? 'active' : ''}`} onClick={() => setActiveTab('addresses')}>{t('profile.addresses_tab')}</div>
+                                        <div className={`sub-nav-item ${activeTab === 'password' ? 'active' : ''}`} onClick={() => setActiveTab('password')}>{t('profile.change_password_tab')}</div>
                                     </div>
                                 </div>
                                 <div className="nav-item" onClick={() => navigate('/shop/my-orders')}>
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <ClipboardList size={20} />
-                                            <span>Đơn hàng của tôi</span>
+                                            <span>{t('profile.my_orders')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -178,7 +180,7 @@ const ProfilePage = () => {
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <MessageSquare size={20} />
-                                            <span>Đánh giá của tôi</span>
+                                            <span>{t('profile.my_reviews')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -186,7 +188,7 @@ const ProfilePage = () => {
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <Bell size={20} />
-                                            <span>Thông báo</span>
+                                            <span>{t('profile.notifications_tab')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -200,7 +202,7 @@ const ProfilePage = () => {
                         <div className="membership-banner">
                             <div className="banner-alert">
                                 <Info size={16} />
-                                <span>Chào mừng bạn quay lại, <b>{userData?.username}</b>!</span>
+                                <span><Trans i18nKey="profile.welcome_back" values={{ name: userData?.username || '' }} components={{ b: <b /> }} /></span>
                             </div>
                             <div className="banner-content">
                                 <div className="mascot-section">
@@ -210,7 +212,7 @@ const ProfilePage = () => {
                                 </div>
                                 <div className="stats-grid">
                                     <div className="stat-card">
-                                        <h4>Thành tích mua sắm</h4>
+                                        <h4>{t('profile.achievement')}</h4>
                                         <div className="stat-items">
                                             {/* Stats removed as they require separate API calls now or moved to respective pages */}
                                         </div>
@@ -222,35 +224,35 @@ const ProfilePage = () => {
                         {/* Profile Tab */}
                         {activeTab === 'profile' && (
                             <div className="profile-form-section">
-                                <h2 className="section-title">Hồ sơ cá nhân</h2>
+                                <h2 className="section-title">{t('profile.profile_tab_title')}</h2>
                                 <form className="profile-form" onSubmit={handleUpdateProfile}>
                                     <div className="form-group-row">
-                                        <label>Họ*</label>
+                                        <label>{t('profile.first_name')}</label>
                                         <input
                                             type="text"
                                             value={profileForm.firstName}
                                             onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
-                                            placeholder="Nhập họ"
+                                            placeholder={t('profile.enter_first_name')}
                                             required
                                         />
                                     </div>
                                     <div className="form-group-row">
-                                        <label>Tên*</label>
+                                        <label>{t('profile.last_name')}</label>
                                         <input
                                             type="text"
                                             value={profileForm.lastName}
                                             onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
-                                            placeholder="Nhập tên"
+                                            placeholder={t('profile.enter_last_name')}
                                             required
                                         />
                                     </div>
                                     <div className="form-group-row">
-                                        <label>Số điện thoại</label>
+                                        <label>{t('profile.phone')}</label>
                                         <input
                                             type="text"
                                             value={profileForm.phone}
                                             onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
-                                            placeholder="Nhập số điện thoại"
+                                            placeholder={t('profile.enter_phone')}
                                         />
                                     </div>
                                     <div className="form-group-row">
@@ -263,7 +265,7 @@ const ProfilePage = () => {
                                         />
                                     </div>
                                     <div className="form-group-row">
-                                        <label>Ngày sinh</label>
+                                        <label>{t('profile.dob')}</label>
                                         <input
                                             type="date"
                                             value={profileForm.dob ? profileForm.dob.split('T')[0] : ''}
@@ -273,7 +275,7 @@ const ProfilePage = () => {
                                     </div>
                                     <div className="form-actions">
                                         <button type="submit" className="btn-save-profile" disabled={isProcessing}>
-                                            {isProcessing ? 'Đang lưu...' : 'Lưu thay đổi'}
+                                            {isProcessing ? t('profile.saving') : t('profile.save_changes')}
                                         </button>
                                     </div>
                                 </form>
@@ -283,31 +285,31 @@ const ProfilePage = () => {
                         {/* Password Tab */}
                         {activeTab === 'password' && (
                             <div className="profile-form-section">
-                                <h2 className="section-title">Đổi mật khẩu</h2>
+                                <h2 className="section-title">{t('profile.change_password_tab')}</h2>
                                 <form className="profile-form" onSubmit={handleChangePassword}>
                                     <div className="form-group-row">
-                                        <label>Mật khẩu mới*</label>
+                                        <label>{t('profile.new_password')}</label>
                                         <input
                                             type="password"
                                             value={passwordForm.newPassword}
                                             onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
-                                            placeholder="Nhập mật khẩu mới"
+                                            placeholder={t('profile.enter_new_password')}
                                             required
                                         />
                                     </div>
                                     <div className="form-group-row">
-                                        <label>Xác nhận mật khẩu*</label>
+                                        <label>{t('profile.confirm_password')}</label>
                                         <input
                                             type="password"
                                             value={passwordForm.confirmPassword}
                                             onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                                            placeholder="Xác nhận mật khẩu mới"
+                                            placeholder={t('profile.enter_confirm_password')}
                                             required
                                         />
                                     </div>
                                     <div className="form-actions" style={{ marginTop: '20px' }}>
                                         <button type="submit" className="btn-save-profile" disabled={isProcessing}>
-                                            {isProcessing ? 'Đang cập nhật...' : 'Đổi mật khẩu'}
+                                            {isProcessing ? t('profile.updating') : t('profile.change_password_btn')}
                                         </button>
                                     </div>
                                 </form>
@@ -320,10 +322,10 @@ const ProfilePage = () => {
                         {/* Addresses Placeholder */}
                         {activeTab === 'addresses' && (
                             <div className="profile-form-section">
-                                <h2 className="section-title">Sổ địa chỉ</h2>
+                                <h2 className="section-title">{t('profile.address_book_title')}</h2>
                                 <div className="empty-state" style={{ textAlign: 'center', padding: '40px' }}>
                                     <MapPin size={48} color="#ddd" style={{ marginBottom: '10px' }} />
-                                    <p color="#666">Tính năng quản lý địa chỉ đang được phát triển.</p>
+                                    <p color="#666">{t('profile.address_developing')}</p>
                                 </div>
                             </div>
                         )}
@@ -331,10 +333,10 @@ const ProfilePage = () => {
                         {/* Notifications Placeholder */}
                         {activeTab === 'notifications' && (
                             <div className="profile-form-section">
-                                <h2 className="section-title">Thông báo</h2>
+                                <h2 className="section-title">{t('profile.notifications_title')}</h2>
                                 <div className="empty-state" style={{ textAlign: 'center', padding: '40px' }}>
                                     <Bell size={48} color="#ddd" style={{ marginBottom: '10px' }} />
-                                    <p color="#666">Bạn chưa có thông báo nào.</p>
+                                    <p color="#666">{t('profile.no_notifications')}</p>
                                 </div>
                             </div>
                         )}

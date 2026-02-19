@@ -8,8 +8,10 @@ import { getCurrentUserId } from '../../utils/auth';
 import { toast } from 'react-toastify';
 import BookCard from '../../components/BookCard';
 import type { Book } from '../../types/Book';
+import { useTranslation } from 'react-i18next';
 
 const WishList = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [wishlist, setWishlist] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -17,7 +19,7 @@ const WishList = () => {
     const fetchWishlist = async () => {
         const userId = getCurrentUserId();
         if (!userId) {
-            toast.warning('Vui lòng đăng nhập để xem danh sách yêu thích');
+            toast.warning(t('wishlist.login_warning'));
             navigate('/shop/login');
             return;
         }
@@ -30,7 +32,7 @@ const WishList = () => {
             }
         } catch (error) {
             console.error('Failed to fetch wishlist:', error);
-            toast.error('Không thể tải danh sách yêu thích');
+            toast.error(t('wishlist.fetch_fail'));
         } finally {
             setIsLoading(false);
         }
@@ -49,8 +51,8 @@ const WishList = () => {
             finalPrice: item.finalPrice || 0,
             originalCost: item.originalCost || item.finalPrice || 0,
             sale: item.sale || 0,
-            authorName: item.authorName || 'Đang cập nhật',
-            publisherName: item.publisherName || 'Đang cập nhật',
+            authorName: item.authorName || t('product.updating'),
+            publisherName: item.publisherName || t('product.updating'),
             rating: item.rating,
             ratingCount: item.ratingCount,
             seriesName: item.seriesName,
@@ -70,7 +72,7 @@ const WishList = () => {
                 <div className="wishlist-container">
                     <div className="wishlist-loading">
                         <div className="wishlist-loader"></div>
-                        <p>Đang chuẩn bị danh sách của bạn...</p>
+                        <p>{t('wishlist.loading')}</p>
                     </div>
                 </div>
             </div>
@@ -82,19 +84,19 @@ const WishList = () => {
             <div className="wishlist-container">
                 <Breadcrumb
                     items={[
-                        { label: 'Trang chủ', link: '/shop/home' },
-                        { label: 'Yêu thích' }
+                        { label: t('shop.home_breadcrumb'), link: '/shop/home' },
+                        { label: t('wishlist.breadcrumb') }
                     ]}
                 />
-                <h2 className="wishlist-header-title">Sản phẩm yêu thích</h2>
+                <h2 className="wishlist-header-title">{t('wishlist.title')}</h2>
 
                 {wishlist.length === 0 ? (
                     <div className="wishlist-empty">
                         <div className="wishlist-empty__icon">
                             <Heart size={80} strokeWidth={1} />
                         </div>
-                        <p className="wishlist-empty__text">Hiện tại bạn chưa có sản phẩm nào trong danh sách yêu thích.</p>
-                        <Link to="/shop/books" className="wishlist-empty__btn">TIẾP TỤC MUA SẮM</Link>
+                        <p className="wishlist-empty__text">{t('wishlist.empty_msg')}</p>
+                        <Link to="/shop/books" className="wishlist-empty__btn">{t('wishlist.continue_shopping')}</Link>
                     </div>
                 ) : (
                     <div className="wishlist-grid">

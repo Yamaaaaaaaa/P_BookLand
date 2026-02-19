@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import {
     User,
     ClipboardList,
-
     ChevronDown,
     Star,
     MessageSquare,
@@ -19,8 +18,10 @@ import { getCurrentUserId } from '../../utils/auth';
 import type { User as UserType } from '../../types/User';
 import type { BookComment } from '../../types/BookComment';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const MyReviewsPage = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const userId = getCurrentUserId();
     const [userData, setUserData] = useState<UserType | null>(null);
@@ -71,25 +72,25 @@ const MyReviewsPage = () => {
             }
         } catch (error) {
             console.error('Failed to fetch reviews:', error);
-            toast.error('Không thể tải đánh giá của bạn');
+            toast.error(t('shop.load_error') || 'Không thể tải đánh giá của bạn');
         } finally {
             setIsLoading(false);
         }
     };
 
     const handleDeleteReview = async (reviewId: number) => {
-        if (window.confirm('Bạn có chắc chắn muốn xóa đánh giá này không?')) {
+        if (window.confirm(t('profile.delete_confirm'))) {
             try {
                 // Determine if we should use admin or user endpoint. 
                 // Since this is "My Reviews", usually it's the user deleting their own.
                 // Assuming backend has an endpoint for user to delete their own, OR we use the generic delete if permissible.
                 // API implementation showed: DELETE /book-comments/user/{id} for user to delete their own.
                 await bookCommentApi.deleteComment(reviewId);
-                toast.success('Xóa đánh giá thành công');
+                toast.success(t('profile.delete_success'));
                 fetchReviews(); // Refresh list
             } catch (error) {
                 console.error('Failed to delete review:', error);
-                toast.error('Không thể xóa đánh giá');
+                toast.error(t('profile.delete_error'));
             }
         }
     };
@@ -104,7 +105,7 @@ const MyReviewsPage = () => {
     const handleUpdateReview = async () => {
         if (!editingReview) return;
         if (!editContent.trim()) {
-            toast.warning('Vui lòng nhập nội dung đánh giá');
+            toast.warning(t('profile.placeholder_comment'));
             return;
         }
 
@@ -117,12 +118,12 @@ const MyReviewsPage = () => {
                 bookId: editingReview.bookId,
                 billId: editingReview.billId
             });
-            toast.success('Cập nhật đánh giá thành công');
+            toast.success(t('profile.save_changes'));
             setIsEditModalOpen(false);
             fetchReviews();
         } catch (error) {
             console.error('Failed to update review:', error);
-            toast.error('Không thể cập nhật đánh giá');
+            toast.error(t('profile.delete_error')); // Reuse generic error or add specific one
         } finally {
             setIsSubmitting(false);
         }
@@ -161,7 +162,7 @@ const MyReviewsPage = () => {
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <User size={20} />
-                                            <span>Thông tin tài khoản</span>
+                                            <span>{t('profile.account_info')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -169,7 +170,7 @@ const MyReviewsPage = () => {
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <ClipboardList size={20} />
-                                            <span>Đơn hàng của tôi</span>
+                                            <span>{t('profile.my_orders')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -177,7 +178,7 @@ const MyReviewsPage = () => {
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <MessageSquare size={20} />
-                                            <span>Đánh giá của tôi</span>
+                                            <span>{t('profile.my_reviews')}</span>
                                         </div>
                                         <ChevronDown size={14} className="arrow" />
                                     </div>
@@ -189,12 +190,12 @@ const MyReviewsPage = () => {
                     {/* Main Content */}
                     <main className="profile-main">
                         <div className="profile-form-section">
-                            <h2 className="section-title">Đánh giá của tôi</h2>
+                            <h2 className="section-title">{t('profile.my_reviews')}</h2>
 
                             {reviews?.length === 0 ? (
                                 <div className="empty-state" style={{ textAlign: 'center', padding: '40px' }}>
                                     <MessageSquare size={48} color="#ddd" style={{ marginBottom: '10px' }} />
-                                    <p color="#666">Bạn chưa có đánh giá nào.</p>
+                                    <p color="#666">{t('profile.no_reviews')}</p>
                                 </div>
                             ) : (
                                 <div className="reviews-list-container">
@@ -207,7 +208,7 @@ const MyReviewsPage = () => {
                                         }}>
                                             <div className="review-book-info" style={{ width: '200px', flexShrink: 0 }}>
                                                 <div style={{ fontWeight: 600, color: '#333', marginBottom: '4px' }}>{review.bookTitle}</div>
-                                                <div style={{ fontSize: '12px', color: '#888' }}>Mã đơn: #{review.billId}</div>
+                                                <div style={{ fontSize: '12px', color: '#888' }}>{t('profile.order_id')}: #{review.billId}</div>
                                             </div>
 
                                             <div className="review-content-wrapper" style={{ flex: 1 }}>
@@ -234,13 +235,13 @@ const MyReviewsPage = () => {
                                                         onClick={() => openEditModal(review)}
                                                         style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: '#1976d2', cursor: 'pointer', fontSize: '13px' }}
                                                     >
-                                                        <Edit size={14} /> Sửa
+                                                        <Edit size={14} /> {t('profile.edit')}
                                                     </button>
                                                     <button
                                                         onClick={() => handleDeleteReview(review.id)}
                                                         style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'none', border: 'none', color: '#d32f2f', cursor: 'pointer', fontSize: '13px' }}
                                                     >
-                                                        <Trash2 size={14} /> Xóa
+                                                        <Trash2 size={14} /> {t('profile.delete')}
                                                     </button>
                                                 </div>
                                             </div>
@@ -281,7 +282,7 @@ const MyReviewsPage = () => {
                 <div className="modal-backdrop" onClick={() => setIsEditModalOpen(false)}>
                     <div className="modal-container review-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
-                            <h3>Chỉnh sửa đánh giá</h3>
+                            <h3>{t('profile.edit_review_title')}</h3>
                             <button className="btn-close-modal" onClick={() => setIsEditModalOpen(false)}>
                                 {/* Close Icon or use Text */}
                                 <span>×</span>
@@ -306,7 +307,7 @@ const MyReviewsPage = () => {
                             </div>
 
                             <div className="review-content-input">
-                                <label style={{ display: 'block', marginBottom: '8px' }}>Nhận xét của bạn:</label>
+                                <label style={{ display: 'block', marginBottom: '8px' }}>{t('profile.your_comment')}</label>
                                 <textarea
                                     value={editContent}
                                     onChange={(e) => setEditContent(e.target.value)}
@@ -316,14 +317,14 @@ const MyReviewsPage = () => {
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button className="btn-modal-secondary" onClick={() => setIsEditModalOpen(false)} style={{ marginRight: '10px', padding: '8px 16px', background: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Hủy</button>
+                            <button className="btn-modal-secondary" onClick={() => setIsEditModalOpen(false)} style={{ marginRight: '10px', padding: '8px 16px', background: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('profile.cancel')}</button>
                             <button
                                 className="btn-modal-primary"
                                 onClick={handleUpdateReview}
                                 disabled={isSubmitting}
                                 style={{ padding: '8px 16px', background: '#C92127', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: isSubmitting ? 0.7 : 1 }}
                             >
-                                {isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
+                                {isSubmitting ? t('profile.saving') : t('profile.save_changes')}
                             </button>
                         </div>
                     </div>

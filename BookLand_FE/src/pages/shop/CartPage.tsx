@@ -13,8 +13,10 @@ import { formatCurrency } from '../../utils/formatters';
 import type { CartItem } from '../../types/CartItem';
 import type { ShippingMethod } from '../../types/ShippingMethod';
 import type { PaymentMethod } from '../../types/PaymentMethod';
+import { useTranslation } from 'react-i18next';
 
 const CartPage = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [cartItems, setCartItems] = useState<CartItem[]>([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -29,7 +31,7 @@ const CartPage = () => {
     const fetchData = async () => {
         const userId = getCurrentUserId();
         if (!userId) {
-            toast.warning('Vui lòng đăng nhập để xem giỏ hàng');
+            toast.warning(t('cart.login_required'));
             navigate('/shop/login');
             return;
         }
@@ -64,7 +66,7 @@ const CartPage = () => {
             }
         } catch (error) {
             console.error('Failed to fetch data:', error);
-            toast.error('Không thể tải thông tin giỏ hàng');
+            toast.error(t('product.load_error'));
         } finally {
             setIsLoading(false);
         }
@@ -72,7 +74,7 @@ const CartPage = () => {
 
     useEffect(() => {
         fetchData();
-    }, []);
+    }, [t]);
 
     const updateQuantity = async (bookId: number, currentQuantity: number, delta: number) => {
         const userId = getCurrentUserId();
@@ -90,7 +92,7 @@ const CartPage = () => {
             }
         } catch (error) {
             console.error('Failed to update quantity:', error);
-            toast.error('Không thể cập nhật số lượng');
+            toast.error(t('cart.update_error'));
         }
     };
 
@@ -102,11 +104,11 @@ const CartPage = () => {
             await cartService.removeFromCart(userId, bookId);
             setCartItems(items => items.filter(item => item.bookId !== bookId));
             setSelectedIds(ids => ids.filter(id => id !== bookId));
-            toast.success('Đã xóa sản phẩm khỏi giỏ hàng');
+            toast.success(t('cart.remove_success'));
             window.dispatchEvent(new Event('cart:updated'));
         } catch (error) {
             console.error('Failed to remove item:', error);
-            toast.error('Không thể xóa sản phẩm');
+            toast.error(t('cart.remove_error'));
         }
     };
 
@@ -127,7 +129,7 @@ const CartPage = () => {
     const handleConfirmOrder = async () => {
         if (selectedIds.length === 0) return;
         if (!selectedShippingId || !selectedPaymentId) {
-            toast.warning('Vui lòng chọn phương thức vận chuyển và thanh toán');
+            toast.warning(t('cart.select_shipping_payment_warning'));
             return;
         }
 
@@ -154,7 +156,7 @@ const CartPage = () => {
             }
         } catch (error) {
             console.error('Failed to preview bill:', error);
-            toast.error('Có lỗi xảy ra khi chuẩn bị đơn hàng');
+            toast.error(t('checkout.load_error'));
         } finally {
             setIsLoading(false);
         }
@@ -174,7 +176,7 @@ const CartPage = () => {
                 <div className="shop-container">
                     <div className="loading-state">
                         <div className="loader"></div>
-                        <p>Đang tải giỏ hàng...</p>
+                        <p>{t('shop.loading')}</p>
                     </div>
                 </div>
             </div>
@@ -186,19 +188,19 @@ const CartPage = () => {
             <div className="shop-container">
                 <Breadcrumb
                     items={[
-                        { label: 'Trang chủ', link: '/shop/home' },
-                        { label: 'Giỏ hàng' }
+                        { label: t('shop.home_breadcrumb'), link: '/shop/home' },
+                        { label: t('cart.breadcrumb') }
                     ]}
                 />
                 <div className="cart-header-title">
-                    GIỎ HÀNG <span>({cartItems.length} sản phẩm)</span>
+                    {t('cart.title')} <span>{t('cart.item_count', { count: cartItems.length })}</span>
                 </div>
 
                 {cartItems.length === 0 ? (
                     <div className="cart-empty-state">
                         <ShoppingBag size={80} color="#ddd" />
-                        <p>Chưa có sản phẩm nào trong giỏ hàng của bạn.</p>
-                        <Link to="/shop/home" className="btn-go-shopping">MUA SẮM NGAY</Link>
+                        <p>{t('cart.empty')}</p>
+                        <Link to="/shop/home" className="btn-go-shopping">{t('cart.go_shopping')}</Link>
                     </div>
                 ) : (
                     <div className="cart-grid-layout">
@@ -212,11 +214,11 @@ const CartPage = () => {
                                         onChange={toggleSelectAll}
                                     />
                                     <span className="checkmark"></span>
-                                    Chọn tất cả ({cartItems.length} sản phẩm)
+                                    {t('cart.select_all')} ({t('cart.item_count', { count: cartItems.length })})
                                 </label>
                                 <div className="bar-labels">
-                                    <span className="bar-label-qty">Số lượng</span>
-                                    <span className="bar-label-subtotal">Thành tiền</span>
+                                    <span className="bar-label-qty">{t('cart.label_quantity')}</span>
+                                    <span className="bar-label-subtotal">{t('cart.label_subtotal')}</span>
                                     <div className="bar-label-spacer"></div>
                                 </div>
                             </div>
@@ -259,7 +261,7 @@ const CartPage = () => {
                                                 <button onClick={() => updateQuantity(item.bookId, item.quantity, 1)}><Plus size={14} /></button>
                                             </div>
                                             <div className="item-available-stock">
-                                                Còn {item.availableStock} sp
+                                                {t('cart.available_stock', { count: item.availableStock })}
                                             </div>
                                         </div>
                                         <div className="item-subtotal-col">
@@ -284,7 +286,7 @@ const CartPage = () => {
                                 <div className="config-section">
                                     <div className="config-title">
                                         <Truck size={18} color="#C92127" />
-                                        <span>PHƯƠNG THỨC VẬN CHUYỂN</span>
+                                        <span>{t('cart.shipping_method_title')}</span>
                                     </div>
                                     <div className="config-options">
                                         {shippingMethods.map(method => (
@@ -313,7 +315,7 @@ const CartPage = () => {
                                 <div className="config-section">
                                     <div className="config-title">
                                         <CreditCard size={18} color="#C92127" />
-                                        <span>PHƯƠNG THỨC THANH TOÁN</span>
+                                        <span>{t('cart.payment_method_title')}</span>
                                     </div>
                                     <div className="config-options">
                                         {paymentMethods.map(method => (
@@ -340,15 +342,15 @@ const CartPage = () => {
 
                             <div className="cart-summary-card">
                                 <div className="summary-row">
-                                    <span>Thành tiền</span>
+                                    <span>{t('cart.summary_subtotal')}</span>
                                     <span>{formatCurrency(itemsSubtotal)}</span>
                                 </div>
                                 <div className="summary-row">
-                                    <span>Phí vận chuyển</span>
+                                    <span>{t('cart.summary_shipping')}</span>
                                     <span>{formatCurrency(shippingPrice)}</span>
                                 </div>
                                 <div className="summary-total-row">
-                                    <span>Tổng Số Tiền</span>
+                                    <span>{t('cart.summary_total')}</span>
                                     <span className="total-value">{formatCurrency(totalAmount)}</span>
                                 </div>
                                 <button
@@ -356,9 +358,9 @@ const CartPage = () => {
                                     disabled={selectedIds.length === 0}
                                     onClick={handleConfirmOrder}
                                 >
-                                    XÁC NHẬN ĐƠN HÀNG
+                                    {t('cart.confirm_order')}
                                 </button>
-                                <div className="checkout-note">(Giảm giá trên web chỉ áp dụng cho bán lẻ)</div>
+                                <div className="checkout-note">{t('cart.checkout_note')}</div>
                             </div>
                         </div>
                     </div>

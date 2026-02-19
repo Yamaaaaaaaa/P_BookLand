@@ -22,8 +22,10 @@ import type { User as UserType } from '../../types/User';
 import type { Bill } from '../../types/Bill';
 import type { BookComment } from '../../types/BookComment';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const MyOrdersPage = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const userId = getCurrentUserId();
     const [userData, setUserData] = useState<UserType | null>(null);
@@ -69,7 +71,7 @@ const MyOrdersPage = () => {
             }
         } catch (error) {
             console.error('Failed to fetch orders:', error);
-            toast.error('Không thể tải danh sách đơn hàng');
+            toast.error(t('shop.load_error') || 'Không thể tải danh sách đơn hàng');
         } finally {
             setIsLoading(false);
         }
@@ -98,7 +100,7 @@ const MyOrdersPage = () => {
             }
         } catch (error) {
             console.error('Failed to fetch bill details:', error);
-            toast.error('Không thể lấy chi tiết đơn hàng');
+            toast.error(t('shop.load_error') || 'Không thể lấy chi tiết đơn hàng');
         }
     };
 
@@ -108,11 +110,11 @@ const MyOrdersPage = () => {
             if (response.result && response.result.url) {
                 window.location.href = response.result.url;
             } else {
-                toast.error('Không thể tạo đường dẫn thanh toán');
+                toast.error(t('payment.create_error'));
             }
         } catch (error) {
             console.error("Payment creation failed", error);
-            toast.error('Có lỗi xảy ra khi tạo thanh toán');
+            toast.error(t('payment.create_error'));
         }
     };
 
@@ -134,7 +136,7 @@ const MyOrdersPage = () => {
         if (!reviewTarget || !userId) return;
 
         if (!reviewContent.trim()) {
-            toast.warning('Vui lòng nhập nội dung đánh giá');
+            toast.warning(t('profile.placeholder_comment'));
             return;
         }
 
@@ -148,7 +150,7 @@ const MyOrdersPage = () => {
                     rating: reviewRating,
                     content: reviewContent.trim()
                 });
-                toast.success('Cập nhật đánh giá thành công!');
+                toast.success(t('profile.save_changes'));
             } else {
                 await bookCommentApi.createComment({
                     userId: userId,
@@ -157,7 +159,7 @@ const MyOrdersPage = () => {
                     rating: reviewRating,
                     content: reviewContent.trim()
                 });
-                toast.success('Gửi đánh giá thành công!');
+                toast.success(t('profile.submit_review'));
             }
 
             // Refresh reviews list for this bill
@@ -176,7 +178,7 @@ const MyOrdersPage = () => {
             if (error.response?.data?.message) {
                 toast.error(error.response.data.message);
             } else {
-                toast.error('Không thể gửi đánh giá.');
+                toast.error(t('shop.error_message') || 'Không thể gửi đánh giá.');
             }
         } finally {
             setIsSubmittingReview(false);
@@ -216,7 +218,7 @@ const MyOrdersPage = () => {
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <User size={20} />
-                                            <span>Thông tin tài khoản</span>
+                                            <span>{t('profile.account_info')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -224,7 +226,7 @@ const MyOrdersPage = () => {
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <ClipboardList size={20} />
-                                            <span>Đơn hàng của tôi</span>
+                                            <span>{t('profile.my_orders')}</span>
                                         </div>
                                         <ChevronDown size={14} className="arrow" />
                                     </div>
@@ -233,7 +235,7 @@ const MyOrdersPage = () => {
                                     <div className="nav-item-header">
                                         <div className="nav-item-wrapper">
                                             <MessageSquare size={20} />
-                                            <span>Đánh giá của tôi</span>
+                                            <span>{t('profile.my_reviews')}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -244,23 +246,23 @@ const MyOrdersPage = () => {
                     {/* Main Content */}
                     <main className="profile-main">
                         <div className="profile-form-section">
-                            <h2 className="section-title">Đơn hàng của tôi</h2>
+                            <h2 className="section-title">{t('profile.my_orders')}</h2>
                             <div className="orders-list">
                                 {orders.length === 0 ? (
                                     <div className="empty-state" style={{ textAlign: 'center', padding: '40px' }}>
                                         <ClipboardList size={48} color="#ddd" style={{ marginBottom: '10px' }} />
-                                        <p color="#666">Bạn chưa có đơn hàng nào.</p>
+                                        <p color="#666">{t('profile.no_orders')}</p>
                                     </div>
                                 ) : (
                                     <div className="orders-table-wrapper" style={{ overflowX: 'auto' }}>
                                         <table className="orders-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
                                             <thead>
                                                 <tr style={{ textAlign: 'left', borderBottom: '2px solid #f0f0f0' }}>
-                                                    <th style={{ padding: '12px' }}>Mã đơn</th>
-                                                    <th style={{ padding: '12px' }}>Ngày mua</th>
-                                                    <th style={{ padding: '12px' }}>Tổng tiền</th>
-                                                    <th style={{ padding: '12px' }}>TT Thanh toán</th>
-                                                    <th style={{ padding: '12px' }}>Trạng thái</th>
+                                                    <th style={{ padding: '12px' }}>{t('profile.order_id')}</th>
+                                                    <th style={{ padding: '12px' }}>{t('profile.order_date')}</th>
+                                                    <th style={{ padding: '12px' }}>{t('profile.total_amount')}</th>
+                                                    <th style={{ padding: '12px' }}>{t('profile.payment_status')}</th>
+                                                    <th style={{ padding: '12px' }}>{t('profile.order_status')}</th>
                                                     <th style={{ padding: '12px' }}></th>
                                                 </tr>
                                             </thead>
@@ -273,9 +275,9 @@ const MyOrdersPage = () => {
                                                         <td style={{ padding: '12px' }}>
                                                             {order.paymentMethodName === 'VNPAY' ? (
                                                                 order.status === 'APPROVED' || order.status === 'COMPLETED' || order.status === 'SHIPPING' || order.status === 'SHIPPED' ? (
-                                                                    <span style={{ color: '#1e7e34', fontWeight: 500 }}>Đã thanh toán</span>
+                                                                    <span style={{ color: '#1e7e34', fontWeight: 500 }}>{t('profile.paid')}</span>
                                                                 ) : (
-                                                                    <span style={{ color: '#f57c00', fontWeight: 500 }}>Chưa thanh toán</span>
+                                                                    <span style={{ color: '#f57c00', fontWeight: 500 }}>{t('profile.unpaid')}</span>
                                                                 )
                                                             ) : (
                                                                 <span style={{ color: '#666' }}>COD</span>
@@ -308,15 +310,15 @@ const MyOrdersPage = () => {
                                                                         alignItems: 'center',
                                                                         gap: '4px'
                                                                     }}
-                                                                    title="Thanh toán ngay"
+                                                                    title={t('profile.pay_now')}
                                                                 >
-                                                                    Thanh toán
+                                                                    {t('profile.pay_now')}
                                                                 </button>
                                                             )}
                                                             <button
                                                                 onClick={() => handleViewOrderDetails(order.id)}
                                                                 style={{ background: 'none', border: '1px solid #ddd', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
-                                                                title="Xem chi tiết"
+                                                                title={t('profile.view_detail')}
                                                             >
                                                                 <Eye size={14} />
                                                             </button>
@@ -338,7 +340,7 @@ const MyOrdersPage = () => {
                 <div className="modal-backdrop" onClick={() => setIsOrderDetailOpen(false)}>
                     <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '800px' }}>
                         <div className="modal-header">
-                            <h3>Chi tiết đơn hàng #{selectedOrder.id}</h3>
+                            <h3>{t('profile.order_detail_title', { id: selectedOrder.id })}</h3>
                             <button className="btn-close-modal" onClick={() => setIsOrderDetailOpen(false)}>
                                 <X size={20} />
                             </button>
@@ -346,38 +348,38 @@ const MyOrdersPage = () => {
                         <div className="modal-body">
                             <div className="order-detail-info">
                                 <div className="info-column">
-                                    <h4>Thông tin khách hàng</h4>
+                                    <h4>{t('profile.customer_info')}</h4>
                                     <div className="info-item">
-                                        <span className="info-label">Người nhận:</span>
+                                        <span className="info-label">{t('profile.recipient')}</span>
                                         <span className="info-value">{selectedOrder.fullName || selectedOrder.userName}</span>
                                     </div>
                                     <div className="info-item">
-                                        <span className="info-label">Số điện thoại:</span>
+                                        <span className="info-label">{t('profile.phone')}</span>
                                         <span className="info-value">{selectedOrder.phone || 'N/A'}</span>
                                     </div>
                                 </div>
                                 <div className="info-column">
-                                    <h4>Thanh toán & Vận chuyển</h4>
+                                    <h4>{t('profile.payment_shipping_info')}</h4>
                                     <div className="info-item">
-                                        <span className="info-label">Trạng thái:</span>
+                                        <span className="info-label">{t('profile.order_status')}:</span>
                                         <span className="info-value highlight-blue">{selectedOrder.status}</span>
                                     </div>
                                     <div className="info-item">
-                                        <span className="info-label">Tổng tiền:</span>
+                                        <span className="info-label">{t('profile.total_amount')}:</span>
                                         <span className="info-value text-red">{formatCurrency(selectedOrder.totalCost)}</span>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="detail-books-section" style={{ marginTop: '20px' }}>
-                                <h4>Sản phẩm đã mua</h4>
+                                <h4>{t('profile.products_purchased')}</h4>
                                 <table className="detail-books-table">
                                     <thead>
                                         <tr>
-                                            <th>Sản phẩm</th>
-                                            <th>Đơn giá</th>
-                                            <th>Số lượng</th>
-                                            <th style={{ textAlign: 'right' }}>Thành tiền</th>
+                                            <th>{t('profile.product')}</th>
+                                            <th>{t('profile.unit_price')}</th>
+                                            <th>{t('profile.quantity')}</th>
+                                            <th style={{ textAlign: 'right' }}>{t('profile.into_money')}</th>
                                             {selectedOrder.status === 'COMPLETED' && <th></th>}
                                         </tr>
                                     </thead>
@@ -410,7 +412,7 @@ const MyOrdersPage = () => {
                                                                 fontSize: '12px'
                                                             }}
                                                         >
-                                                            {billReviews[book.bookId] ? 'Sửa đánh giá' : 'Đánh giá'}
+                                                            {billReviews[book.bookId] ? t('profile.edit_review_action') : t('profile.review_action')}
                                                         </button>
                                                     </td>
                                                 )}
@@ -429,7 +431,7 @@ const MyOrdersPage = () => {
                 <div className="modal-backdrop" onClick={() => setIsReviewModalOpen(false)}>
                     <div className="modal-container review-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '500px' }}>
                         <div className="modal-header">
-                            <h3>Đánh giá sản phẩm</h3>
+                            <h3>{t('profile.review_modal_title')}</h3>
                             <button className="btn-close-modal" onClick={() => setIsReviewModalOpen(false)}>
                                 <X size={20} />
                             </button>
@@ -453,25 +455,25 @@ const MyOrdersPage = () => {
                             </div>
 
                             <div className="review-content-input">
-                                <label style={{ display: 'block', marginBottom: '8px' }}>Nhận xét của bạn:</label>
+                                <label style={{ display: 'block', marginBottom: '8px' }}>{t('profile.your_comment')}</label>
                                 <textarea
                                     value={reviewContent}
                                     onChange={(e) => setReviewContent(e.target.value)}
                                     rows={5}
-                                    placeholder="Chia sẻ cảm nhận của bạn về sản phẩm..."
+                                    placeholder={t('profile.placeholder_comment')}
                                     style={{ width: '100%', padding: '12px', border: '1px solid #ddd', borderRadius: '4px', resize: 'vertical' }}
                                 ></textarea>
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button className="btn-modal-secondary" onClick={() => setIsReviewModalOpen(false)} style={{ marginRight: '10px', padding: '8px 16px', background: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Hủy</button>
+                            <button className="btn-modal-secondary" onClick={() => setIsReviewModalOpen(false)} style={{ marginRight: '10px', padding: '8px 16px', background: '#f0f0f0', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{t('profile.cancel')}</button>
                             <button
                                 className="btn-modal-primary"
                                 onClick={handleSubmitReview}
                                 disabled={isSubmittingReview}
                                 style={{ padding: '8px 16px', background: '#C92127', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', opacity: isSubmittingReview ? 0.7 : 1 }}
                             >
-                                {isSubmittingReview ? 'Đang gửi...' : (reviewIdToEdit ? 'Cập nhật' : 'Gửi đánh giá')}
+                                {isSubmittingReview ? t('profile.submitting') : (reviewIdToEdit ? t('profile.update_review') : t('profile.submit_review'))}
                             </button>
                         </div>
                     </div>

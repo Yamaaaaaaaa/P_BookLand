@@ -1,8 +1,11 @@
 import { useNavigate, useParams } from 'react-router-dom';
 import { CheckCircle, ShoppingBag } from 'lucide-react';
 import paymentApi from '../../api/paymentApi';
+import { useTranslation, Trans } from 'react-i18next';
+import { toast } from 'react-toastify';
 
 const PaymentPage = () => {
+    const { t } = useTranslation();
     const { billId } = useParams<{ billId: string }>();
     const navigate = useNavigate();
 
@@ -15,7 +18,7 @@ const PaymentPage = () => {
             }
         } catch (error) {
             console.error("Payment creation failed", error);
-            // toast.error("Có lỗi xảy ra khi tạo thanh toán");
+            toast.error(t('payment.create_error'));
         }
     };
 
@@ -26,9 +29,9 @@ const PaymentPage = () => {
                     <div className="status-icon" style={{ marginBottom: '20px' }}>
                         <CheckCircle size={80} color="#28a745" />
                     </div>
-                    <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '10px' }}>ĐANG CHỜ THANH TOÁN</h1>
+                    <h1 style={{ fontSize: '24px', fontWeight: '700', marginBottom: '10px' }}>{t('payment.pending_title')}</h1>
                     <p style={{ color: '#666', marginBottom: '30px' }}>
-                        Đơn hàng <strong>#{billId}</strong> của bạn đã được tạo thành công và đang chờ xử lý thanh toán.
+                        <Trans i18nKey="payment.pending_msg" values={{ id: billId }} components={{ strong: <strong /> }} />
                     </p>
 
                     <div className="payment-actions" style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -49,7 +52,7 @@ const PaymentPage = () => {
                                 gap: '8px'
                             }}
                         >
-                            THANH TOÁN QUA VNPAY
+                            {t('payment.pay_vnpay')}
                         </button>
                         <button
                             onClick={() => navigate('/shop/profile')}
@@ -64,7 +67,7 @@ const PaymentPage = () => {
                                 cursor: 'pointer'
                             }}
                         >
-                            XEM LỊCH SỬ ĐƠN HÀNG
+                            {t('payment.view_history')}
                         </button>
                         <button
                             onClick={() => navigate('/shop/home')}
@@ -84,7 +87,7 @@ const PaymentPage = () => {
                             }}
                         >
                             <ShoppingBag size={18} />
-                            TIẾP TỤC MUA SẮM
+                            {t('payment.continue_shopping')}
                         </button>
                     </div>
                 </div>

@@ -4,31 +4,31 @@ export interface NavLink {
 }
 
 export const mainNavLinks: NavLink[] = [
-  { label: 'Home', href: '/shop/home' },
+  { label: 'header.home', href: '/shop/home' },
   // { label: 'Pages', href: '/shop/pages' },
-  { label: 'Shop', href: '/shop/books' },
-  { label: 'Articles', href: '/shop/articles' },
-  { label: 'About', href: '/shop/about' },
+  { label: 'header.shop', href: '/shop/books' },
+  { label: 'header.articles', href: '/shop/articles' },
+  { label: 'footer.company.about_us', href: '/shop/about' },
   // { label: 'Contact', href: '/shop/contact' }
 ];
 
 export const footerLinks = {
   company: [
-    { label: 'About Us', href: '/shop/about' },
-    { label: 'Careers', href: '/shop/careers' },
-    { label: 'Affiliates', href: '/shop/affiliates' },
-    { label: 'Blog', href: '/shop/blog' }
+    { label: 'footer.company.about_us', href: '/shop/about' },
+    { label: 'footer.company.careers', href: '/shop/careers' },
+    { label: 'footer.company.affiliates', href: '/shop/affiliates' },
+    { label: 'footer.company.blog', href: '/shop/blog' }
   ],
   help: [
-    { label: 'Contact Us', href: '/shop/contact' },
-    { label: 'FAQs', href: '/shop/faqs' },
-    { label: 'Terms & Conditions', href: '/shop/terms' },
-    { label: 'Privacy Policy', href: '/shop/privacy' }
+    { label: 'footer.help.contact_us', href: '/shop/contact' },
+    { label: 'footer.help.faqs', href: '/shop/faqs' },
+    { label: 'footer.help.terms', href: '/shop/terms' },
+    { label: 'footer.help.privacy', href: '/shop/privacy' }
   ],
   resources: [
-    { label: 'Gift Cards', href: '/shop/gift-cards' },
-    { label: 'Sitemap', href: '/shop/sitemap' },
-    { label: 'Store Locator', href: '/shop/stores' },
-    { label: 'Wishlist', href: '/shop/wishlist' }
+    { label: 'footer.resources.gift_cards', href: '/shop/gift-cards' },
+    { label: 'footer.resources.sitemap', href: '/shop/sitemap' },
+    { label: 'footer.resources.stores', href: '/shop/stores' },
+    { label: 'footer.resources.wishlist', href: '/shop/wishlist' }
   ]
 };

@@ -2,8 +2,11 @@ import { Link } from 'react-router-dom';
 import { Facebook, Twitter, Instagram, Youtube } from 'lucide-react';
 import '../styles/components/footer.css';
 import { footerLinks } from '../data/mockNavigation';
+import { useTranslation } from 'react-i18next';
 
 const Footer = () => {
+    const { t } = useTranslation();
+
     return (
         <footer className="shop-footer">
             <div className="shop-container">
@@ -11,8 +14,7 @@ const Footer = () => {
                     <div className="shop-footer__brand">
                         <div className="shop-footer__logo">BOOKSAW</div>
                         <p className="shop-footer__description">
-                            Nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-                            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+                            {t('footer.description')}
                         </p>
                         <div className="shop-footer__social">
                             <a href="#" className="shop-footer__social-link" aria-label="Facebook">
@@ -31,33 +33,33 @@ const Footer = () => {
                     </div>
 
                     <div>
-                        <h4 className="shop-footer__column-title">Company</h4>
+                        <h4 className="shop-footer__column-title">{t('footer.company.title')}</h4>
                         <div className="shop-footer__links">
                             {footerLinks.company.map((link) => (
                                 <Link key={link.href} to={link.href} className="shop-footer__link">
-                                    {link.label}
+                                    {t(link.label)}
                                 </Link>
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <h4 className="shop-footer__column-title">Help</h4>
+                        <h4 className="shop-footer__column-title">{t('footer.help.title')}</h4>
                         <div className="shop-footer__links">
                             {footerLinks.help.map((link) => (
                                 <Link key={link.href} to={link.href} className="shop-footer__link">
-                                    {link.label}
+                                    {t(link.label)}
                                 </Link>
                             ))}
                         </div>
                     </div>
 
                     <div>
-                        <h4 className="shop-footer__column-title">Resources</h4>
+                        <h4 className="shop-footer__column-title">{t('footer.resources.title')}</h4>
                         <div className="shop-footer__links">
                             {footerLinks.resources.map((link) => (
                                 <Link key={link.href} to={link.href} className="shop-footer__link">
-                                    {link.label}
+                                    {t(link.label)}
                                 </Link>
                             ))}
                         </div>
@@ -66,7 +68,7 @@ const Footer = () => {
 
                 <div className="shop-footer__bottom">
                     <p className="shop-footer__copyright">
-                        © 2026 BookLand. All rights reserved.
+                        {t('footer.copyright')}
                     </p>
                     <div className="shop-footer__payment">
                         <div className="shop-footer__payment-icon"></div>

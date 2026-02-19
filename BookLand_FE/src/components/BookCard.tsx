@@ -9,6 +9,7 @@ import cartService from '../api/cartService';
 import wishlistService from '../api/wishlistService';
 import { toast } from 'react-toastify';
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 interface BookCardProps {
     book: Book;
@@ -16,6 +17,7 @@ interface BookCardProps {
 }
 
 const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
@@ -26,7 +28,7 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
 
         const userId = getCurrentUserId();
         if (!userId) {
-            toast.warning('Vui lòng đăng nhập để thêm vào giỏ hàng');
+            toast.warning(t('product.login_required_cart'));
             navigate('/shop/login');
             return;
         }
@@ -37,11 +39,11 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
                 bookId: book.id,
                 quantity: 1
             });
-            toast.success(`Đã thêm "${book.name}" vào giỏ hàng`);
+            toast.success(t('book_card.add_to_cart_success', { name: book.name }));
             window.dispatchEvent(new Event('cart:updated'));
         } catch (error) {
             console.error('Failed to add to cart:', error);
-            toast.error('Không thể thêm vào giỏ hàng. Vui lòng thử lại.');
+            toast.error(t('book_card.add_to_cart_error'));
         } finally {
             setIsAddingToCart(false);
         }
@@ -53,7 +55,7 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
 
         const userId = getCurrentUserId();
         if (!userId) {
-            toast.warning('Vui lòng đăng nhập để thêm vào danh sách yêu thích');
+            toast.warning(t('product.login_required_wishlist'));
             navigate('/shop/login');
             return;
         }
@@ -63,10 +65,10 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
             await wishlistService.addToWishlist(userId, {
                 bookId: book.id
             });
-            toast.success(`Đã thêm "${book.name}" vào danh sách yêu thích`);
+            toast.success(t('book_card.add_wishlist_success', { name: book.name }));
         } catch (error) {
             console.error('Failed to add to wishlist:', error);
-            toast.error('Không thể thêm vào danh sách yêu thích.');
+            toast.error(t('book_card.add_wishlist_error'));
         } finally {
             setIsAddingToWishlist(false);
         }
@@ -109,7 +111,7 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
                 {/* Volume Badge at Bottom Right of Image */}
                 {book.volume && (
                     <div className="book-card__volume-badge">
-                        Tập {book.volume}
+                        {t('book_card.series_tag', { volume: book.volume })}
                     </div>
                 )}
 
@@ -141,8 +143,8 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
 
                 {viewMode === 'list' && (
                     <div className="book-card__details-list">
-                        <p className="book-card__author">Tác giả: <strong>{book.authorName}</strong></p>
-                        <p className="book-card__description">{book.description || 'Đang cập nhật nội dung...'}</p>
+                        <p className="book-card__author">{t('book_card.author_label')} <strong>{book.authorName}</strong></p>
+                        <p className="book-card__description">{book.description || t('book_card.updating_desc')}</p>
                     </div>
                 )}
 
@@ -176,7 +178,7 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
                             disabled={isAddingToCart}
                         >
                             <ShoppingCart size={18} />
-                            {isAddingToCart ? 'Đang thêm...' : 'Thêm vào giỏ hàng'}
+                            {isAddingToCart ? t('book_card.adding') : t('book_card.add_to_cart_btn')}
                         </button>
                     </div>
                 )}

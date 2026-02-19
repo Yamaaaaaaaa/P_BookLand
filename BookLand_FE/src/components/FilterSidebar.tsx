@@ -5,6 +5,7 @@ import categoryService from '../api/categoryService';
 import authorService from '../api/authorService';
 import publisherService from '../api/publisherService';
 import serieService from '../api/serieService';
+import { useTranslation } from 'react-i18next';
 
 interface FilterSidebarProps {
     selectedCategoryIds: number[];
@@ -45,25 +46,26 @@ const FilterSidebar = ({
     isMobileOpen = false,
     onClose = () => { }
 }: FilterSidebarProps) => {
+    const { t } = useTranslation();
 
     const priceRanges = [
-        { label: '0đ - 150,000đ', value: '0-150000' },
-        { label: '150,000đ - 300,000đ', value: '150000-300000' },
-        { label: '300,000đ - 500,000đ', value: '300000-500000' },
-        { label: '500,000đ - 700,000đ', value: '500000-700000' },
-        { label: '700,000đ - Trở Lên', value: '700000-up' },
+        { label: t('filter.price_0_150'), value: '0-150000' },
+        { label: t('filter.price_150_300'), value: '150000-300000' },
+        { label: t('filter.price_300_500'), value: '300000-500000' },
+        { label: t('filter.price_500_700'), value: '500000-700000' },
+        { label: t('filter.price_700_up'), value: '700000-up' },
     ];
 
     return (
         <aside className={`filter-sidebar ${isMobileOpen ? 'filter-sidebar--mobile-open' : ''}`}>
             <div className="filter-sidebar__header">
-                <h2 className="filter-sidebar__title">BỘ LỌC TÌM KIẾM</h2>
+                <h2 className="filter-sidebar__title">{t('filter.title')}</h2>
                 <button className="filter-sidebar__close" onClick={onClose}>×</button>
             </div>
 
             <div className="filter-global-actions">
                 <button className="btn-clear-all-global" onClick={onClearAll}>
-                    <X size={14} /> Xóa tất cả lọc
+                    <X size={14} /> {t('filter.clear_all')}
                 </button>
             </div>
 
@@ -71,7 +73,7 @@ const FilterSidebar = ({
 
             {/* Price Filter - Moved to TOP */}
             <div className="filter-section">
-                <h3 className="filter-section__title">MỨC GIÁ</h3>
+                <h3 className="filter-section__title">{t('filter.price_title')}</h3>
                 <div className="filter-checkbox-list">
                     {priceRanges.map((range) => (
                         <label key={range.value} className="filter-checkbox-item">
@@ -91,8 +93,8 @@ const FilterSidebar = ({
 
             {/* Category Filter */}
             <SearchableFilterSection
-                title="DANH MỤC THỂ LOẠI"
-                placeholder="Tìm thể loại..."
+                title={t('filter.category_title')}
+                placeholder={t('filter.category_placeholder')}
                 onSearch={async (query) => {
                     const res = await categoryService.getAll({ keyword: query, size: 10 });
                     return res.result?.content || [];
@@ -104,14 +106,15 @@ const FilterSidebar = ({
                 selectedIds={selectedCategoryIds}
                 onToggle={onCategoryToggle}
                 onClear={onCategoryClear}
+                clearLabel={t('filter.clear_section')}
             />
 
             <div className="filter-divider"></div>
 
             {/* Author Filter */}
             <SearchableFilterSection
-                title="TÁC GIẢ"
-                placeholder="Tìm tác giả..."
+                title={t('filter.author_title')}
+                placeholder={t('filter.author_placeholder')}
                 onSearch={async (query) => {
                     const res = await authorService.getAllAuthors({ keyword: query, size: 10 });
                     return res.result?.content || [];
@@ -123,14 +126,15 @@ const FilterSidebar = ({
                 selectedIds={selectedAuthorIds}
                 onToggle={onAuthorToggle}
                 onClear={onAuthorClear}
+                clearLabel={t('filter.clear_section')}
             />
 
             <div className="filter-divider"></div>
 
             {/* Publisher Filter */}
             <SearchableFilterSection
-                title="NHÀ XUẤT BẢN"
-                placeholder="Tìm nhà xuất bản..."
+                title={t('filter.publisher_title')}
+                placeholder={t('filter.publisher_placeholder')}
                 onSearch={async (query) => {
                     const res = await publisherService.getAllPublishers({ keyword: query, size: 10 });
                     return res.result?.content || [];
@@ -142,14 +146,15 @@ const FilterSidebar = ({
                 selectedIds={selectedPublisherIds}
                 onToggle={onPublisherToggle}
                 onClear={onPublisherClear}
+                clearLabel={t('filter.clear_section')}
             />
 
             <div className="filter-divider"></div>
 
             {/* Series Filter */}
             <SearchableFilterSection
-                title="PHÂN LOẠI SERIES"
-                placeholder="Tìm series..."
+                title={t('filter.series_title')}
+                placeholder={t('filter.series_placeholder')}
                 onSearch={async (query) => {
                     const res = await serieService.getAllSeries({ keyword: query, size: 10 });
                     return res.result?.content || [];
@@ -161,6 +166,7 @@ const FilterSidebar = ({
                 selectedIds={selectedSeriesIds}
                 onToggle={onSeriesToggle}
                 onClear={onSeriesClear}
+                clearLabel={t('filter.clear_section')}
             />
         </aside>
     );
@@ -174,7 +180,8 @@ const SearchableFilterSection = <T extends { id: number; name: string }>({
     getById,
     selectedIds,
     onToggle,
-    onClear
+    onClear,
+    clearLabel = 'Xóa hết'
 }: {
     title: string;
     placeholder: string;
@@ -183,6 +190,7 @@ const SearchableFilterSection = <T extends { id: number; name: string }>({
     selectedIds: number[];
     onToggle: (id: number) => void;
     onClear?: () => void;
+    clearLabel?: string;
 }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [results, setResults] = useState<T[]>([]);
@@ -311,7 +319,7 @@ const SearchableFilterSection = <T extends { id: number; name: string }>({
                         onClear?.();
                         setSelectedNames({});
                     }}>
-                        Xóa hết
+                        {clearLabel}
                     </button>
                 </div>
             )}

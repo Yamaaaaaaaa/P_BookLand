@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import authService from '../../../api/authService';
 import '../../../styles/pages/auth.css';
+import { useTranslation } from 'react-i18next';
 
 const RegisterPage = () => {
+    const { t } = useTranslation();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -19,7 +21,7 @@ const RegisterPage = () => {
         setError('');
 
         if (password !== confirmPassword) {
-            setError('Mật khẩu xác nhận không khớp.');
+            setError(t('auth.error_password_match'));
             return;
         }
 
@@ -32,7 +34,7 @@ const RegisterPage = () => {
             navigate('/shop/login');
         } catch (err) {
             console.error(err);
-            setError('Đăng ký thất bại. Vui lòng thử lại.');
+            setError(t('auth.error_register'));
         }
     };
 
@@ -45,13 +47,13 @@ const RegisterPage = () => {
                         to="/shop/login"
                         className={`auth-tab-item ${location.pathname === '/shop/login' ? 'active' : ''}`}
                     >
-                        Đăng nhập
+                        {t('auth.login_tab')}
                     </Link>
                     <Link
                         to="/shop/register"
                         className={`auth-tab-item ${location.pathname === '/shop/register' ? 'active' : ''}`}
                     >
-                        Đăng ký
+                        {t('auth.register_tab')}
                     </Link>
                 </div>
 
@@ -59,12 +61,12 @@ const RegisterPage = () => {
                 <div className="auth-form-content">
                     <form onSubmit={handleSubmit} className="auth-form__form">
                         <div className="form-group">
-                            <label className="form-group__label">Tên đăng nhập</label>
+                            <label className="form-group__label">{t('auth.label_username')}</label>
                             <div className="form-group__input-wrapper">
                                 <input
                                     type="text"
                                     className="form-group__input"
-                                    placeholder="Nhập tên đăng nhập"
+                                    placeholder={t('auth.placeholder_username')}
                                     value={username}
                                     onChange={(e) => setUsername(e.target.value)}
                                     required
@@ -73,12 +75,12 @@ const RegisterPage = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-group__label">Email Address</label>
+                            <label className="form-group__label">{t('auth.label_email')}</label>
                             <div className="form-group__input-wrapper">
                                 <input
                                     type="email"
                                     className="form-group__input"
-                                    placeholder="Nhập địa chỉ email"
+                                    placeholder={t('auth.placeholder_email')}
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -87,12 +89,12 @@ const RegisterPage = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-group__label">Mật khẩu</label>
+                            <label className="form-group__label">{t('auth.label_password')}</label>
                             <div className="form-group__input-wrapper">
                                 <input
                                     type={showPassword ? 'text' : 'password'}
                                     className="form-group__input"
-                                    placeholder="Nhập mật khẩu"
+                                    placeholder={t('auth.placeholder_password')}
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
@@ -102,18 +104,18 @@ const RegisterPage = () => {
                                     className="btn-toggle-password"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    {showPassword ? 'Ẩn' : 'Hiện'}
+                                    {showPassword ? t('auth.hide_password') : t('auth.show_password')}
                                 </button>
                             </div>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-group__label">Xác nhận mật khẩu</label>
+                            <label className="form-group__label">{t('auth.label_confirm_password')}</label>
                             <div className="form-group__input-wrapper">
                                 <input
                                     type={showConfirmPassword ? 'text' : 'password'}
                                     className="form-group__input"
-                                    placeholder="Xác nhận mật khẩu"
+                                    placeholder={t('auth.placeholder_confirm_password')}
                                     value={confirmPassword}
                                     onChange={(e) => setConfirmPassword(e.target.value)}
                                     required
@@ -123,7 +125,7 @@ const RegisterPage = () => {
                                     className="btn-toggle-password"
                                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                                 >
-                                    {showConfirmPassword ? 'Ẩn' : 'Hiện'}
+                                    {showConfirmPassword ? t('auth.hide_password') : t('auth.show_password')}
                                 </button>
                             </div>
                         </div>
@@ -135,7 +137,7 @@ const RegisterPage = () => {
                         )}
 
                         <button type="submit" className="btn-auth-submit">
-                            Đăng ký
+                            {t('auth.register_button')}
                         </button>
                     </form>
                 </div>

@@ -9,8 +9,10 @@ import type { Page } from '../../types/api';
 import '../../styles/pages/books.css';
 import '../../styles/components/book-card.css';
 import FilterSidebar from '../../components/FilterSidebar';
+import { useTranslation } from 'react-i18next';
 
 const BooksPage = () => {
+    const { t } = useTranslation();
     const [searchParams] = useSearchParams();
     const keyword = searchParams.get('keyword') || '';
 
@@ -146,8 +148,8 @@ const BooksPage = () => {
                 {/* Breadcrumbs */}
                 <Breadcrumb
                     items={[
-                        { label: 'Trang chủ', link: '/shop/home' },
-                        { label: 'Sách' }
+                        { label: t('shop.home_breadcrumb'), link: '/shop/home' },
+                        { label: t('shop.books_breadcrumb') }
                     ]}
                 />
 
@@ -178,25 +180,25 @@ const BooksPage = () => {
                         {/* Toolbar */}
                         <div className="books-toolbar">
                             <div className="toolbar-left">
-                                <span className="sort-label">Sắp xếp theo:</span>
+                                <span className="sort-label">{t('shop.sort_label')}</span>
                                 <select
                                     className="select-sort"
                                     value={selectedSort}
                                     onChange={(e) => setSelectedSort(e.target.value)}
                                 >
-                                    <option value="default">Mặc định</option>
-                                    <option value="newest">Mới Nhất</option>
-                                    <option value="price-low">Giá Thấp Đến Cao</option>
-                                    <option value="price-high">Giá Cao Đến Thấp</option>
+                                    <option value="default">{t('shop.sort_default')}</option>
+                                    <option value="newest">{t('shop.sort_newest')}</option>
+                                    <option value="price-low">{t('shop.sort_price_low')}</option>
+                                    <option value="price-high">{t('shop.sort_price_high')}</option>
                                 </select>
                                 <select
                                     className="select-limit"
                                     value={pageSize}
                                     onChange={(e) => setPageSize(Number(e.target.value))}
                                 >
-                                    <option value={12}>12 sản phẩm</option>
-                                    <option value={24}>24 sản phẩm</option>
-                                    <option value={48}>48 sản phẩm</option>
+                                    <option value={12}>{t('shop.items_per_page', { count: 12 })}</option>
+                                    <option value={24}>{t('shop.items_per_page', { count: 24 })}</option>
+                                    <option value={48}>{t('shop.items_per_page', { count: 48 })}</option>
                                 </select>
                             </div>
                             <div className="toolbar-right">
@@ -216,7 +218,7 @@ const BooksPage = () => {
                                 </div>
                                 <button className="btn-filter-mobile" onClick={() => setIsSidebarOpen(true)}>
                                     <FilterIcon size={18} />
-                                    Lọc
+                                    {t('shop.filter_button')}
                                 </button>
                             </div>
                         </div>
@@ -224,7 +226,7 @@ const BooksPage = () => {
                         {/* Keyword Badge */}
                         {keyword && (
                             <div className="search-keyword-banner">
-                                Kết quả tìm kiếm cho: <strong>"{keyword}"</strong>
+                                {t('shop.search_result')} <strong>"{keyword}"</strong>
                             </div>
                         )}
 
@@ -233,14 +235,14 @@ const BooksPage = () => {
                             {isLoading ? (
                                 <div className="loading-state">
                                     <div className="loader"></div>
-                                    <p>Đang tải dữ liệu...</p>
+                                    <p>{t('shop.loading')}</p>
                                 </div>
                             ) : books.length > 0 ? (
                                 <BookGrid books={books} columns={4} viewMode={viewMode} />
                             ) : (
                                 <div className="empty-state">
                                     <img src="/empty-books.png" alt="No books found" style={{ maxWidth: '200px', opacity: 0.5 }} />
-                                    <p>Không tìm thấy sản phẩm nào khớp với lựa chọn của bạn.</p>
+                                    <p>{t('shop.empty_result')}</p>
                                 </div>
                             )}
                         </div>

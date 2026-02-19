@@ -9,8 +9,10 @@ import type { Role } from '../../../types/Role';
 import '../../../styles/components/buttons.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/pages/admin-management.css';
+import { useTranslation } from 'react-i18next';
 
 const AdminUserDetailPage = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const isEditMode = id !== 'new';
@@ -36,10 +38,6 @@ const AdminUserDetailPage = () => {
     }, []);
 
     useEffect(() => {
-        fetchRoles();
-    }, []);
-
-    useEffect(() => {
         if (isEditMode && id) {
             fetchUser(parseInt(id));
         }
@@ -53,7 +51,7 @@ const AdminUserDetailPage = () => {
             }
         } catch (error) {
             console.error('Error fetching roles:', error);
-            toast.error('Failed to load roles');
+            toast.error(t('admin.user_detail.toast.load_roles_fail'));
         }
     };
 
@@ -79,7 +77,7 @@ const AdminUserDetailPage = () => {
             }
         } catch (error) {
             console.error('Error fetching user:', error);
-            toast.error('Failed to load user details');
+            toast.error(t('admin.user_detail.toast.load_fail'));
             navigate('/admin/manage-user');
         } finally {
             setIsLoading(false);
@@ -137,18 +135,10 @@ const AdminUserDetailPage = () => {
                 }
 
                 await userService.adminUpdateUser(parseInt(id), updateData);
-                // Also update roles and status if separate endpoints needed, but userService.adminUpdateUser might handle it? 
-                // Based on userService, there are separate endpoints for status and roles:
-                // adminUpdateUser, adminUpdateUserRoles, adminUpdateUserStatus.
-                // Let's rely on adminUpdateUser first, if backend supports it. 
-                // If not, we might need to call them separately.
-                // Assuming adminUpdateUser handles basic info. 
-
-                // Explicitly call role update and status update to be safe as per service structure
                 await userService.adminUpdateUserRoles(parseInt(id), finalRoleIds);
                 await userService.adminUpdateUserStatus(parseInt(id), formData.status);
 
-                toast.success('User updated successfully');
+                toast.success(t('admin.user_detail.toast.update_success'));
             } else {
                 // Create
                 const createData = {
@@ -156,12 +146,12 @@ const AdminUserDetailPage = () => {
                     roleIds: finalRoleIds
                 };
                 await userService.adminCreateUser(createData);
-                toast.success('User created successfully');
+                toast.success(t('admin.user_detail.toast.create_success'));
             }
             navigate('/admin/manage-user');
         } catch (error) {
             console.error('Error saving user:', error);
-            toast.error('Failed to save user');
+            toast.error(t('admin.user_detail.toast.save_fail'));
         } finally {
             setIsLoading(false);
         }
@@ -179,8 +169,8 @@ const AdminUserDetailPage = () => {
                         <ArrowLeft size={20} />
                     </button>
                     <div>
-                        <h1 className="admin-title">{isEditMode ? 'Edit User' : 'Add New User'}</h1>
-                        <p className="admin-subtitle">{isEditMode ? `Update details for ${formData.username}` : 'Create a new user account'}</p>
+                        <h1 className="admin-title">{isEditMode ? t('admin.user_detail.title.edit') : t('admin.user_detail.title.add')}</h1>
+                        <p className="admin-subtitle">{isEditMode ? t('admin.user_detail.subtitle.edit', { username: formData.username }) : t('admin.user_detail.subtitle.add')}</p>
                     </div>
                 </div>
             </div>
@@ -189,10 +179,10 @@ const AdminUserDetailPage = () => {
                 <form onSubmit={handleSubmit} className="card" style={{ padding: '2rem' }}>
 
                     {/* Account Info */}
-                    <h3 className="section-title">Account Information</h3>
+                    <h3 className="section-title">{t('admin.user_detail.form.account_info')}</h3>
                     <div className="grid-2-cols">
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Username <span style={{ color: 'red' }}>*</span></label>
+                            <label className="form-label">{t('admin.user_detail.form.username')} <span style={{ color: 'red' }}>*</span></label>
                             <div className="input-group">
                                 <User size={18} className="input-icon" />
                                 <input
@@ -208,7 +198,7 @@ const AdminUserDetailPage = () => {
                             </div>
                         </div>
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Password {isEditMode && '(Leave blank to keep unchanged)'} {!isEditMode && <span style={{ color: 'red' }}>*</span>}</label>
+                            <label className="form-label">{t('admin.user_detail.form.password')} {isEditMode && t('admin.user_detail.form.password_hint')} {!isEditMode && <span style={{ color: 'red' }}>*</span>}</label>
                             <div className="input-group">
                                 <Lock size={18} className="input-icon" />
                                 <input
@@ -225,7 +215,7 @@ const AdminUserDetailPage = () => {
                     </div>
 
                     <div className="form-group margin-bottom">
-                        <label className="form-label">Email <span style={{ color: 'red' }}>*</span></label>
+                        <label className="form-label">{t('admin.user_detail.form.email')} <span style={{ color: 'red' }}>*</span></label>
                         <div className="input-group">
                             <Mail size={18} className="input-icon" />
                             <input
@@ -241,10 +231,10 @@ const AdminUserDetailPage = () => {
                     </div>
 
                     {/* Personal Info */}
-                    <h3 className="section-title margin-top">Personal Information</h3>
+                    <h3 className="section-title margin-top">{t('admin.user_detail.form.personal_info')}</h3>
                     <div className="grid-2-cols">
                         <div className="form-group margin-bottom">
-                            <label className="form-label">First Name</label>
+                            <label className="form-label">{t('admin.user_detail.form.firstName')}</label>
                             <input
                                 type="text"
                                 name="firstName"
@@ -255,7 +245,7 @@ const AdminUserDetailPage = () => {
                             />
                         </div>
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Last Name</label>
+                            <label className="form-label">{t('admin.user_detail.form.lastName')}</label>
                             <input
                                 type="text"
                                 name="lastName"
@@ -269,7 +259,7 @@ const AdminUserDetailPage = () => {
 
                     <div className="grid-2-cols">
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Phone Number</label>
+                            <label className="form-label">{t('admin.user_detail.form.phone')}</label>
                             <div className="input-group">
                                 <Phone size={18} className="input-icon" />
                                 <input
@@ -283,7 +273,7 @@ const AdminUserDetailPage = () => {
                             </div>
                         </div>
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Date of Birth</label>
+                            <label className="form-label">{t('admin.user_detail.form.dob')}</label>
                             <div className="input-group">
                                 <Calendar size={18} className="input-icon" />
                                 <input
@@ -298,10 +288,10 @@ const AdminUserDetailPage = () => {
                     </div>
 
                     {/* Roles & Status */}
-                    <h3 className="section-title margin-top">Role & Status</h3>
+                    <h3 className="section-title margin-top">{t('admin.user_detail.form.role_status')}</h3>
 
                     <div className="form-group margin-bottom">
-                        <label className="form-label">Status <span style={{ color: 'red' }}>*</span></label>
+                        <label className="form-label">{t('admin.user_detail.form.status')} <span style={{ color: 'red' }}>*</span></label>
                         <select
                             name="status"
                             className="form-select"
@@ -309,13 +299,13 @@ const AdminUserDetailPage = () => {
                             onChange={handleChange}
                             required
                         >
-                            <option value="ENABLE">Active (Enable)</option>
-                            <option value="DISABLE">Blocked (Disable)</option>
+                            <option value="ENABLE">{t('admin.user_detail.form.status_active')}</option>
+                            <option value="DISABLE">{t('admin.user_detail.form.status_blocked')}</option>
                         </select>
                     </div>
 
                     <div className="form-group margin-bottom">
-                        <label className="form-label">Roles <span style={{ color: 'red' }}>*</span></label>
+                        <label className="form-label">{t('admin.user_detail.form.roles')} <span style={{ color: 'red' }}>*</span></label>
                         {(() => {
                             const userRole = availableRoles.find(role => role.name === 'USER');
                             const hasUserRole = userRole && formData.roleIds?.includes(userRole.id);
@@ -324,7 +314,7 @@ const AdminUserDetailPage = () => {
                                 <>
                                     {!hasUserRole && (
                                         <p style={{ fontSize: '0.875rem', color: 'var(--shop-text-secondary)', marginBottom: '0.5rem' }}>
-                                            Note: ADMIN_LOGIN role is automatically assigned to all admin users
+                                            {t('admin.user_detail.form.admin_login_note')}
                                         </p>
                                     )}
                                     <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -358,7 +348,7 @@ const AdminUserDetailPage = () => {
                                                         style={{ cursor: isAdminLogin ? 'not-allowed' : 'pointer' }}
                                                     />
                                                     {role.name}
-                                                    {isAdminLogin && <span style={{ fontSize: '0.75rem', color: 'var(--shop-text-secondary)' }}>(Required)</span>}
+                                                    {isAdminLogin && <span style={{ fontSize: '0.75rem', color: 'var(--shop-text-secondary)' }}>{t('admin.user_detail.form.required_role')}</span>}
                                                 </label>
                                             );
                                         })}
@@ -370,11 +360,11 @@ const AdminUserDetailPage = () => {
 
                     <div className="form-actions" style={{ marginTop: '2rem', display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                         <button type="button" className="btn-secondary" onClick={() => navigate('/admin/manage-user')}>
-                            Cancel
+                            {t('admin.user_detail.form.cancel')}
                         </button>
                         <button type="submit" className="btn-primary" disabled={isLoading}>
                             <Save size={18} />
-                            {isLoading ? 'Saving...' : 'Save User'}
+                            {isLoading ? t('admin.user_detail.form.saving') : t('admin.user_detail.form.save')}
                         </button>
                     </div>
 

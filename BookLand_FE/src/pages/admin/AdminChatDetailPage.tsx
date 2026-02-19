@@ -5,8 +5,10 @@ import { useWebSocket } from '../../context/WebSocketContext';
 import chatService from '../../api/chatService';
 import type { ChatMessage, ConversationUser } from '../../types/Chat';
 import '../../styles/pages/admin-chat-detail.css';
+import { useTranslation } from 'react-i18next';
 
 const AdminChatDetailPage: React.FC = () => {
+    const { t } = useTranslation();
     const { userId } = useParams<{ userId: string }>();
     const navigate = useNavigate();
     const [userInfo, setUserInfo] = useState<ConversationUser | null>(null);
@@ -121,9 +123,9 @@ const AdminChatDetailPage: React.FC = () => {
             <div className="admin-chat-detail-page">
                 <div className="admin-chat-detail-error">
                     <MessageCircle size={64} />
-                    <p>Không tìm thấy người dùng</p>
+                    <p>{t('admin.chat.user_not_found')}</p>
                     <button onClick={handleBack} className="btn-primary">
-                        Quay lại
+                        {t('admin.chat.back')}
                     </button>
                 </div>
             </div>
@@ -153,11 +155,11 @@ const AdminChatDetailPage: React.FC = () => {
             {/* Messages */}
             <div className="admin-chat-detail-messages">
                 {isLoading ? (
-                    <div className="admin-chat-detail-loading">Đang tải...</div>
+                    <div className="admin-chat-detail-loading">{t('admin.chat.loading')}</div>
                 ) : messages.length === 0 ? (
                     <div className="admin-chat-detail-empty">
                         <MessageCircle size={48} />
-                        <p>Chưa có tin nhắn nào</p>
+                        <p>{t('admin.chat.no_messages')}</p>
                     </div>
                 ) : (
                     messages.map((msg) => (
@@ -188,7 +190,7 @@ const AdminChatDetailPage: React.FC = () => {
                 <input
                     type="text"
                     className="admin-chat-detail-input"
-                    placeholder="Nhập tin nhắn..."
+                    placeholder={t('admin.chat.input_placeholder')}
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
                 />

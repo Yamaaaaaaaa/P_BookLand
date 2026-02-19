@@ -4,11 +4,13 @@ import '../styles/components/hero-section.css';
 import { useEffect, useState } from 'react';
 import type { Event } from '../types/Event';
 import { eventService } from '../api/eventService';
+import { useTranslation } from 'react-i18next';
 
 const HeroSection = () => {
     const [event, setEvent] = useState<Event | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const { t } = useTranslation();
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -128,11 +130,11 @@ const HeroSection = () => {
                 {/* Bottom Row: Icon Menu */}
                 <div className="hero-icon-menu">
                     {[
-                        { label: 'Super Sale', icon: '⚡', id: 'super-sale-section' },
-                        { label: 'Xu Hướng', icon: '📈', id: 'trending-section' },
-                        { label: 'Nổi Bật', icon: '🌟', id: 'featured-section' },
-                        { label: 'Bán Chạy', icon: '🏆', id: 'bestseller-section' },
-                        { label: 'Gợi Ý', icon: '💡', id: 'recommendation-section' },
+                        { label: t('home.hero.super_sale'), icon: '⚡', id: 'super-sale-section' },
+                        { label: t('home.hero.trending'), icon: '📈', id: 'trending-section' },
+                        { label: t('home.hero.featured'), icon: '🌟', id: 'featured-section' },
+                        { label: t('home.hero.best_seller'), icon: '🏆', id: 'bestseller-section' },
+                        { label: t('home.hero.recommend'), icon: '💡', id: 'recommendation-section' },
                     ].map((item, index) => (
                         <div
                             key={index}

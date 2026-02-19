@@ -10,6 +10,7 @@ import wishlistService from '../api/wishlistService';
 import { getCurrentUserId } from '../utils/auth';
 import type { Book } from '../types/Book';
 import type { Category } from '../types/Category';
+import { useTranslation } from 'react-i18next';
 
 const WeeklyBestseller = () => {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -17,6 +18,7 @@ const WeeklyBestseller = () => {
     const [books, setBooks] = useState<Book[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     // Fetch Categories
     useEffect(() => {
@@ -97,7 +99,7 @@ const WeeklyBestseller = () => {
         <section className="weekly-bestseller">
             <div className="bestseller-container">
                 <div className="bestseller-header">
-                    <h2 className="bestseller-title">Bảng xếp hạng bán chạy Tháng</h2>
+                    <h2 className="bestseller-title">{t('home.bestseller.title')}</h2>
                 </div>
 
                 <div className="bestseller-content">
@@ -129,7 +131,7 @@ const WeeklyBestseller = () => {
                                     <div className="ranking-info">
                                         <h4 className="ranking-book-title">{book.name}</h4>
                                         <p className="ranking-author">{book.authorName}</p>
-                                        <p className="ranking-points">Đã bán: {Math.floor(Math.random() * 200) + 100}</p>
+                                        <p className="ranking-points">{t('home.bestseller.sold', { count: Math.floor(Math.random() * 200) + 100 })}</p>
                                     </div>
                                 </div>
                             ))}
@@ -146,8 +148,8 @@ const WeeklyBestseller = () => {
                                         <h3 className="detail-title">{selectedBook.name}</h3>
                                     </Link>
                                     <div className="detail-meta">
-                                        <p>Tác giả: <span>{selectedBook.authorName}</span></p>
-                                        <p>Nhà xuất bản: <span>{selectedBook.publisherName}</span></p>
+                                        <p>{t('book_card.author')}: <span>{selectedBook.authorName}</span></p>
+                                        <p>{t('book_card.publisher')}: <span>{selectedBook.publisherName}</span></p>
                                     </div>
                                     <div className="detail-price-row">
                                         <span className="detail-current-price">{selectedBook.finalPrice?.toLocaleString('vi-VN')} đ</span>
@@ -159,13 +161,19 @@ const WeeklyBestseller = () => {
                                         <div className="detail-original-price">{selectedBook.originalCost.toLocaleString('vi-VN')} đ</div>
                                     )}
 
+                                    <div className="detail-description">
+                                        <p className="desc-text">
+                                            {selectedBook.description || t('shop.no_description')}
+                                        </p>
+                                    </div>
+
                                     <div className="detail-actions">
                                         <button
                                             className="action-btn add-to-cart-btn"
                                             onClick={() => handleAddToCart(selectedBook)}
                                         >
                                             <ShoppingCart size={18} />
-                                            Thêm vào giỏ
+                                            {t('home.bestseller.add_to_cart')}
                                         </button>
                                         <button
                                             className="action-btn wishlist-btn"
@@ -173,13 +181,6 @@ const WeeklyBestseller = () => {
                                         >
                                             <Heart size={18} />
                                         </button>
-                                    </div>
-
-                                    <div className="detail-description">
-                                        <h4 className="desc-heading">{selectedBook.name.toUpperCase()}</h4>
-                                        <p className="desc-text">
-                                            {selectedBook.description || "Mô tả đang cập nhật..."}
-                                        </p>
                                     </div>
                                 </div>
                             </div>

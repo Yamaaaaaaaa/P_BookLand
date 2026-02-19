@@ -4,8 +4,10 @@ import { Search, MessageCircle } from 'lucide-react';
 import chatService from '../../api/chatService';
 import type { ConversationUser } from '../../types/Chat';
 import '../../styles/pages/admin-chat-list.css';
+import { useTranslation } from 'react-i18next';
 
 const AdminChatListPage: React.FC = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [conversations, setConversations] = useState<ConversationUser[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -41,15 +43,15 @@ const AdminChatListPage: React.FC = () => {
     return (
         <div className="admin-chat-list-page">
             <div className="admin-chat-list-header">
-                <h1>Tin nhắn</h1>
-                <p>Chọn người dùng để bắt đầu trò chuyện</p>
+                <h1>{t('admin.chat.title')}</h1>
+                <p>{t('admin.chat.subtitle')}</p>
             </div>
 
             <div className="admin-chat-list-search">
                 <Search size={20} />
                 <input
                     type="text"
-                    placeholder="Tìm kiếm người dùng..."
+                    placeholder={t('admin.chat.search_placeholder')}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -57,11 +59,11 @@ const AdminChatListPage: React.FC = () => {
 
             <div className="admin-chat-list-container">
                 {isLoading ? (
-                    <div className="admin-chat-list-loading">Đang tải...</div>
+                    <div className="admin-chat-list-loading">{t('admin.chat.loading')}</div>
                 ) : filteredConversations.length === 0 ? (
                     <div className="admin-chat-list-empty">
                         <MessageCircle size={64} />
-                        <p>Chưa có cuộc hội thoại nào</p>
+                        <p>{t('admin.chat.no_conversations')}</p>
                     </div>
                 ) : (
                     <div className="admin-chat-list-grid">
@@ -81,9 +83,9 @@ const AdminChatListPage: React.FC = () => {
                                     </div>
                                     <div className="admin-chat-list-item-preview">
                                         {conv.unreadCount > 0 ? (
-                                            <strong>{conv.lastMessage?.content || 'Chưa có tin nhắn'}</strong>
+                                            <strong>{conv.lastMessage?.content || t('admin.chat.no_messages_preview')}</strong>
                                         ) : (
-                                            conv.lastMessage?.content || 'Chưa có tin nhắn'
+                                            conv.lastMessage?.content || t('admin.chat.no_messages_preview')
                                         )}
                                         <span style={{ margin: '0 4px' }}>·</span>
                                         <span style={{ fontSize: '12px' }}>

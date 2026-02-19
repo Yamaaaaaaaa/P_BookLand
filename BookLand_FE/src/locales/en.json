@@ -10,16 +10,439 @@
     "register": "Register",
     "logout": "Logout",
     "profile": "My Profile",
-    "my_orders": "My Orders",
-    "my_reviews": "My Reviews",
-    "admin_dashboard": "Admin Dashboard",
-    "book_categories": "Product Categories",
-    "see_all": "See all",
-    "mark_all_read": "Mark all as read",
-    "delete_read": "Clear read",
-    "no_notifications": "No new notifications",
-    "login_to_view_notifications": "Please login to view notifications",
-    "wishlist": "Wishlist"
+    "my-orders": "My Orders",
+    "my-reviews": "My Reviews",
+    "wishlist": "Wishlist",
+    "Wishlist": "Wishlist"
+  },
+  "home": {
+    "hero": {
+      "super_sale": "Super Sale",
+      "trending": "Trending",
+      "featured": "Featured",
+      "best_seller": "Best Seller",
+      "recommend": "For You"
+    },
+    "flash_sale": {
+      "title": "SUPER SALE",
+      "nav_prev": "Prev",
+      "nav_next": "Next",
+      "sold": "Sold {{count}}",
+      "stock": "{{count}} left"
+    },
+    "trending": {
+      "title": "Shopping Trends",
+      "week": "Weekly Trends",
+      "month": "Monthly Trends",
+      "year": "Yearly Trends",
+      "top_1": "Top 1",
+      "sold": "{{count}} left"
+    },
+    "featured_bookcases": {
+      "title": "FEATURED BOOKCASES"
+    },
+    "bestseller": {
+      "title": "Monthly Bestseller Rankings",
+      "sold": "Sold: {{count}}",
+      "add_to_cart": "Add to Cart"
+    },
+    "recommendations": {
+      "title": "Recommended For You",
+      "sold": "Sold {{count}}"
+    },
+    "newsletter": {
+      "title": "Subscribe to our newsletter",
+      "desc": "Leave your email to miss no news about new books, events and attractive offers from BookLand.",
+      "placeholder": "Enter your email address",
+      "btn": "Subscribe Now"
+    }
+  },
+  "admin": {
+    "title": "BookLand Admin",
+    "overview": "Overview",
+    "dashboard": "Dashboard",
+    "business": "Business",
+    "orders": "Orders & Bills",
+    "payment_methods": "Payment Methods",
+    "shipping_methods": "Shipping Methods",
+    "events": "Events & Sales",
+    "catalog": "Catalog",
+    "books": "Books",
+    "categories": "Categories",
+    "authors": "Authors",
+    "series": "Series",
+    "users": "Users",
+    "user_management": "User Management",
+    "role_management": "Role Management",
+    "communication": "Communication",
+    "chat": {
+      "title": "Messages",
+      "subtitle": "Select a user to start chatting",
+      "search_placeholder": "Search users...",
+      "no_conversations": "No conversations yet",
+      "no_messages_preview": "No messages",
+      "loading": "Loading...",
+      "no_messages": "No messages yet",
+      "input_placeholder": "Type a message...",
+      "select_conversation": "Select a conversation to start",
+      "user_not_found": "User not found",
+      "back": "Back",
+      "send": "Send"
+    },
+    "book_management": {
+      "title": "Book Management",
+      "subtitle": "Manage your book catalog",
+      "add_btn": "Add New Book",
+      "search_placeholder": "Search books by name or author...",
+      "filter_category": "Filter by Category",
+      "filter_author": "Filter by Author",
+      "filter_series": "Filter by Series",
+      "filter_status": "PIN Status",
+      "filter_status_all": "All",
+      "filter_status_pinned": "Pinned Only",
+      "filter_status_unpinned": "Not Pinned",
+      "clear_filters": "Clear Filters",
+      "table": {
+        "id": "ID",
+        "book": "Book",
+        "category": "Category",
+        "author": "Author",
+        "series": "Series",
+        "pin": "Pin",
+        "price": "Price",
+        "stock": "Stock",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "pinned": "Pinned",
+      "confirm_delete": "Are you sure you want to delete this book?",
+      "delete_success": "Book deleted successfully",
+      "delete_fail": "Failed to delete book",
+      "fetch_fail": "Failed to fetch books",
+      "options_fail": "Failed to load filter options",
+      "no_books": "No books found matching your filters."
+    },
+    "book_detail": {
+      "add_title": "Add New Book",
+      "edit_title": "Edit Book",
+      "add_subtitle": "Create a new book entry",
+      "edit_subtitle": "Editing #{{id}}",
+      "save_btn": "Save Book",
+      "saving": "Saving...",
+      "validation_error": "Please fill in all required fields",
+      "create_success": "Book created successfully",
+      "update_success": "Book updated successfully",
+      "save_fail": "Failed to save book",
+      "fetch_fail": "Failed to load book details",
+      "options_fail": "Failed to load form options",
+      "form": {
+        "name": "Book Name *",
+        "description": "Description",
+        "original_price": "Original Price (VND) *",
+        "sale": "Sale (%)",
+        "stock": "Stock Quantity",
+        "published_date": "Published Date",
+        "status_visibility": "Status & Visibility",
+        "status": "Status",
+        "status_enabled": "Enabled",
+        "status_disabled": "Disabled",
+        "pin_homepage": "Pin to Homepage",
+        "classification": "Classification",
+        "author": "Author *",
+        "select_author": "Select Author",
+        "publisher": "Publisher *",
+        "select_publisher": "Select Publisher",
+        "categories": "Categories (Ctrl + Select for Multi Select)",
+        "categories_help": "Hold Ctrl/Cmd to select multiple",
+        "series": "Series (Optional)",
+        "series_none": "None",
+        "book_image": "Book Image",
+        "image_url": "Image URL",
+        "select_gallery": "Select from Gallery"
+      }
+    },
+    "order_management": {
+      "title": "Orders & Bills",
+      "subtitle": "Manage customer orders",
+      "status_filter_label": "Status (Select one for API filtering)",
+      "status_filter_placeholder": "Filter by Status",
+      "clear_filters": "Clear Filters",
+      "loading": "Loading...",
+      "no_bills": "No bills found matching your filters.",
+      "delete_confirm": "Are you sure you want to delete this bill? This action cannot be undone.",
+      "delete_success": "Bill deleted successfully",
+      "delete_fail": "Failed to delete bill",
+      "fetch_fail": "Failed to load bills",
+      "view_details": "View Details",
+      "delete_bill": "Delete Bill",
+      "table": {
+        "id": "Bill ID",
+        "customer": "Customer",
+        "date": "Date",
+        "total": "Total",
+        "status": "Status",
+        "payment_method": "Payment Method",
+        "actions": "Actions"
+      }
+    },
+    "order_detail": {
+      "title": "Bill #{{id}}",
+      "subtitle": "Created on {{date}} at {{time}}",
+      "not_found": "Bill not found",
+      "back_btn": "Back to Bills",
+      "loading": "Loading bill details...",
+      "print_btn": "Print Invoice",
+      "update_status_btn": "Update Status",
+      "order_items_title": "Order Items",
+      "table": {
+        "product": "Product",
+        "price": "Price",
+        "quantity": "Quantity",
+        "total": "Total"
+      },
+      "subtotal": "Subtotal",
+      "shipping": "Shipping ({{method}})",
+      "total": "Total",
+      "customer_title": "Customer",
+      "shipping_method_title": "Shipping Method",
+      "shipping_cost": "Cost:",
+      "payment_title": "Payment",
+      "payment_method": "Method:",
+      "payment_status": "Status:",
+      "modal_title": "Update Bill Status",
+      "modal_status_label": "New Status",
+      "update_success": "Bill status updated successfully",
+      "update_fail": "Failed to update bill status",
+      "cannot_update": "Cannot update status from {{status}}",
+      "fetch_fail": "Failed to load bill details",
+      "create_success": "Bill created successfully",
+      "save_fail": "Failed to save bill"
+    },
+    "author": {
+      "title": "Author Management",
+      "subtitle": "Manage book authors",
+      "add_btn": "Add Author",
+      "search_placeholder": "Search authors by name or description...",
+      "table": {
+        "id": "ID",
+        "image": "Image",
+        "name": "Name",
+        "description": "Description",
+        "actions": "Actions"
+      },
+      "modal": {
+        "create_title": "Create Author",
+        "update_title": "Update Author",
+        "view_title": "View Author",
+        "name_label": "Name",
+        "name_placeholder": "Author Name",
+        "image_label": "Author Image URL",
+        "image_placeholder": "https://...",
+        "desc_label": "Description",
+        "desc_placeholder": "About the author..."
+      },
+      "toast": {
+        "create_success": "Author created successfully",
+        "update_success": "Author updated successfully",
+        "delete_success": "Author deleted successfully",
+        "delete_confirm": "Are you sure you want to delete this author?",
+        "action_fail": "Action failed",
+        "delete_fail": "Delete failed",
+        "load_fail": "Failed to load authors"
+      },
+      "no_data": "No authors found."
+    },
+    "category": {
+      "title": "Category Management",
+      "subtitle": "Manage book categories",
+      "add_btn": "Add Category",
+      "search_placeholder": "Search categories by name or description...",
+      "table": {
+        "id": "ID",
+        "name": "Name",
+        "description": "Description",
+        "actions": "Actions"
+      },
+      "modal": {
+        "create_title": "Create Category",
+        "update_title": "Update Category",
+        "view_title": "View Category",
+        "name_label": "Name",
+        "name_placeholder": "Category Name",
+        "desc_label": "Description",
+        "desc_placeholder": "Optional description..."
+      },
+      "toast": {
+        "create_success": "Category created successfully",
+        "update_success": "Category updated successfully",
+        "delete_success": "Category deleted successfully",
+        "delete_confirm": "Are you sure you want to delete this category?",
+        "action_fail": "Action failed",
+        "delete_fail": "Delete failed",
+        "load_fail": "Failed to load categories"
+      },
+      "no_data": "No categories found."
+    },
+    "serie": {
+      "title": "Series Management",
+      "subtitle": "Manage book series",
+      "add_btn": "Add Series",
+      "search_placeholder": "Search series by name or description...",
+      "table": {
+        "id": "ID",
+        "name": "Name",
+        "description": "Description",
+        "actions": "Actions"
+      },
+      "modal": {
+        "create_title": "Create Series",
+        "update_title": "Update Series",
+        "view_title": "View Series",
+        "name_label": "Name",
+        "name_placeholder": "Series Name",
+        "desc_label": "Description",
+        "desc_placeholder": "About the series..."
+      },
+      "toast": {
+        "create_success": "Series created successfully",
+        "update_success": "Series updated successfully",
+        "delete_success": "Series deleted successfully",
+        "delete_confirm": "Are you sure you want to delete this series?",
+        "action_fail": "Action failed",
+        "delete_fail": "Delete failed",
+        "load_fail": "Failed to load series"
+      },
+      "no_data": "No series found."
+    },
+    "user_detail": {
+      "title": {
+        "edit": "Edit User",
+        "add": "Add New User"
+      },
+      "subtitle": {
+        "edit": "Update details for {{username}}",
+        "add": "Create a new user account"
+      },
+      "form": {
+        "account_info": "Account Information",
+        "personal_info": "Personal Information",
+        "role_status": "Role & Status",
+        "username": "Username",
+        "password": "Password",
+        "password_hint": "(Leave blank to keep unchanged)",
+        "email": "Email",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "phone": "Phone Number",
+        "dob": "Date of Birth",
+        "status": "Status",
+        "roles": "Roles",
+        "status_active": "Active (Enable)",
+        "status_blocked": "Blocked (Disable)",
+        "admin_login_note": "Note: ADMIN_LOGIN role is automatically assigned to all admin users",
+        "required_role": "(Required)",
+        "cancel": "Cancel",
+        "save": "Save User",
+        "saving": "Saving..."
+      },
+      "toast": {
+        "create_success": "User created successfully",
+        "update_success": "User updated successfully",
+        "save_fail": "Failed to save user",
+        "load_fail": "Failed to load user details",
+        "load_roles_fail": "Failed to load roles"
+      }
+    },
+    "gallery": "Gallery",
+    "gallery_menu": "Gallery",
+    "dashboard_page": {
+      "title": "Admin Dashboard",
+      "subtitle": "Welcome to the admin dashboard. View statistics and overview here.",
+      "placeholder": "Dashboard widgets and charts will go here."
+    },
+    "manage_user_page": {
+      "title": "Manage Users",
+      "subtitle": "View and manage customer accounts",
+      "add_user": "Add Staff / Admin / Supporter",
+      "search_placeholder": "Search users by name, email, phone...",
+      "all_roles": "All Roles",
+      "no_users": "No users found.",
+      "table": {
+        "id": "ID",
+        "user_info": "User Info",
+        "contact": "Contact",
+        "role": "Role",
+        "status": "Status",
+        "actions": "Actions",
+        "full_name": "Full Name:",
+        "username": "User Name:"
+      },
+      "confirm_delete": "Are you sure you want to delete this user? This action cannot be undone.",
+      "delete_success": "User deleted successfully",
+      "delete_fail": "Failed to delete user",
+      "load_fail": "Failed to load users",
+      "edit_tooltip": "Edit",
+      "delete_tooltip": "Delete User"
+    },
+    "manage_role_page": {
+      "title": "Manage Roles",
+      "subtitle": "View and manage user roles",
+      "add_role": "Add Role",
+      "search_placeholder": "Search roles by name or description...",
+      "no_roles": "No roles found.",
+      "table": {
+        "id": "ID",
+        "name": "Role Name",
+        "description": "Description",
+        "actions": "Actions"
+      },
+      "modal": {
+        "create_title": "Create New Role",
+        "edit_title": "Edit Role",
+        "name_label": "Role Name *",
+        "desc_label": "Description",
+        "desc_placeholder": "Enter role description...",
+        "name_immutable": "Role name cannot be changed",
+        "cancel": "Cancel",
+        "create": "Create",
+        "update": "Update"
+      },
+      "confirm_delete": "Are you sure you want to delete this role? This action cannot be undone.",
+      "delete_success": "Role deleted successfully",
+      "delete_fail": "Failed to delete role",
+      "create_success": "Role created successfully",
+      "update_success": "Role updated successfully",
+      "save_fail": "Failed to save role",
+      "load_fail": "Failed to load roles",
+      "edit_tooltip": "Edit",
+      "delete_tooltip": "Delete Role"
+    },
+    "gallery_page": {
+      "title": "Image Gallery",
+      "subtitle": "Manage uploaded images",
+      "upload_btn": "Upload Image",
+      "uploading": "Uploading...",
+      "table": {
+        "stt": "No.",
+        "image": "Image",
+        "name": "Name",
+        "actions": "Actions"
+      },
+      "no_images": "No images found in gallery.",
+      "tooltips": {
+        "copy": "Copy URL",
+        "view": "View Image",
+        "delete": "Delete"
+      },
+      "copy_success": "URL copied to clipboard",
+      "delete_success": "Image deleted successfully",
+      "delete_fail": "Failed to delete image",
+      "upload_success": "Images uploaded successfully",
+      "upload_fail": "Failed to upload images",
+      "load_fail": "Failed to load images",
+      "confirm_delete": "Are you sure you want to delete {{name}}?"
+    },
+    "logout": "Logout"
   },
   "category": {
     "sach-trong-nuoc": "Domestic Books",
@@ -297,7 +720,9 @@
     "author_label": "Author:",
     "updating_desc": "Content updating...",
     "add_to_cart_btn": "Add to Cart",
-    "adding": "Adding..."
+    "adding": "Adding...",
+    "author": "Author",
+    "publisher": "Publisher"
   },
   "filter": {
     "title": "SEARCH FILTERS",
@@ -317,5 +742,79 @@
     "series_title": "SERIES",
     "series_placeholder": "Search series...",
     "clear_section": "Clear All"
+  },
+  "book_management": {
+    "title": "Book Management",
+    "subtitle": "Manage books catalog",
+    "add_btn": "Add New Book",
+    "search_placeholder": "Search by book name...",
+    "filter_category": "Category",
+    "filter_author": "Author",
+    "filter_series": "Series",
+    "filter_status": "Status",
+    "filter_status_all": "All",
+    "filter_status_pinned": "Pinned",
+    "filter_status_unpinned": "Unpinned",
+    "clear_filters": "Clear Filters",
+    "table": {
+      "id": "ID",
+      "book": "Book",
+      "category": "Category",
+      "author": "Author",
+      "series": "Series",
+      "pin": "Pinned",
+      "price": "Price",
+      "stock": "Stock",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "pinned": "Pinned",
+    "no_books": "No books found.",
+    "confirm_delete": "Are you sure you want to delete this book?",
+    "delete_success": "Book deleted successfully",
+    "delete_fail": "Failed to delete book",
+    "fetch_fail": "Failed to load books",
+    "options_fail": "Failed to load filter options",
+    "edit_tooltip": "Edit Book",
+    "delete_tooltip": "Delete Book"
+  },
+  "book_detail": {
+    "add_title": "Add New Book",
+    "edit_title": "Edit Book",
+    "add_subtitle": "Create a new book",
+    "edit_subtitle": "Edit book #{{id}}",
+    "save_btn": "Save Book",
+    "saving": "Saving...",
+    "validation_error": "Please fill in all required fields.",
+    "create_success": "Book created successfully",
+    "update_success": "Book updated successfully",
+    "save_fail": "Failed to save book",
+    "fetch_fail": "Failed to load book details",
+    "options_fail": "Failed to load form options",
+    "form": {
+      "name": "Name",
+      "description": "Description",
+      "original_price": "Original Price",
+      "sale": "Sale (%)",
+      "stock": "Stock",
+      "published_date": "Published Date",
+      "status_visibility": "Status & Visibility",
+      "status": "Status",
+      "status_enabled": "Enabled",
+      "status_disabled": "Disabled",
+      "pin_homepage": "Pin to Homepage",
+      "classification": "Classification",
+      "author": "Author",
+      "select_author": "Select Author",
+      "publisher": "Publisher",
+      "select_publisher": "Select Publisher",
+      "categories": "Categories",
+      "categories_help": "Hold Ctrl (Windows) or Cmd (Mac) to select multiple",
+      "series": "Series",
+      "series_none": "None",
+      "book_image": "Book Image",
+      "image_url": "Image URL",
+      "select_gallery": "Select from Gallery"
+    }
   }
 }

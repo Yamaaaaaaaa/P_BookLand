@@ -15,8 +15,10 @@ import Pagination from '../../../components/admin/Pagination';
 import '../../../styles/components/buttons.css';
 import '../../../styles/pages/admin-management.css';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const BookManagementPage = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [books, setBooks] = useState<Book[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -64,7 +66,7 @@ const BookManagementPage = () => {
                 }
             } catch (error) {
                 console.error('Error fetching filter options:', error);
-                toast.error('Failed to load filter options');
+                toast.error(t('admin.book_management.options_fail'));
             }
         };
 
@@ -105,7 +107,7 @@ const BookManagementPage = () => {
             }
         } catch (error) {
             console.error('Error fetching books:', error);
-            toast.error('Failed to fetch books');
+            toast.error(t('admin.book_management.fetch_fail'));
         } finally {
             setIsLoading(false);
         }
@@ -132,14 +134,14 @@ const BookManagementPage = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this book?')) {
+        if (window.confirm(t('admin.book_management.confirm_delete'))) {
             try {
                 await bookService.deleteBook(id);
-                toast.success('Book deleted successfully');
+                toast.success(t('admin.book_management.delete_success'));
                 fetchBooks(); // Refresh list
             } catch (error) {
                 console.error('Error deleting book:', error);
-                toast.error('Failed to delete book');
+                toast.error(t('admin.book_management.delete_fail'));
             }
         }
     };
@@ -160,12 +162,12 @@ const BookManagementPage = () => {
         <div className="admin-container" style={{ paddingRight: 'var(--spacing-xl)' }}>
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Book Management</h1>
-                    <p className="admin-subtitle">Manage your book catalog</p>
+                    <h1 className="admin-title">{t('admin.book_management.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.book_management.subtitle')}</p>
                 </div>
                 <Link to="/admin/manage-information/book-detail/new" className="btn-primary">
                     <Plus size={20} />
-                    Add New Book
+                    {t('admin.book_management.add_btn')}
                 </Link>
             </div>
 
@@ -176,7 +178,7 @@ const BookManagementPage = () => {
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="Search books by name or author..."
+                        placeholder={t('admin.book_management.search_placeholder')}
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
@@ -188,42 +190,42 @@ const BookManagementPage = () => {
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '200px' }}>
                         <MultiSelect
-                            label="Categories"
+                            label={t('admin.book_management.filter_category')}
                             options={categoryOptions}
                             value={selectedCategories}
                             onChange={(vals) => {
                                 setSelectedCategories(vals);
                                 setCurrentPage(1);
                             }}
-                            placeholder="Filter by Category"
+                            placeholder={t('admin.book_management.filter_category')}
                         />
                     </div>
                     <div style={{ flex: 1, minWidth: '200px' }}>
                         <MultiSelect
-                            label="Authors"
+                            label={t('admin.book_management.filter_author')}
                             options={authorOptions}
                             value={selectedAuthors}
                             onChange={(vals) => {
                                 setSelectedAuthors(vals);
                                 setCurrentPage(1);
                             }}
-                            placeholder="Filter by Author"
+                            placeholder={t('admin.book_management.filter_author')}
                         />
                     </div>
                     <div style={{ flex: 1, minWidth: '200px' }}>
                         <MultiSelect
-                            label="Series"
+                            label={t('admin.book_management.filter_series')}
                             options={seriesOptions}
                             value={selectedSeries}
                             onChange={(vals) => {
                                 setSelectedSeries(vals);
                                 setCurrentPage(1);
                             }}
-                            placeholder="Filter by Series"
+                            placeholder={t('admin.book_management.filter_series')}
                         />
                     </div>
                     <div className="form-group" style={{ marginBottom: 0, width: '150px', flexShrink: 0 }}>
-                        <label className="form-label">PIN Status</label>
+                        <label className="form-label">{t('admin.book_management.filter_status')}</label>
                         <select
                             className="form-select"
                             value={pinFilter}
@@ -233,9 +235,9 @@ const BookManagementPage = () => {
                             }}
                             style={{ height: '42px' }}
                         >
-                            <option value="all">All</option>
-                            <option value="pinned">Pinned Only</option>
-                            <option value="unpinned">Not Pinned</option>
+                            <option value="all">{t('admin.book_management.filter_status_all')}</option>
+                            <option value="pinned">{t('admin.book_management.filter_status_pinned')}</option>
+                            <option value="unpinned">{t('admin.book_management.filter_status_unpinned')}</option>
                         </select>
                     </div>
 
@@ -252,7 +254,7 @@ const BookManagementPage = () => {
                         className="btn-secondary"
                         style={{ height: '42px', whiteSpace: 'nowrap', flexShrink: 0 }}
                     >
-                        Clear Filters
+                        {t('admin.book_management.clear_filters')}
                     </button>
                 </div>
             </div>
@@ -269,26 +271,26 @@ const BookManagementPage = () => {
                             <tr>
                                 <th onClick={() => handleSort('id')} className="sortable-header" style={{ width: '60px' }}>
                                     <div className="th-content">
-                                        ID {getSortIcon('id')}
+                                        {t('admin.book_management.table.id')} {getSortIcon('id')}
                                     </div>
                                 </th>
                                 <th onClick={() => handleSort('name')} className="sortable-header">
                                     <div className="th-content">
-                                        Book {getSortIcon('name')}
+                                        {t('admin.book_management.table.book')} {getSortIcon('name')}
                                     </div>
                                 </th>
-                                <th>Category</th>
-                                <th>Author</th>
-                                <th>Series</th>
-                                <th>Pin</th>
+                                <th>{t('admin.book_management.table.category')}</th>
+                                <th>{t('admin.book_management.table.author')}</th>
+                                <th>{t('admin.book_management.table.series')}</th>
+                                <th>{t('admin.book_management.table.pin')}</th>
                                 <th onClick={() => handleSort('originalCost')} className="sortable-header">
                                     <div className="th-content">
-                                        Price {getSortIcon('originalCost')}
+                                        {t('admin.book_management.table.price')} {getSortIcon('originalCost')}
                                     </div>
                                 </th>
-                                <th>Stock</th>
-                                <th>Status</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                <th>{t('admin.book_management.table.stock')}</th>
+                                <th>{t('admin.book_management.table.status')}</th>
+                                <th style={{ textAlign: 'right' }}>{t('admin.book_management.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -325,7 +327,7 @@ const BookManagementPage = () => {
                                                 fontWeight: 600,
                                                 display: 'inline-block'
                                             }}>
-                                                Pinned
+                                                {t('admin.book_management.pinned')}
                                             </span>
                                         ) : (
                                             <span style={{ color: 'var(--shop-text-muted)', fontSize: '0.85rem' }}>-</span>
@@ -350,14 +352,14 @@ const BookManagementPage = () => {
                                             <button
                                                 className="btn-icon"
                                                 onClick={() => navigate(`/admin/manage-information/book-detail/${book.id}`)}
-                                                title="Edit"
+                                                title={t('admin.book_management.edit_tooltip')}
                                             >
                                                 <Edit size={18} />
                                             </button>
                                             <button
                                                 className="btn-icon delete"
                                                 onClick={() => handleDelete(book.id)}
-                                                title="Delete"
+                                                title={t('admin.book_management.delete_tooltip')}
                                             >
                                                 <Trash2 size={18} />
                                             </button>
@@ -370,7 +372,7 @@ const BookManagementPage = () => {
                 )}
                 {!isLoading && books.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--shop-text-muted)' }}>
-                        No books found matching your filters.
+                        {t('admin.book_management.no_books')}
                     </div>
                 )}
             </div>

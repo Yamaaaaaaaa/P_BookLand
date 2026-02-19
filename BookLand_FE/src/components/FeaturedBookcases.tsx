@@ -4,9 +4,11 @@ import { BookOpen } from 'lucide-react';
 import '../styles/components/featured-bookcases.css';
 import bookService from '../api/bookService';
 import type { Book } from '../types/Book';
+import { useTranslation } from 'react-i18next';
 
 const FeaturedBookcases = () => {
     const [books, setBooks] = useState<Book[]>([]);
+    const { t } = useTranslation();
 
     useEffect(() => {
         const fetchPinnedBooks = async () => {
@@ -34,7 +36,7 @@ const FeaturedBookcases = () => {
                     <div className="bookcases-icon-box">
                         <BookOpen size={20} color="white" fill="white" />
                     </div>
-                    <h2 className="bookcases-title">TỦ SÁCH NỔI BẬT</h2>
+                    <h2 className="bookcases-title">{t('home.featured_bookcases.title')}</h2>
                 </div>
                 <div className="bookcases-grid">
                     {books.map((book) => (

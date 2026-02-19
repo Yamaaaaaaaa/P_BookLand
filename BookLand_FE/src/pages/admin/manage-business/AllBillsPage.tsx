@@ -9,8 +9,10 @@ import billService from '../../../api/billService';
 import { toast } from 'react-toastify';
 import '../../../styles/components/buttons.css';
 import '../../../styles/pages/admin-management.css';
+import { useTranslation } from 'react-i18next';
 
 const AllBillsPage = () => {
+    const { t } = useTranslation();
     // State
     const [bills, setBills] = useState<Bill[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +71,7 @@ const AllBillsPage = () => {
             }
         } catch (error) {
             console.error('Error fetching bills:', error);
-            toast.error('Failed to load bills');
+            toast.error(t('admin.order_management.fetch_fail'));
         } finally {
             setIsLoading(false);
         }
@@ -80,17 +82,17 @@ const AllBillsPage = () => {
     }, [currentPage, sortConfig, selectedStatuses]); // Trigger fetch on these changes
 
     const handleDelete = async (id: number) => {
-        if (!window.confirm('Are you sure you want to delete this bill? This action cannot be undone.')) {
+        if (!window.confirm(t('admin.order_management.delete_confirm'))) {
             return;
         }
 
         try {
             await billService.deleteBill(id);
-            toast.success('Bill deleted successfully');
+            toast.success(t('admin.order_management.delete_success'));
             fetchBills(); // Refresh list
         } catch (error) {
             console.error('Error deleting bill:', error);
-            toast.error('Failed to delete bill');
+            toast.error(t('admin.order_management.delete_fail'));
         }
     };
 
@@ -113,8 +115,8 @@ const AllBillsPage = () => {
         <div className="admin-container">
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Orders & Bills</h1>
-                    <p className="admin-subtitle">Manage customer orders</p>
+                    <h1 className="admin-title">{t('admin.order_management.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.order_management.subtitle')}</p>
                 </div>
             </div>
 
@@ -126,11 +128,11 @@ const AllBillsPage = () => {
                      */}
                     <div style={{ flex: 1, minWidth: '200px' }}>
                         <MultiSelect
-                            label="Status (Select one for API filtering)"
+                            label={t('admin.order_management.status_filter_label')}
                             options={statusOptions}
                             value={selectedStatuses}
                             onChange={setSelectedStatuses}
-                            placeholder="Filter by Status"
+                            placeholder={t('admin.order_management.status_filter_placeholder')}
                         />
                     </div>
 
@@ -142,7 +144,7 @@ const AllBillsPage = () => {
                         className="btn-secondary"
                         style={{ height: '42px', whiteSpace: 'nowrap', flexShrink: 0 }}
                     >
-                        Clear Filters
+                        {t('admin.order_management.clear_filters')}
                     </button>
 
                 </div>
@@ -150,30 +152,30 @@ const AllBillsPage = () => {
 
             <div className="admin-table-container">
                 {isLoading ? (
-                    <div style={{ padding: '2rem', textAlign: 'center' }}>Loading...</div>
+                    <div style={{ padding: '2rem', textAlign: 'center' }}>{t('admin.order_management.loading')}</div>
                 ) : (
                     <table className="admin-table">
                         <thead>
                             <tr>
                                 <th onClick={() => handleSort('id')} className="sortable-header">
-                                    <div className="th-content">Bill ID {getSortIcon('id')}</div>
+                                    <div className="th-content">{t('admin.order_management.table.id')} {getSortIcon('id')}</div>
                                 </th>
                                 <th className="sortable-header">
-                                    <div className="th-content">Customer</div>
+                                    <div className="th-content">{t('admin.order_management.table.customer')}</div>
                                 </th>
                                 <th onClick={() => handleSort('createdAt')} className="sortable-header">
-                                    <div className="th-content">Date {getSortIcon('createdAt')}</div>
+                                    <div className="th-content">{t('admin.order_management.table.date')} {getSortIcon('createdAt')}</div>
                                 </th>
                                 <th onClick={() => handleSort('totalCost')} className="sortable-header">
-                                    <div className="th-content">Total {getSortIcon('totalCost')}</div>
+                                    <div className="th-content">{t('admin.order_management.table.total')} {getSortIcon('totalCost')}</div>
                                 </th>
                                 <th className="sortable-header">
-                                    <div className="th-content">Status</div>
+                                    <div className="th-content">{t('admin.order_management.table.status')}</div>
                                 </th>
                                 <th className="sortable-header">
-                                    <div className="th-content">Payment Method</div>
+                                    <div className="th-content">{t('admin.order_management.table.payment_method')}</div>
                                 </th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                <th style={{ textAlign: 'right' }}>{t('admin.order_management.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -204,12 +206,12 @@ const AllBillsPage = () => {
                                     <td>{bill.paymentMethodName || '-'}</td>
                                     <td>
                                         <div className="action-buttons">
-                                            <Link to={`/admin/manage-business/bill-detail/${bill.id}`} className="btn-icon" title="View Details">
+                                            <Link to={`/admin/manage-business/bill-detail/${bill.id}`} className="btn-icon" title={t('admin.order_management.view_details')}>
                                                 <Eye size={18} />
                                             </Link>
                                             <button
                                                 className="btn-icon delete"
-                                                title="Delete Bill"
+                                                title={t('admin.order_management.delete_bill')}
                                                 onClick={() => handleDelete(bill.id)}
                                             >
                                                 <Trash2 size={18} />
@@ -223,7 +225,7 @@ const AllBillsPage = () => {
                 )}
                 {!isLoading && bills.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--shop-text-muted)' }}>
-                        No bills found matching your filters.
+                        {t('admin.order_management.no_bills')}
                     </div>
                 )}
             </div>

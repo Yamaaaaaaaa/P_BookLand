@@ -17,8 +17,10 @@ import '../../../styles/components/buttons.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/pages/admin-management.css';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const AdminBookDetailPage = () => {
+    const { t } = useTranslation();
     const { id } = useParams();
     const navigate = useNavigate();
     const isNew = id === 'new';
@@ -66,7 +68,7 @@ const AdminBookDetailPage = () => {
 
             } catch (error) {
                 console.error('Error fetching options:', error);
-                toast.error('Failed to load form options');
+                toast.error(t('admin.book_detail.options_fail'));
             }
         };
         fetchOptions();
@@ -99,7 +101,7 @@ const AdminBookDetailPage = () => {
                     }
                 } catch (error) {
                     console.error('Error fetching book:', error);
-                    toast.error('Failed to load book details');
+                    toast.error(t('admin.book_detail.fetch_fail'));
                     navigate('/admin/manage-information/book');
                 } finally {
                     setIsLoading(false);
@@ -132,7 +134,7 @@ const AdminBookDetailPage = () => {
 
         // Basic Validation
         if (!formData.name || !formData.authorId || !formData.publisherId) {
-            toast.error('Please fill in all required fields');
+            toast.error(t('admin.book_detail.validation_error'));
             return;
         }
 
@@ -140,15 +142,15 @@ const AdminBookDetailPage = () => {
         try {
             if (isNew) {
                 await bookService.createBook(formData);
-                toast.success('Book created successfully');
+                toast.success(t('admin.book_detail.create_success'));
             } else {
                 await bookService.updateBook(Number(id), formData);
-                toast.success('Book updated successfully');
+                toast.success(t('admin.book_detail.update_success'));
             }
             navigate('/admin/manage-information/book');
         } catch (error) {
             console.error('Error saving book:', error);
-            toast.error('Failed to save book');
+            toast.error(t('admin.book_detail.save_fail'));
         } finally {
             setIsSaving(false);
         }
@@ -157,7 +159,7 @@ const AdminBookDetailPage = () => {
     const handleGallerySelect = (selectedImages: { id: string; name: string; url: string }[]) => {
         if (selectedImages && selectedImages.length > 0) {
             setFormData(prev => ({ ...prev, bookImageUrl: selectedImages[0].url }));
-            toast.success('Image selected successfully');
+            toast.success(t('admin.gallery_page.tooltips.copy_success')); // Or generic success
         }
     };
 
@@ -177,13 +179,13 @@ const AdminBookDetailPage = () => {
                         <ArrowLeft size={20} />
                     </Link>
                     <div>
-                        <h1 className="admin-title">{isNew ? 'Add New Book' : 'Edit Book'}</h1>
-                        <p className="admin-subtitle">{isNew ? 'Create a new book entry' : `Editing #${id}`}</p>
+                        <h1 className="admin-title">{isNew ? t('admin.book_detail.add_title') : t('admin.book_detail.edit_title')}</h1>
+                        <p className="admin-subtitle">{isNew ? t('admin.book_detail.add_subtitle') : t('admin.book_detail.edit_subtitle', { id })}</p>
                     </div>
                 </div>
                 <button className="btn-primary" onClick={handleSubmit} disabled={isSaving}>
                     {isSaving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} />}
-                    {isSaving ? 'Saving...' : 'Save Book'}
+                    {isSaving ? t('admin.book_detail.saving') : t('admin.book_detail.save_btn')}
                 </button>
             </div>
 
@@ -191,7 +193,7 @@ const AdminBookDetailPage = () => {
                 {/* Left Column: Main Info */}
                 <div className="card" style={{ padding: '1.5rem', backgroundColor: 'var(--shop-bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
                     <div className="form-group margin-bottom">
-                        <label className="form-label">Book Name *</label>
+                        <label className="form-label">{t('admin.book_detail.form.name')}</label>
                         <input
                             type="text"
                             name="name"
@@ -203,7 +205,7 @@ const AdminBookDetailPage = () => {
                     </div>
 
                     <div className="form-group margin-bottom">
-                        <label className="form-label">Description</label>
+                        <label className="form-label">{t('admin.book_detail.form.description')}</label>
                         <textarea
                             name="description"
                             className="form-textarea"
@@ -215,7 +217,7 @@ const AdminBookDetailPage = () => {
 
                     <div className="grid-2 margin-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div className="form-group">
-                            <label className="form-label">Original Price (VND) *</label>
+                            <label className="form-label">{t('admin.book_detail.form.original_price')}</label>
                             <input
                                 type="number"
                                 name="originalCost"
@@ -226,7 +228,7 @@ const AdminBookDetailPage = () => {
                             />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">Sale (%)</label>
+                            <label className="form-label">{t('admin.book_detail.form.sale')}</label>
                             <input
                                 type="number"
                                 name="sale"
@@ -241,7 +243,7 @@ const AdminBookDetailPage = () => {
 
                     <div className="grid-2 margin-bottom" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                         <div className="form-group">
-                            <label className="form-label">Stock Quantity</label>
+                            <label className="form-label">{t('admin.book_detail.form.stock')}</label>
                             <input
                                 type="number"
                                 name="stock"
@@ -252,7 +254,7 @@ const AdminBookDetailPage = () => {
                             />
                         </div>
                         <div className="form-group">
-                            <label className="form-label">Published Date</label>
+                            <label className="form-label">{t('admin.book_detail.form.published_date')}</label>
                             <input
                                 type="date"
                                 name="publishedDate"
@@ -267,18 +269,18 @@ const AdminBookDetailPage = () => {
                 {/* Right Column: Classification & Image */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div className="card" style={{ padding: '1.5rem', backgroundColor: 'var(--shop-bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
-                        <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>Status & Visibility</h3>
+                        <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>{t('admin.book_detail.form.status_visibility')}</h3>
 
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Status</label>
+                            <label className="form-label">{t('admin.book_detail.form.status')}</label>
                             <select
                                 name="status"
                                 className="form-select"
                                 value={formData.status}
                                 onChange={handleChange}
                             >
-                                <option value={BookStatus.ENABLE}>Enabled</option>
-                                <option value={BookStatus.DISABLE}>Disabled</option>
+                                <option value={BookStatus.ENABLE}>{t('admin.book_detail.form.status_enabled')}</option>
+                                <option value={BookStatus.DISABLE}>{t('admin.book_detail.form.status_disabled')}</option>
                             </select>
                         </div>
 
@@ -291,15 +293,15 @@ const AdminBookDetailPage = () => {
                                 onChange={handleChange}
                                 style={{ width: '1.2rem', height: '1.2rem' }}
                             />
-                            <label htmlFor="pin" style={{ cursor: 'pointer' }}>Pin to Homepage</label>
+                            <label htmlFor="pin" style={{ cursor: 'pointer' }}>{t('admin.book_detail.form.pin_homepage')}</label>
                         </div>
                     </div>
 
                     <div className="card" style={{ padding: '1.5rem', backgroundColor: 'var(--shop-bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
-                        <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>Classification</h3>
+                        <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>{t('admin.book_detail.form.classification')}</h3>
 
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Author *</label>
+                            <label className="form-label">{t('admin.book_detail.form.author')}</label>
                             <select
                                 name="authorId"
                                 className="form-select"
@@ -307,7 +309,7 @@ const AdminBookDetailPage = () => {
                                 onChange={handleChange}
                                 required
                             >
-                                <option value={0}>Select Author</option>
+                                <option value={0}>{t('admin.book_detail.form.select_author')}</option>
                                 {authors.map(a => (
                                     <option key={a.id} value={a.id}>{a.name}</option>
                                 ))}
@@ -315,7 +317,7 @@ const AdminBookDetailPage = () => {
                         </div>
 
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Publisher *</label>
+                            <label className="form-label">{t('admin.book_detail.form.publisher')}</label>
                             <select
                                 name="publisherId"
                                 className="form-select"
@@ -323,7 +325,7 @@ const AdminBookDetailPage = () => {
                                 onChange={handleChange}
                                 required
                             >
-                                <option value={0}>Select Publisher</option>
+                                <option value={0}>{t('admin.book_detail.form.select_publisher')}</option>
                                 {publishers.map(p => (
                                     <option key={p.id} value={p.id}>{p.name}</option>
                                 ))}
@@ -331,7 +333,7 @@ const AdminBookDetailPage = () => {
                         </div>
 
                         <div className="form-group margin-bottom">
-                            <label className="form-label">Categories (Ctrl + Select for Multi Select)</label>
+                            <label className="form-label">{t('admin.book_detail.form.categories')}</label>
                             <select
                                 multiple
                                 className="form-select"
@@ -343,18 +345,18 @@ const AdminBookDetailPage = () => {
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
                             </select>
-                            <small style={{ color: 'var(--shop-text-muted)', fontSize: '0.8rem' }}>Hold Ctrl/Cmd to select multiple</small>
+                            <small style={{ color: 'var(--shop-text-muted)', fontSize: '0.8rem' }}>{t('admin.book_detail.form.categories_help')}</small>
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Series (Optional)</label>
+                            <label className="form-label">{t('admin.book_detail.form.series')}</label>
                             <select
                                 name="seriesId"
                                 className="form-select"
                                 value={formData.seriesId || ''}
                                 onChange={handleChange}
                             >
-                                <option value="">None</option>
+                                <option value="">{t('admin.book_detail.form.series_none')}</option>
                                 {series.map(s => (
                                     <option key={s.id} value={s.id}>{s.name}</option>
                                 ))}
@@ -363,10 +365,10 @@ const AdminBookDetailPage = () => {
                     </div>
 
                     <div className="card" style={{ padding: '1.5rem', backgroundColor: 'var(--shop-bg-card)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
-                        <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>Book Image</h3>
+                        <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>{t('admin.book_detail.form.book_image')}</h3>
                         <div className="form-group margin-bottom">
                             <label className="form-label" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span>Image URL</span>
+                                <span>{t('admin.book_detail.form.image_url')}</span>
                                 <button
                                     type="button"
                                     className="btn-secondary"
@@ -374,7 +376,7 @@ const AdminBookDetailPage = () => {
                                     style={{ fontSize: '0.8rem', padding: '0.2rem 0.5rem', height: 'auto', minHeight: 'auto' }}
                                 >
                                     <ImageIcon size={14} style={{ marginRight: '0.25rem' }} />
-                                    Select from Gallery
+                                    {t('admin.book_detail.form.select_gallery')}
                                 </button>
                             </label>
                             <input
@@ -401,7 +403,7 @@ const AdminBookDetailPage = () => {
                 onClose={() => setIsGalleryOpen(false)}
                 onSelect={handleGallerySelect}
                 multiple={false}
-                title="Select Book Image"
+                title={t('admin.book_detail.form.select_gallery')}
             />
         </div>
     );

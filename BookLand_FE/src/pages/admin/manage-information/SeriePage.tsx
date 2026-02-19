@@ -8,8 +8,10 @@ import '../../../styles/components/buttons.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/pages/admin-management.css';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const SeriePage = () => {
+    const { t } = useTranslation();
     const [series, setSeries] = useState<Serie[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -49,7 +51,7 @@ const SeriePage = () => {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to load series");
+            toast.error(t('admin.serie.toast.load_fail'));
         }
     };
 
@@ -61,8 +63,8 @@ const SeriePage = () => {
     }, [currentPage, sortConfig, searchTerm]);
 
     const fieldConfig: FieldConfig[] = [
-        { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Series Name' },
-        { name: 'description', label: 'Description', type: 'textarea', placeholder: 'About the series...' }
+        { name: 'name', label: t('admin.serie.modal.name_label'), type: 'text', required: true, placeholder: t('admin.serie.modal.name_placeholder') },
+        { name: 'description', label: t('admin.serie.modal.desc_label'), type: 'textarea', placeholder: t('admin.serie.modal.desc_placeholder') }
     ];
 
     const handleSort = (key: keyof Serie) => {
@@ -94,28 +96,28 @@ const SeriePage = () => {
         try {
             if (modalMode === 'update' && selectedSerie) {
                 await serieService.updateSerie(selectedSerie.id, data);
-                toast.success("Series updated successfully");
+                toast.success(t('admin.serie.toast.update_success'));
             } else if (modalMode === 'create') {
                 await serieService.createSerie(data);
-                toast.success("Series created successfully");
+                toast.success(t('admin.serie.toast.create_success'));
             }
             fetchSeries();
             setIsModalOpen(false);
         } catch (error) {
             console.error(error);
-            toast.error("Action failed");
+            toast.error(t('admin.serie.toast.action_fail'));
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this series?')) {
+        if (window.confirm(t('admin.serie.toast.delete_confirm'))) {
             try {
                 await serieService.deleteSerie(id);
-                toast.success("Series deleted successfully");
+                toast.success(t('admin.serie.toast.delete_success'));
                 fetchSeries();
             } catch (error) {
                 console.error(error);
-                toast.error("Delete failed");
+                toast.error(t('admin.serie.toast.delete_fail'));
             }
         }
     };
@@ -127,16 +129,25 @@ const SeriePage = () => {
             : <ArrowDown size={14} className="sort-icon active" />;
     };
 
+    const getModalTitle = () => {
+        switch (modalMode) {
+            case 'create': return t('admin.serie.modal.create_title');
+            case 'update': return t('admin.serie.modal.update_title');
+            case 'view': return t('admin.serie.modal.view_title');
+            default: return '';
+        }
+    };
+
     return (
         <div className="admin-container">
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Series Management</h1>
-                    <p className="admin-subtitle">Manage book series</p>
+                    <h1 className="admin-title">{t('admin.serie.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.serie.subtitle')}</p>
                 </div>
                 <button className="btn-primary" onClick={() => openModal('create')}>
                     <Plus size={20} />
-                    Add Series
+                    {t('admin.serie.add_btn')}
                 </button>
             </div>
 
@@ -146,7 +157,7 @@ const SeriePage = () => {
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="Search series by name or description..."
+                        placeholder={t('admin.serie.search_placeholder')}
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
@@ -159,23 +170,23 @@ const SeriePage = () => {
                         <tr>
                             <th onClick={() => handleSort('id')} className="sortable-header" style={{ width: '80px' }}>
                                 <div className="th-content">
-                                    ID
+                                    {t('admin.serie.table.id')}
                                     {getSortIcon('id')}
                                 </div>
                             </th>
                             <th onClick={() => handleSort('name')} className="sortable-header">
                                 <div className="th-content">
-                                    Name
+                                    {t('admin.serie.table.name')}
                                     {getSortIcon('name')}
                                 </div>
                             </th>
                             <th onClick={() => handleSort('description')} className="sortable-header">
                                 <div className="th-content">
-                                    Description
+                                    {t('admin.serie.table.description')}
                                     {getSortIcon('description')}
                                 </div>
                             </th>
-                            <th style={{ textAlign: 'right' }}>Actions</th>
+                            <th style={{ textAlign: 'right' }}>{t('admin.serie.table.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -202,7 +213,7 @@ const SeriePage = () => {
                         {series.length === 0 && (
                             <tr>
                                 <td colSpan={4} style={{ textAlign: 'center', padding: '2rem' }}>
-                                    No series found.
+                                    {t('admin.serie.no_data')}
                                 </td>
                             </tr>
                         )}
@@ -221,7 +232,7 @@ const SeriePage = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleModalSubmit}
                 mode={modalMode}
-                title={`${modalMode.charAt(0).toUpperCase() + modalMode.slice(1)} Series`}
+                title={getModalTitle()}
                 fields={fieldConfig}
                 initialData={selectedSerie}
             />

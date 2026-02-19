@@ -4,15 +4,17 @@ import { TrendingUp } from 'lucide-react';
 import '../styles/components/trending-section.css';
 import bookService from '../api/bookService';
 import type { Book } from '../types/Book';
+import { useTranslation } from 'react-i18next';
 
 const TrendingSection = () => {
     const [activeTab, setActiveTab] = useState<string>('WEEK');
     const [books, setBooks] = useState<Book[]>([]);
+    const { t } = useTranslation();
 
     const tabs = [
-        { id: 'WEEK', label: 'Xu Hướng Theo Tuần' },
-        { id: 'MONTH', label: 'Xu Hướng Theo Tháng' },
-        { id: 'YEAR', label: 'Xu Hướng Theo Năm' }
+        { id: 'WEEK', label: t('home.trending.week') },
+        { id: 'MONTH', label: t('home.trending.month') },
+        { id: 'YEAR', label: t('home.trending.year') }
     ];
 
     useEffect(() => {
@@ -43,7 +45,7 @@ const TrendingSection = () => {
                         <div className="trending-icon-box">
                             <TrendingUp size={20} color="white" strokeWidth={3} />
                         </div>
-                        <h2 className="trending-title">Xu Hướng Mua Sắm</h2>
+                        <h2 className="trending-title">{t('home.trending.title')}</h2>
                     </div>
                 </div>
 
@@ -70,7 +72,7 @@ const TrendingSection = () => {
                                 </div>
                                 <div className="trending-info">
                                     <h3 className="trending-book-name">
-                                        {index === 0 && <span className="inline-badge">Top 1</span>}
+                                        {index === 0 && <span className="inline-badge">{t('home.trending.top_1')}</span>}
                                         {book.name}
                                     </h3>
                                     <div className="trending-price-group">
@@ -92,7 +94,7 @@ const TrendingSection = () => {
                                             style={{ width: `${Math.min(book.stock, 100)}%` }}
                                         ></div>
                                         <span className="trending-sold-text">
-                                            Còn lại {book.stock}
+                                            {t('home.trending.sold', { count: book.stock })}
                                         </span>
                                     </div>
                                 </div>

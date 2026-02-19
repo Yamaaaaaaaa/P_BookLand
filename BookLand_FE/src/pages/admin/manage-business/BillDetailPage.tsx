@@ -7,8 +7,10 @@ import { BillStatus, type Bill } from '../../../types/Bill';
 import billService from '../../../api/billService';
 import { toast } from 'react-toastify';
 import '../../../styles/components/buttons.css';
+import { useTranslation } from 'react-i18next';
 
 const BillDetailPage = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const [bill, setBill] = useState<Bill | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -30,7 +32,7 @@ const BillDetailPage = () => {
                 }
             } catch (error) {
                 console.error('Error fetching bill details:', error);
-                toast.error('Failed to load bill details');
+                toast.error(t('admin.order_detail.fetch_fail'));
             } finally {
                 setIsLoading(false);
             }
@@ -62,7 +64,7 @@ const BillDetailPage = () => {
         if (!bill) return;
         const nextStatuses = getAvailableNextStatuses(bill.status);
         if (nextStatuses.length === 0) {
-            toast.info(`Cannot update status from ${bill.status}`);
+            toast.info(t('admin.order_detail.cannot_update', { status: bill.status }));
             return;
         }
 
@@ -84,7 +86,7 @@ const BillDetailPage = () => {
             // Let's assume backend handles 'approvedBy' from token if needed, or we just send status.
 
             await billService.updateBillStatus(Number(id), { status: formData.status });
-            toast.success('Bill status updated successfully');
+            toast.success(t('admin.order_detail.update_success'));
 
             // Refresh bill
             const response = await billService.getBillById(Number(id));
@@ -94,14 +96,14 @@ const BillDetailPage = () => {
             setIsModalOpen(false);
         } catch (error) {
             console.error('Error updating bill status:', error);
-            toast.error('Failed to update bill status');
+            toast.error(t('admin.order_detail.update_fail'));
         }
     };
 
     const modalFields: FieldConfig[] = [
         {
             name: 'status',
-            label: 'New Status',
+            label: t('admin.order_detail.modal_status_label'),
             type: 'select',
             required: true,
             options: statusOptions
@@ -109,15 +111,15 @@ const BillDetailPage = () => {
     ];
 
     if (isLoading) {
-        return <div className="admin-container"><div style={{ padding: '2rem', textAlign: 'center' }}>Loading bill details...</div></div>;
+        return <div className="admin-container"><div style={{ padding: '2rem', textAlign: 'center' }}>{t('admin.order_detail.loading')}</div></div>;
     }
 
     if (!bill) {
         return (
             <div className="admin-container">
                 <div className="error-state">
-                    <h2>Bill not found</h2>
-                    <Link to="/admin/manage-business/all-bills" className="btn-primary">Back to Bills</Link>
+                    <h2>{t('admin.order_detail.not_found')}</h2>
+                    <Link to="/admin/manage-business/all-bills" className="btn-primary">{t('admin.order_detail.back_btn')}</Link>
                 </div>
             </div>
         );
@@ -133,16 +135,16 @@ const BillDetailPage = () => {
                         <ArrowLeft size={20} />
                     </Link>
                     <div>
-                        <h1 className="admin-title">Bill #{bill.id}</h1>
+                        <h1 className="admin-title">{t('admin.order_detail.title', { id: bill.id })}</h1>
                         <p className="admin-subtitle">
-                            Created on {createdDate.toLocaleDateString()} at {createdDate.toLocaleTimeString()}
+                            {t('admin.order_detail.subtitle', { date: createdDate.toLocaleDateString(), time: createdDate.toLocaleTimeString() })}
                         </p>
                     </div>
                 </div>
                 <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <button className="btn-secondary" onClick={() => window.print()}>
                         <Printer size={18} />
-                        Print Invoice
+                        {t('admin.order_detail.print_btn')}
                     </button>
                     <button
                         className="btn-primary"
@@ -151,7 +153,7 @@ const BillDetailPage = () => {
                         style={{ opacity: getAvailableNextStatuses(bill.status).length === 0 ? 0.5 : 1 }}
                     >
                         <RefreshCw size={18} />
-                        Update Status
+                        {t('admin.order_detail.update_status_btn')}
                     </button>
                 </div>
             </div>
@@ -160,14 +162,14 @@ const BillDetailPage = () => {
                 {/* Left Column: Order Items */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                     <div className="admin-card" style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
-                        <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>Order Items</h3>
+                        <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600 }}>{t('admin.order_detail.order_items_title')}</h3>
                         <table className="admin-table" style={{ marginTop: 0 }}>
                             <thead>
                                 <tr>
-                                    <th>Product</th>
-                                    <th>Price</th>
-                                    <th>Quantity</th>
-                                    <th style={{ textAlign: 'right' }}>Total</th>
+                                    <th>{t('admin.order_detail.table.product')}</th>
+                                    <th>{t('admin.order_detail.table.price')}</th>
+                                    <th>{t('admin.order_detail.table.quantity')}</th>
+                                    <th style={{ textAlign: 'right' }}>{t('admin.order_detail.table.total')}</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -198,15 +200,15 @@ const BillDetailPage = () => {
                             </tbody>
                             <tfoot>
                                 <tr>
-                                    <td colSpan={3} style={{ textAlign: 'right', paddingTop: '1rem', color: 'var(--shop-text-secondary)' }}>Subtotal</td>
+                                    <td colSpan={3} style={{ textAlign: 'right', paddingTop: '1rem', color: 'var(--shop-text-secondary)' }}>{t('admin.order_detail.subtotal')}</td>
                                     <td style={{ textAlign: 'right', paddingTop: '1rem', fontWeight: 600 }}>{formatCurrency(bill.totalCost)}</td>
                                 </tr>
                                 <tr>
-                                    <td colSpan={3} style={{ textAlign: 'right', paddingTop: '0.5rem', color: 'var(--shop-text-secondary)' }}>Shipping ({bill.shippingMethodName})</td>
+                                    <td colSpan={3} style={{ textAlign: 'right', paddingTop: '0.5rem', color: 'var(--shop-text-secondary)' }}>{t('admin.order_detail.shipping', { method: bill.shippingMethodName })}</td>
                                     <td style={{ textAlign: 'right', paddingTop: '0.5rem', fontWeight: 600 }}>{formatCurrency(bill.shippingCost || 0)}</td>
                                 </tr>
                                 <tr>
-                                    <td colSpan={3} style={{ textAlign: 'right', paddingTop: '1rem', fontSize: '1.1rem', fontWeight: 700 }}>Total</td>
+                                    <td colSpan={3} style={{ textAlign: 'right', paddingTop: '1rem', fontSize: '1.1rem', fontWeight: 700 }}>{t('admin.order_detail.total')}</td>
                                     <td style={{ textAlign: 'right', paddingTop: '1rem', fontSize: '1.1rem', fontWeight: 700, color: 'var(--shop-accent-primary)' }}>
                                         {formatCurrency(bill.totalCost + (bill.shippingCost || 0))}
                                     </td>
@@ -222,7 +224,7 @@ const BillDetailPage = () => {
                     <div className="admin-card" style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
                         <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <User size={18} />
-                            Customer
+                            {t('admin.order_detail.customer_title')}
                         </h3>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1rem' }}>
                             <div style={{
@@ -251,12 +253,12 @@ const BillDetailPage = () => {
                     <div className="admin-card" style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
                         <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <MapPin size={18} />
-                            Shipping Method
+                            {t('admin.order_detail.shipping_method_title')}
                         </h3>
                         <div>
                             <div style={{ fontWeight: 600, marginBottom: '0.25rem' }}>{bill.shippingMethodName}</div>
                             <div style={{ fontSize: '0.9rem', color: 'var(--shop-text-muted)', marginBottom: '1rem' }}>
-                                Cost: {formatCurrency(bill.shippingCost)}
+                                {t('admin.order_detail.shipping_cost')} {formatCurrency(bill.shippingCost)}
                             </div>
                         </div>
                     </div>
@@ -265,14 +267,14 @@ const BillDetailPage = () => {
                     <div className="admin-card" style={{ backgroundColor: 'white', padding: '1.5rem', borderRadius: 'var(--radius-lg)', border: '1px solid var(--shop-border)' }}>
                         <h3 style={{ marginBottom: '1rem', fontSize: '1.1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                             <CreditCard size={18} />
-                            Payment
+                            {t('admin.order_detail.payment_title')}
                         </h3>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                            <span style={{ color: 'var(--shop-text-secondary)' }}>Method:</span>
+                            <span style={{ color: 'var(--shop-text-secondary)' }}>{t('admin.order_detail.payment_method')}</span>
                             <span style={{ fontWeight: 500 }}>{bill.paymentMethodName}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <span style={{ color: 'var(--shop-text-secondary)' }}>Status:</span>
+                            <span style={{ color: 'var(--shop-text-secondary)' }}>{t('admin.order_detail.payment_status')}</span>
                             <span style={{
                                 fontWeight: 600,
                                 color: bill.status === 'COMPLETED' ? '#1e7e34' :
@@ -288,7 +290,7 @@ const BillDetailPage = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleModalSubmit}
                 mode="update"
-                title="Update Bill Status"
+                title={t('admin.order_detail.modal_title')}
                 fields={modalFields}
                 initialData={{ status: '' }}
             />

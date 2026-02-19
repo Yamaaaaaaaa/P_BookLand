@@ -1,15 +1,16 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Stars } from 'lucide-react';
 import '../styles/components/recommendations.css';
 import bookService from '../api/bookService';
 import type { Book } from '../types/Book';
+import { useTranslation } from 'react-i18next';
 
 const Recommendations = () => {
     const [books, setBooks] = useState<Book[]>([]);
+    const { t } = useTranslation();
 
     useEffect(() => {
-        const fetchRecommendedBooks = async () => {
+        const fetchRecommendations = async () => {
             try {
                 const response = await bookService.getAllBooks({
                     pinned: true,
@@ -20,22 +21,20 @@ const Recommendations = () => {
                     setBooks(response.result.content);
                 }
             } catch (error) {
-                console.error("Failed to fetch recommended books", error);
+                console.error("Failed to fetch recommendations", error);
             }
         };
 
-        fetchRecommendedBooks();
+        fetchRecommendations();
     }, []);
 
     return (
         <section className="recommendations-section">
             <div className="recommendations-container">
                 <div className="recommendations-header">
-                    <Stars className="spark-icon left" size={20} fill="white" color="white" />
-                    <h2 className="recommendations-title">Gợi ý cho bạn</h2>
-                    <Stars className="spark-icon right" size={20} fill="white" color="white" />
+                    <h2 className="recommendations-title">{t('home.recommendations.title')}</h2>
+                    {/* Filter tabs could go here */}
                 </div>
-
                 <div className="recommendations-grid">
                     {books.map((book) => (
                         <Link key={book.id} to={`/shop/book-detail/${book.id}`} className="recommend-card">

@@ -4,8 +4,10 @@ import { useWebSocket } from '../../context/WebSocketContext';
 import chatService from '../../api/chatService';
 import type { ChatMessage, ConversationUser } from '../../types/Chat';
 import '../../styles/pages/admin-chat.css';
+import { useTranslation } from 'react-i18next';
 
 const AdminChatPage: React.FC = () => {
+    const { t } = useTranslation();
     const [conversations, setConversations] = useState<ConversationUser[]>([]);
     const [selectedUser, setSelectedUser] = useState<ConversationUser | null>(null);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -118,14 +120,14 @@ const AdminChatPage: React.FC = () => {
             {/* Sidebar - Conversations List */}
             <div className="admin-chat-sidebar">
                 <div className="admin-chat-sidebar-header">
-                    <h2>Tin nhắn</h2>
+                    <h2>{t('admin.chat.title')}</h2>
                 </div>
 
                 <div className="admin-chat-search">
                     <Search size={18} />
                     <input
                         type="text"
-                        placeholder="Tìm kiếm người dùng..."
+                        placeholder={t('admin.chat.search_placeholder')}
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
@@ -135,7 +137,7 @@ const AdminChatPage: React.FC = () => {
                     {filteredConversations.length === 0 ? (
                         <div className="admin-chat-empty">
                             <MessageCircle size={48} />
-                            <p>Chưa có cuộc hội thoại nào</p>
+                            <p>{t('admin.chat.no_conversations')}</p>
                         </div>
                     ) : (
                         filteredConversations.map((conv) => (
@@ -155,7 +157,7 @@ const AdminChatPage: React.FC = () => {
                                         )}
                                     </div>
                                     <div className="admin-chat-conversation-preview">
-                                        {conv.lastMessage?.content || 'Chưa có tin nhắn'}
+                                        {conv.lastMessage?.content || t('admin.chat.no_messages_preview')}
                                     </div>
                                 </div>
                             </div>
@@ -184,11 +186,11 @@ const AdminChatPage: React.FC = () => {
                         {/* Messages */}
                         <div className="admin-chat-messages">
                             {isLoading ? (
-                                <div className="admin-chat-loading">Đang tải...</div>
+                                <div className="admin-chat-loading">{t('admin.chat.loading')}</div>
                             ) : messages.length === 0 ? (
                                 <div className="admin-chat-empty">
                                     <MessageCircle size={48} />
-                                    <p>Chưa có tin nhắn nào</p>
+                                    <p>{t('admin.chat.no_messages')}</p>
                                 </div>
                             ) : (
                                 messages.map((msg) => (
@@ -213,7 +215,7 @@ const AdminChatPage: React.FC = () => {
                             <input
                                 type="text"
                                 className="admin-chat-input"
-                                placeholder="Nhập tin nhắn..."
+                                placeholder={t('admin.chat.input_placeholder')}
                                 value={newMessage}
                                 onChange={(e) => setNewMessage(e.target.value)}
                             />
@@ -229,7 +231,7 @@ const AdminChatPage: React.FC = () => {
                 ) : (
                     <div className="admin-chat-no-selection">
                         <MessageCircle size={64} />
-                        <p>Chọn một cuộc hội thoại để bắt đầu</p>
+                        <p>{t('admin.chat.select_conversation')}</p>
                     </div>
                 )}
             </div>

@@ -9,9 +9,11 @@ import Pagination from '../../components/admin/Pagination';
 import { toast } from 'react-toastify';
 import '../../styles/components/buttons.css';
 import '../../styles/pages/admin-management.css';
+import { useTranslation } from 'react-i18next';
 
 const ManageUserPage = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
     const [users, setUsers] = useState<User[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -48,11 +50,11 @@ const ManageUserPage = () => {
             }
         } catch (error) {
             console.error('Error fetching users:', error);
-            toast.error('Failed to load users');
+            toast.error(t('admin.manage_user_page.load_fail'));
         } finally {
             setIsLoading(false);
         }
-    }, [currentPage, itemsPerPage, searchTerm, selectedRoleId, sortConfig]);
+    }, [currentPage, itemsPerPage, searchTerm, selectedRoleId, sortConfig, t]);
 
     // Fetch roles on mount
     useEffect(() => {
@@ -85,14 +87,14 @@ const ManageUserPage = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this user? This action cannot be undone.')) {
+        if (window.confirm(t('admin.manage_user_page.confirm_delete'))) {
             try {
                 await userService.adminDeleteUser(id);
-                toast.success('User deleted successfully');
+                toast.success(t('admin.manage_user_page.delete_success'));
                 fetchUsers();
             } catch (error) {
                 console.error('Error deleting user:', error);
-                toast.error('Failed to delete user');
+                toast.error(t('admin.manage_user_page.delete_fail'));
             }
         }
     };
@@ -108,12 +110,12 @@ const ManageUserPage = () => {
         <div className="admin-container">
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Manage Users</h1>
-                    <p className="admin-subtitle">View and manage customer accounts</p>
+                    <h1 className="admin-title">{t('admin.manage_user_page.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.manage_user_page.subtitle')}</p>
                 </div>
                 <button className="btn-primary" onClick={() => navigate('/admin/manage-user/new')}>
                     <Plus size={20} />
-                    Add Staff / Admin / Supporter
+                    {t('admin.manage_user_page.add_user')}
                 </button>
             </div>
 
@@ -124,7 +126,7 @@ const ManageUserPage = () => {
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="Search users by name, email, phone..."
+                        placeholder={t('admin.manage_user_page.search_placeholder')}
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
@@ -143,7 +145,7 @@ const ManageUserPage = () => {
                         setCurrentPage(1);
                     }}
                 >
-                    <option value="">All Roles</option>
+                    <option value="">{t('admin.manage_user_page.all_roles')}</option>
                     {availableRoles.map(role => (
                         <option key={role.id} value={role.id}>
                             {role.name}
@@ -163,22 +165,22 @@ const ManageUserPage = () => {
                             <tr>
                                 <th onClick={() => handleSort('id')} className="sortable-header" style={{ width: '80px' }}>
                                     <div className="th-content">
-                                        ID {getSortIcon('id')}
+                                        {t('admin.manage_user_page.table.id')} {getSortIcon('id')}
                                     </div>
                                 </th>
                                 <th onClick={() => handleSort('username')} className="sortable-header">
                                     <div className="th-content">
-                                        User Info {getSortIcon('username')}
+                                        {t('admin.manage_user_page.table.user_info')} {getSortIcon('username')}
                                     </div>
                                 </th>
-                                <th>Contact</th>
-                                <th>Role</th>
+                                <th>{t('admin.manage_user_page.table.contact')}</th>
+                                <th>{t('admin.manage_user_page.table.role')}</th>
                                 <th onClick={() => handleSort('status')} className="sortable-header">
                                     <div className="th-content">
-                                        Status {getSortIcon('status')}
+                                        {t('admin.manage_user_page.table.status')} {getSortIcon('status')}
                                     </div>
                                 </th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                <th style={{ textAlign: 'right' }}>{t('admin.manage_user_page.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -191,8 +193,8 @@ const ManageUserPage = () => {
                                                 <span style={{ fontWeight: 600 }}>{(user.firstName?.[0] || user.username?.[0] || 'U').toUpperCase()}</span>
                                             </div>
                                             <div className="info-content">
-                                                <div className="info-title">Full Name: {user.firstName} {user.lastName}</div>
-                                                <div className="info-subtitle">User Name: {user.username}</div>
+                                                <div className="info-title">{t('admin.manage_user_page.table.full_name')} {user.firstName} {user.lastName}</div>
+                                                <div className="info-subtitle">{t('admin.manage_user_page.table.username')} {user.username}</div>
                                             </div>
                                         </div>
                                     </td>
@@ -231,13 +233,13 @@ const ManageUserPage = () => {
                                                 <Eye size={18} />
                                             </button>
                                             */}
-                                            <button className="btn-icon" title="Edit" onClick={() => navigate(`/admin/manage-user/${user.id}`)}>
+                                            <button className="btn-icon" title={t('admin.manage_user_page.edit_tooltip')} onClick={() => navigate(`/admin/manage-user/${user.id}`)}>
                                                 <Edit size={18} />
                                             </button>
                                             <button
                                                 className="btn-icon delete"
                                                 onClick={() => handleDelete(user.id)}
-                                                title="Delete User"
+                                                title={t('admin.manage_user_page.delete_tooltip')}
                                             >
                                                 <Trash2 size={18} />
                                             </button>
@@ -250,7 +252,7 @@ const ManageUserPage = () => {
                 )}
                 {!isLoading && users.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--shop-text-muted)' }}>
-                        No users found.
+                        {t('admin.manage_user_page.no_users')}
                     </div>
                 )}
             </div>

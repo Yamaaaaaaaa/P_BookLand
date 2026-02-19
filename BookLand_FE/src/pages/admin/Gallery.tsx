@@ -4,6 +4,7 @@ import Pagination from '../../components/admin/Pagination';
 import uploadService from '../../api/uploadService';
 import { toast } from 'react-toastify';
 import '../../styles/components/buttons.css';
+import { useTranslation } from 'react-i18next';
 
 interface GalleryImage {
     id: string;
@@ -12,6 +13,7 @@ interface GalleryImage {
 }
 
 const Gallery = () => {
+    const { t } = useTranslation();
     const [images, setImages] = useState<GalleryImage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -37,7 +39,7 @@ const Gallery = () => {
             }
         } catch (error) {
             console.error('Error fetching images:', error);
-            toast.error('Failed to load images');
+            toast.error(t('admin.gallery_page.load_fail'));
         } finally {
             setIsLoading(false);
         }
@@ -49,18 +51,18 @@ const Gallery = () => {
 
     const handleCopyUrl = (url: string) => {
         navigator.clipboard.writeText(url);
-        toast.success('URL copied to clipboard');
+        toast.success(t('admin.gallery_page.copy_success'));
     };
 
     const handleDelete = async (fileName: string) => {
-        if (window.confirm(`Are you sure you want to delete ${fileName}?`)) {
+        if (window.confirm(t('admin.gallery_page.confirm_delete', { name: fileName }))) {
             try {
                 await uploadService.deleteImage(fileName);
-                toast.success('Image deleted successfully');
+                toast.success(t('admin.gallery_page.delete_success'));
                 fetchImages();
             } catch (error) {
                 console.error('Error deleting image:', error);
-                toast.error('Failed to delete image');
+                toast.error(t('admin.gallery_page.delete_fail'));
             }
         }
     };
@@ -71,11 +73,11 @@ const Gallery = () => {
             setIsUploading(true);
             try {
                 await uploadService.uploadMultipleImages(files);
-                toast.success('Images uploaded successfully');
+                toast.success(t('admin.gallery_page.upload_success'));
                 fetchImages();
             } catch (error) {
                 console.error('Error uploading images:', error);
-                toast.error('Failed to upload images');
+                toast.error(t('admin.gallery_page.upload_fail'));
             } finally {
                 setIsUploading(false);
                 // Reset input
@@ -88,8 +90,8 @@ const Gallery = () => {
         <div className="admin-container">
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Image Gallery</h1>
-                    <p className="admin-subtitle">Manage uploaded images</p>
+                    <h1 className="admin-title">{t('admin.gallery_page.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.gallery_page.subtitle')}</p>
                 </div>
                 <div>
                     <input
@@ -103,7 +105,7 @@ const Gallery = () => {
                     />
                     <label htmlFor="gallery-upload" className="btn-primary" style={{ cursor: isUploading ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                         {isUploading ? <Loader2 className="animate-spin" size={18} /> : <Upload size={18} />}
-                        {isUploading ? 'Uploading...' : 'Upload Image'}
+                        {isUploading ? t('admin.gallery_page.uploading') : t('admin.gallery_page.upload_btn')}
                     </label>
                 </div>
             </div>
@@ -117,10 +119,10 @@ const Gallery = () => {
                     <table className="admin-table">
                         <thead>
                             <tr>
-                                <th style={{ width: '50px' }}>STT</th>
-                                <th style={{ width: '100px' }}>Image</th>
-                                <th>Name</th>
-                                <th style={{ width: '150px', textAlign: 'right' }}>Actions</th>
+                                <th style={{ width: '50px' }}>{t('admin.gallery_page.table.stt')}</th>
+                                <th style={{ width: '100px' }}>{t('admin.gallery_page.table.image')}</th>
+                                <th>{t('admin.gallery_page.table.name')}</th>
+                                <th style={{ width: '150px', textAlign: 'right' }}>{t('admin.gallery_page.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -156,21 +158,21 @@ const Gallery = () => {
                                         <div className="action-buttons">
                                             <button
                                                 className="btn-icon"
-                                                title="Copy URL"
+                                                title={t('admin.gallery_page.tooltips.copy')}
                                                 onClick={() => handleCopyUrl(img.url)}
                                             >
                                                 <Copy size={18} />
                                             </button>
                                             <button
                                                 className="btn-icon"
-                                                title="View Image"
+                                                title={t('admin.gallery_page.tooltips.view')}
                                                 onClick={() => setPreviewImage(img.url)}
                                             >
                                                 <Eye size={18} />
                                             </button>
                                             <button
                                                 className="btn-icon delete"
-                                                title="Delete"
+                                                title={t('admin.gallery_page.tooltips.delete')}
                                                 onClick={() => handleDelete(img.name)}
                                             >
                                                 <Trash2 size={18} />
@@ -185,7 +187,7 @@ const Gallery = () => {
                 {!isLoading && images.length === 0 && (
                     <div style={{ padding: '3rem', textAlign: 'center', color: 'var(--shop-text-muted)', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
                         <ImageIcon size={48} opacity={0.5} />
-                        <p>No images found in gallery.</p>
+                        <p>{t('admin.gallery_page.no_images')}</p>
                     </div>
                 )}
             </div>

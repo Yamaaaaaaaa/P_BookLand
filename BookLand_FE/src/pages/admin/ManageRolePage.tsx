@@ -6,8 +6,10 @@ import Pagination from '../../components/admin/Pagination';
 import { toast } from 'react-toastify';
 import '../../styles/components/buttons.css';
 import '../../styles/pages/admin-management.css';
+import { useTranslation } from 'react-i18next';
 
 const ManageRolePage = () => {
+    const { t } = useTranslation();
     const [roles, setRoles] = useState<Role[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
@@ -43,11 +45,11 @@ const ManageRolePage = () => {
             }
         } catch (error) {
             console.error('Error fetching roles:', error);
-            toast.error('Failed to load roles');
+            toast.error(t('admin.manage_role_page.load_fail'));
         } finally {
             setIsLoading(false);
         }
-    }, [currentPage, itemsPerPage, searchTerm, sortConfig]);
+    }, [currentPage, itemsPerPage, searchTerm, sortConfig, t]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -65,14 +67,14 @@ const ManageRolePage = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this role? This action cannot be undone.')) {
+        if (window.confirm(t('admin.manage_role_page.confirm_delete'))) {
             try {
                 await roleService.deleteRole(id);
-                toast.success('Role deleted successfully');
+                toast.success(t('admin.manage_role_page.delete_success'));
                 fetchRoles();
             } catch (error: any) {
                 console.error('Error deleting role:', error);
-                toast.error(error.response?.data?.message || 'Failed to delete role');
+                toast.error(error.response?.data?.message || t('admin.manage_role_page.delete_fail'));
             }
         }
     };
@@ -96,20 +98,20 @@ const ManageRolePage = () => {
         try {
             if (modalMode === 'create') {
                 await roleService.createRole(formData);
-                toast.success('Role created successfully');
+                toast.success(t('admin.manage_role_page.create_success'));
             } else if (selectedRole) {
                 // Chỉ update description, không update name
                 await roleService.updateRole(selectedRole.id, {
                     name: selectedRole.name, // Giữ nguyên name
                     description: formData.description
                 });
-                toast.success('Role updated successfully');
+                toast.success(t('admin.manage_role_page.update_success'));
             }
             setShowModal(false);
             fetchRoles();
         } catch (error: any) {
             console.error('Error saving role:', error);
-            toast.error(error.response?.data?.message || 'Failed to save role');
+            toast.error(error.response?.data?.message || t('admin.manage_role_page.save_fail'));
         }
     };
 
@@ -124,12 +126,12 @@ const ManageRolePage = () => {
         <div className="admin-container">
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Manage Roles</h1>
-                    <p className="admin-subtitle">View and manage user roles</p>
+                    <h1 className="admin-title">{t('admin.manage_role_page.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.manage_role_page.subtitle')}</p>
                 </div>
                 <button className="btn-primary" onClick={handleOpenCreateModal}>
                     <Plus size={20} />
-                    Add Role
+                    {t('admin.manage_role_page.add_role')}
                 </button>
             </div>
 
@@ -140,7 +142,7 @@ const ManageRolePage = () => {
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="Search roles by name or description..."
+                        placeholder={t('admin.manage_role_page.search_placeholder')}
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
@@ -161,16 +163,16 @@ const ManageRolePage = () => {
                             <tr>
                                 <th onClick={() => handleSort('id')} className="sortable-header" style={{ width: '80px' }}>
                                     <div className="th-content">
-                                        ID {getSortIcon('id')}
+                                        {t('admin.manage_role_page.table.id')} {getSortIcon('id')}
                                     </div>
                                 </th>
                                 <th onClick={() => handleSort('name')} className="sortable-header">
                                     <div className="th-content">
-                                        Role Name {getSortIcon('name')}
+                                        {t('admin.manage_role_page.table.name')} {getSortIcon('name')}
                                     </div>
                                 </th>
-                                <th>Description</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                <th>{t('admin.manage_role_page.table.description')}</th>
+                                <th style={{ textAlign: 'right' }}>{t('admin.manage_role_page.table.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -184,18 +186,18 @@ const ManageRolePage = () => {
                                     </td>
                                     <td>
                                         <span style={{ color: 'var(--shop-text-muted)' }}>
-                                            {role.description || 'No description'}
+                                            {role.description || ''}
                                         </span>
                                     </td>
                                     <td>
                                         <div className="action-buttons">
-                                            <button className="btn-icon" title="Edit" onClick={() => handleOpenEditModal(role)}>
+                                            <button className="btn-icon" title={t('admin.manage_role_page.edit_tooltip')} onClick={() => handleOpenEditModal(role)}>
                                                 <Edit size={18} />
                                             </button>
                                             <button
                                                 className="btn-icon delete"
                                                 onClick={() => handleDelete(role.id)}
-                                                title="Delete Role"
+                                                title={t('admin.manage_role_page.delete_tooltip')}
                                             >
                                                 <Trash2 size={18} />
                                             </button>
@@ -208,7 +210,7 @@ const ManageRolePage = () => {
                 )}
                 {!isLoading && roles.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--shop-text-muted)' }}>
-                        No roles found.
+                        {t('admin.manage_role_page.no_roles')}
                     </div>
                 )}
             </div>
@@ -223,10 +225,12 @@ const ManageRolePage = () => {
             {showModal && (
                 <div className="modal-overlay" onClick={() => setShowModal(false)}>
                     <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                        <h2>{modalMode === 'create' ? 'Create New Role' : 'Edit Role'}</h2>
+                        <h2>{modalMode === 'create'
+                            ? t('admin.manage_role_page.modal.create_title')
+                            : t('admin.manage_role_page.modal.edit_title')}</h2>
                         <form onSubmit={handleSubmit}>
                             <div className="form-group">
-                                <label>Role Name *</label>
+                                <label>{t('admin.manage_role_page.modal.name_label')}</label>
                                 <input
                                     type="text"
                                     value={formData.name}
@@ -236,24 +240,26 @@ const ManageRolePage = () => {
                                     style={{ backgroundColor: modalMode === 'edit' ? '#f3f4f6' : 'white' }}
                                 />
                                 {modalMode === 'edit' && (
-                                    <small style={{ color: 'var(--shop-text-muted)' }}>Role name cannot be changed</small>
+                                    <small style={{ color: 'var(--shop-text-muted)' }}>{t('admin.manage_role_page.modal.name_immutable')}</small>
                                 )}
                             </div>
                             <div className="form-group">
-                                <label>Description</label>
+                                <label>{t('admin.manage_role_page.modal.desc_label')}</label>
                                 <textarea
                                     value={formData.description}
                                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                     rows={3}
-                                    placeholder="Enter role description..."
+                                    placeholder={t('admin.manage_role_page.modal.desc_placeholder')}
                                 />
                             </div>
                             <div className="modal-actions">
                                 <button type="button" className="btn-secondary" onClick={() => setShowModal(false)}>
-                                    Cancel
+                                    {t('admin.manage_role_page.modal.cancel')}
                                 </button>
                                 <button type="submit" className="btn-primary">
-                                    {modalMode === 'create' ? 'Create' : 'Update'}
+                                    {modalMode === 'create'
+                                        ? t('admin.manage_role_page.modal.create')
+                                        : t('admin.manage_role_page.modal.update')}
                                 </button>
                             </div>
                         </form>

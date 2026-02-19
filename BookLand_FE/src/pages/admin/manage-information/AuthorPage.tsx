@@ -8,8 +8,10 @@ import '../../../styles/components/buttons.css';
 import '../../../styles/components/forms.css';
 import '../../../styles/pages/admin-management.css';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const AuthorPage = () => {
+    const { t } = useTranslation();
     const [authors, setAuthors] = useState<Author[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
 
@@ -49,7 +51,7 @@ const AuthorPage = () => {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to load authors");
+            toast.error(t('admin.author.toast.load_fail'));
         }
     };
 
@@ -61,9 +63,9 @@ const AuthorPage = () => {
     }, [currentPage, sortConfig, searchTerm]);
 
     const fieldConfig: FieldConfig[] = [
-        { name: 'name', label: 'Name', type: 'text', required: true, placeholder: 'Author Name' },
-        { name: 'authorImage', label: 'Author Image URL', type: 'image', placeholder: 'https://...' },
-        { name: 'description', label: 'Description', type: 'textarea', placeholder: 'About the author...' }
+        { name: 'name', label: t('admin.author.modal.name_label'), type: 'text', required: true, placeholder: t('admin.author.modal.name_placeholder') },
+        { name: 'authorImage', label: t('admin.author.modal.image_label'), type: 'image', placeholder: t('admin.author.modal.image_placeholder') },
+        { name: 'description', label: t('admin.author.modal.desc_label'), type: 'textarea', placeholder: t('admin.author.modal.desc_placeholder') }
     ];
 
     const handleSort = (key: keyof Author) => {
@@ -95,28 +97,28 @@ const AuthorPage = () => {
         try {
             if (modalMode === 'update' && selectedAuthor) {
                 await authorService.updateAuthor(selectedAuthor.id, data);
-                toast.success("Author updated successfully");
+                toast.success(t('admin.author.toast.update_success'));
             } else if (modalMode === 'create') {
                 await authorService.createAuthor(data);
-                toast.success("Author created successfully");
+                toast.success(t('admin.author.toast.create_success'));
             }
             fetchAuthors();
             setIsModalOpen(false);
         } catch (error) {
             console.error(error);
-            toast.error("Action failed");
+            toast.error(t('admin.author.toast.action_fail'));
         }
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this author?')) {
+        if (window.confirm(t('admin.author.toast.delete_confirm'))) {
             try {
                 await authorService.deleteAuthor(id);
-                toast.success("Author deleted successfully");
+                toast.success(t('admin.author.toast.delete_success'));
                 fetchAuthors();
             } catch (error) {
                 console.error(error);
-                toast.error("Delete failed");
+                toast.error(t('admin.author.toast.delete_fail'));
             }
         }
     };
@@ -128,16 +130,25 @@ const AuthorPage = () => {
             : <ArrowDown size={14} className="sort-icon active" />;
     };
 
+    const getModalTitle = () => {
+        switch (modalMode) {
+            case 'create': return t('admin.author.modal.create_title');
+            case 'update': return t('admin.author.modal.update_title');
+            case 'view': return t('admin.author.modal.view_title');
+            default: return '';
+        }
+    };
+
     return (
         <div className="admin-container">
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Author Management</h1>
-                    <p className="admin-subtitle">Manage book authors</p>
+                    <h1 className="admin-title">{t('admin.author.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.author.subtitle')}</p>
                 </div>
                 <button className="btn-primary" onClick={() => openModal('create')}>
                     <Plus size={20} />
-                    Add Author
+                    {t('admin.author.add_btn')}
                 </button>
             </div>
 
@@ -147,7 +158,7 @@ const AuthorPage = () => {
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="Search authors by name or description..."
+                        placeholder={t('admin.author.search_placeholder')}
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
@@ -160,24 +171,24 @@ const AuthorPage = () => {
                         <tr>
                             <th onClick={() => handleSort('id')} className="sortable-header" style={{ width: '80px' }}>
                                 <div className="th-content">
-                                    ID
+                                    {t('admin.author.table.id')}
                                     {getSortIcon('id')}
                                 </div>
                             </th>
-                            <th>Image</th>
+                            <th>{t('admin.author.table.image')}</th>
                             <th onClick={() => handleSort('name')} className="sortable-header">
                                 <div className="th-content">
-                                    Name
+                                    {t('admin.author.table.name')}
                                     {getSortIcon('name')}
                                 </div>
                             </th>
                             <th onClick={() => handleSort('description')} className="sortable-header">
                                 <div className="th-content">
-                                    Description
+                                    {t('admin.author.table.description')}
                                     {getSortIcon('description')}
                                 </div>
                             </th>
-                            <th style={{ textAlign: 'right' }}>Actions</th>
+                            <th style={{ textAlign: 'right' }}>{t('admin.author.table.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -213,7 +224,7 @@ const AuthorPage = () => {
                         {authors.length === 0 && (
                             <tr>
                                 <td colSpan={5} style={{ textAlign: 'center', padding: '2rem' }}>
-                                    No authors found.
+                                    {t('admin.author.no_data')}
                                 </td>
                             </tr>
                         )}
@@ -232,7 +243,7 @@ const AuthorPage = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleModalSubmit}
                 mode={modalMode}
-                title={`${modalMode.charAt(0).toUpperCase() + modalMode.slice(1)} Author`}
+                title={getModalTitle()}
                 fields={fieldConfig}
                 initialData={selectedAuthor}
             />

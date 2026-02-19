@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import '../styles/components/newsletter.css';
+import { useTranslation } from 'react-i18next';
 
 const Newsletter = () => {
     const [email, setEmail] = useState('');
+    const { t } = useTranslation();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -16,22 +18,22 @@ const Newsletter = () => {
                 <div className="newsletter-inner">
                     <div className="newsletter-content">
                         <h2 className="newsletter-title">
-                            Đăng ký nhận bản tin của chúng tôi
+                            {t('home.newsletter.title')}
                         </h2>
                         <p className="newsletter-description">
-                            Hãy để lại email của bạn để không bỏ lỡ những thông tin mới nhất về sách mới, sự kiện và các chương trình ưu đãi hấp dẫn từ BookLand.
+                            {t('home.newsletter.desc')}
                         </p>
                         <form className="newsletter-form-group" onSubmit={handleSubmit}>
                             <input
                                 type="email"
                                 className="newsletter-email-input"
-                                placeholder="Nhập địa chỉ email của bạn"
+                                placeholder={t('home.newsletter.placeholder')}
                                 value={email}
                                 onChange={(e) => setEmail(e.target.value)}
                                 required
                             />
                             <button type="submit" className="newsletter-submit-btn">
-                                Đăng ký ngay
+                                {t('home.newsletter.btn')}
                             </button>
                         </form>
                     </div>

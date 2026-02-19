@@ -5,12 +5,14 @@ import { ChevronRight, ChevronLeft, Zap } from 'lucide-react';
 import '../styles/components/flash-sale.css';
 import bookService from '../api/bookService';
 import type { Book } from '../types/Book';
+import { useTranslation } from 'react-i18next';
 
 const FlashSale = () => {
     const [books, setBooks] = useState<Book[]>([]);
     const [currentIndex, setCurrentIndex] = useState(0);
     const itemsPerPage = 5;
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     useEffect(() => {
         const fetchBestSellers = async () => {
@@ -36,10 +38,6 @@ const FlashSale = () => {
         if (currentIndex + itemsPerPage < books.length) {
             setCurrentIndex(prev => prev + 1);
         } else {
-            // Reset to start if at end, or just stop? 
-            // "next sang các sách còn lại" implies navigation. 
-            // Let's loop back to 0 for continuous feeling or just stop.
-            // User just said "next to other books".
             setCurrentIndex(0);
         }
     };
@@ -51,9 +49,6 @@ const FlashSale = () => {
     };
 
     const visibleBooks = books.slice(currentIndex, currentIndex + itemsPerPage);
-
-    // If fetch returns fewer than 5 books, fill with empty or just show what we have
-    // But logic requires 10 books requested.
 
     const handleBookClick = (bookId: number) => {
         navigate(`/shop/book-detail/${bookId}`);
@@ -68,7 +63,7 @@ const FlashSale = () => {
                     <div className="flash-sale__title-group">
                         <div className="flash-sale__logo">
                             <Zap size={24} fill="#C92127" color="#C92127" className="flash-sale__zap" />
-                            <span className="flash-sale__text">SUPER SALE</span>
+                            <span className="flash-sale__text">{t('home.flash_sale.title')}</span>
                         </div>
                     </div>
                     {/* Optional: Add View All link if there is a page for it */}
@@ -103,7 +98,7 @@ const FlashSale = () => {
                                 )}
                                 <div className="flash-sale__progress-bar">
                                     <div className="flash-sale__progress-inner" style={{ width: `${Math.min(book.stock, 100)}%` }}></div>
-                                    <span className="flash-sale__progress-text">Còn lại {book.stock}</span>
+                                    <span className="flash-sale__progress-text">{t('home.flash_sale.stock', { count: book.stock })}</span>
                                 </div>
                             </div>
                         </div>

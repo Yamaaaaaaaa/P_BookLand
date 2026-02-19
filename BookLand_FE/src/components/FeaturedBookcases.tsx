@@ -1,18 +1,31 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { BookOpen } from 'lucide-react';
 import '../styles/components/featured-bookcases.css';
+import bookService from '../api/bookService';
+import type { Book } from '../types/Book';
 
 const FeaturedBookcases = () => {
-    const collections = [
-        { id: 1, name: 'Bình Yên Để Bắt Đầu', image: 'https://cdn0.fahasa.com/media/catalog/product/b/i/binh-yen-de-bat-dau.jpg' },
-        { id: 2, name: 'Làm Chủ Đồng Tiền', image: 'https://cdn0.fahasa.com/media/catalog/product/l/a/lam-chu-dong-tien.jpg' },
-        { id: 3, name: 'Về Nhà Ăn Tết', image: 'https://cdn0.fahasa.com/media/catalog/product/v/e/ve-nha-an-tet.jpg' },
-        { id: 4, name: 'Tác Giả Trẻ Việt Nam', image: 'https://cdn0.fahasa.com/media/catalog/product/t/a/tac-gia-tre-viet-nam.jpg' },
-        { id: 5, name: 'Thiếu Nhi Vui Đón Tết', image: 'https://cdn0.fahasa.com/media/catalog/product/t/h/thieu-nhi-vui-don-tet.jpg' },
-        { id: 6, name: 'Sách chỉ bán tại Fahasa', image: 'https://cdn0.fahasa.com/media/catalog/product/s/a/sach-chi-ban-tai-fahasa.jpg' },
-        { id: 7, name: 'Tủ Sách Trinh Thám', image: 'https://cdn0.fahasa.com/media/catalog/product/t/u/tu-sach-trinh-tham.jpg' },
-        { id: 8, name: 'Tủ Sách Kinh Dị', image: 'https://cdn0.fahasa.com/media/catalog/product/t/u/tu-sach-kinh-di.jpg' }
-    ];
+    const [books, setBooks] = useState<Book[]>([]);
+
+    useEffect(() => {
+        const fetchPinnedBooks = async () => {
+            try {
+                const response = await bookService.getAllBooks({
+                    pinned: true,
+                    page: 0,
+                    size: 8
+                });
+                if (response.result && response.result.content) {
+                    setBooks(response.result.content);
+                }
+            } catch (error) {
+                console.error("Failed to fetch featured bookcases", error);
+            }
+        };
+
+        fetchPinnedBooks();
+    }, []);
 
     return (
         <section className="featured-bookcases">
@@ -24,12 +37,12 @@ const FeaturedBookcases = () => {
                     <h2 className="bookcases-title">TỦ SÁCH NỔI BẬT</h2>
                 </div>
                 <div className="bookcases-grid">
-                    {collections.map((col) => (
-                        <Link key={col.id} to={`/category/${col.id}`} className="bookcase-item">
+                    {books.map((book) => (
+                        <Link key={book.id} to={`/shop/book-detail/${book.id}`} className="bookcase-item">
                             <div className="bookcase-image-wrapper">
-                                <img src={col.image} alt={col.name} className="bookcase-image" />
+                                <img src={book.bookImageUrl} alt={book.name} className="bookcase-image" />
                             </div>
-                            <span className="bookcase-name">{col.name}</span>
+                            <span className="bookcase-name">{book.name}</span>
                         </Link>
                     ))}
                 </div>

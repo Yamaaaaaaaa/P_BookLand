@@ -6,7 +6,7 @@ import { EventType } from '../../../types/EventType';
 import Pagination from '../../../components/admin/Pagination';
 import MultiSelect from '../../../components/admin/MultiSelect';
 import type { Event } from '../../../types/Event';
-import eventService from '../../../api/eventService';
+import { eventService } from '../../../api/eventService';
 import '../../../styles/components/buttons.css';
 import '../../../styles/pages/admin-management.css';
 import { toast } from 'react-toastify';

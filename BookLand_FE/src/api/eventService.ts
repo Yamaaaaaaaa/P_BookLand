@@ -20,7 +20,7 @@ interface EventQueryParams {
     sortDirection?: string;
 }
 
-const eventService = {
+export const eventService = {
     getAllEvents: (params?: EventQueryParams) => {
         return axiosClient.get<any, ApiResponse<Page<Event>>>('/api/events', { params });
     },
@@ -38,7 +38,8 @@ const eventService = {
     },
     updateEventStatus: (id: number, status: string) => {
         return axiosClient.patch<any, ApiResponse<Event>>(`/api/events/${id}/status`, null, { params: { status } });
+    },
+    getHighestPriorityEvent: () => {
+        return axiosClient.get<any, ApiResponse<Event>>('/api/events/highest-priority');
     }
 };
-
-export default eventService;

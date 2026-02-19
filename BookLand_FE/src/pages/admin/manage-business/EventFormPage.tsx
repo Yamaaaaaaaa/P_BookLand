@@ -11,7 +11,7 @@ import { ImageType } from '../../../types/EventImage';
 import type { EventRequest, EventPayload } from '../../../types/Event';
 import type { Category } from '../../../types/Category';
 import type { PaymentMethod } from '../../../types/PaymentMethod';
-import eventService from '../../../api/eventService';
+import { eventService } from '../../../api/eventService';
 import categoryService from '../../../api/categoryService';
 import paymentMethodService from '../../../api/paymentMethodService';
 import userService from '../../../api/userService';

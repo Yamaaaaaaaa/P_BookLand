@@ -21,7 +21,22 @@ const BooksPage = () => {
     const [currentPage, setCurrentPage] = useState(0); // 0-indexed for API
     const [pageSize, setPageSize] = useState(12);
 
-    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>([]);
+    const [selectedCategoryIds, setSelectedCategoryIds] = useState<number[]>(() => {
+        const categoryParam = searchParams.get('category');
+        return categoryParam ? [Number(categoryParam)] : [];
+    });
+
+    // Update category from URL params when they change
+    useEffect(() => {
+        const categoryParam = searchParams.get('category');
+        if (categoryParam) {
+            const newId = Number(categoryParam);
+            setSelectedCategoryIds(prev => {
+                if (prev.length === 1 && prev[0] === newId) return prev;
+                return [newId];
+            });
+        }
+    }, [searchParams]);
     const [selectedPriceRange, setSelectedPriceRange] = useState('');
     const [selectedAuthorIds, setSelectedAuthorIds] = useState<number[]>([]);
     const [selectedPublisherIds, setSelectedPublisherIds] = useState<number[]>([]);

@@ -97,6 +97,10 @@ const FilterSidebar = ({
                     const res = await categoryService.getAll({ keyword: query, size: 10 });
                     return res.result?.content || [];
                 }}
+                getById={async (id) => {
+                    const res = await categoryService.getById(id);
+                    return res.result;
+                }}
                 selectedIds={selectedCategoryIds}
                 onToggle={onCategoryToggle}
                 onClear={onCategoryClear}
@@ -111,6 +115,10 @@ const FilterSidebar = ({
                 onSearch={async (query) => {
                     const res = await authorService.getAllAuthors({ keyword: query, size: 10 });
                     return res.result?.content || [];
+                }}
+                getById={async (id) => {
+                    const res = await authorService.getAuthorById(id);
+                    return res.result;
                 }}
                 selectedIds={selectedAuthorIds}
                 onToggle={onAuthorToggle}
@@ -127,6 +135,10 @@ const FilterSidebar = ({
                     const res = await publisherService.getAllPublishers({ keyword: query, size: 10 });
                     return res.result?.content || [];
                 }}
+                getById={async (id) => {
+                    const res = await publisherService.getPublisherById(id);
+                    return res.result;
+                }}
                 selectedIds={selectedPublisherIds}
                 onToggle={onPublisherToggle}
                 onClear={onPublisherClear}
@@ -142,6 +154,10 @@ const FilterSidebar = ({
                     const res = await serieService.getAllSeries({ keyword: query, size: 10 });
                     return res.result?.content || [];
                 }}
+                getById={async (id) => {
+                    const res = await serieService.getSerieById(id);
+                    return res.result;
+                }}
                 selectedIds={selectedSeriesIds}
                 onToggle={onSeriesToggle}
                 onClear={onSeriesClear}
@@ -155,6 +171,7 @@ const SearchableFilterSection = <T extends { id: number; name: string }>({
     title,
     placeholder,
     onSearch,
+    getById,
     selectedIds,
     onToggle,
     onClear
@@ -162,6 +179,7 @@ const SearchableFilterSection = <T extends { id: number; name: string }>({
     title: string;
     placeholder: string;
     onSearch: (query: string) => Promise<T[]>;
+    getById: (id: number) => Promise<T | null | undefined>;
     selectedIds: number[];
     onToggle: (id: number) => void;
     onClear?: () => void;
@@ -172,6 +190,32 @@ const SearchableFilterSection = <T extends { id: number; name: string }>({
     const [isLoading, setIsLoading] = useState(false);
     const [selectedNames, setSelectedNames] = useState<Record<number, string>>({});
     const dropdownRef = useRef<HTMLDivElement>(null);
+
+    // Fetch missing names for selected IDs
+    useEffect(() => {
+        const fetchMissingNames = async () => {
+            const missingIds = selectedIds.filter(id => !selectedNames[id]);
+            if (missingIds.length === 0) return;
+
+            const newNames: Record<number, string> = {};
+            await Promise.all(missingIds.map(async (id) => {
+                try {
+                    const item = await getById(id);
+                    if (item) {
+                        newNames[id] = item.name;
+                    }
+                } catch (error) {
+                    console.error(`Failed to fetch details for ID ${id}`, error);
+                }
+            }));
+
+            if (Object.keys(newNames).length > 0) {
+                setSelectedNames(prev => ({ ...prev, ...newNames }));
+            }
+        };
+
+        fetchMissingNames();
+    }, [selectedIds, getById]); // Rely on selectedIds changing
 
     // Debounced Search
     useEffect(() => {

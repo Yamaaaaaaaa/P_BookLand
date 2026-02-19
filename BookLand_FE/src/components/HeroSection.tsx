@@ -110,18 +110,17 @@ const HeroSection = () => {
                     </div>
                 </div>
 
-                {/* Middle Row: Promo Banners */}
                 <div className="hero-promo-banners">
-                    <Link to="/shop/category/sach-giao-khoa" className="hero-promo-banner" style={{ padding: 0 }}>
+                    <Link to="/shop/books?category=4" className="hero-promo-banner" style={{ padding: 0 }}>
                         <img src="/sach_giao_khoa.png" alt="Sách giáo khoa" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
                     </Link>
-                    <Link to="/shop/category/tieu-thuyet-gia-tuong" className="hero-promo-banner" style={{ padding: 0 }}>
+                    <Link to="/shop/books?category=1" className="hero-promo-banner" style={{ padding: 0 }}>
                         <img src="/tieu_thuyet_gia_tuong.png" alt="Tiểu thuyết giả tưởng" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
                     </Link>
-                    <Link to="/shop/category/truyen-tranh" className="hero-promo-banner" style={{ padding: 0 }}>
+                    <Link to="/shop/books?category=2" className="hero-promo-banner" style={{ padding: 0 }}>
                         <img src="/truyen-tranh.png" alt="Truyện tranh" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
                     </Link>
-                    <Link to="/shop/category/van-hoc-thieu-nhi" className="hero-promo-banner" style={{ padding: 0 }}>
+                    <Link to="/shop/books?category=3" className="hero-promo-banner" style={{ padding: 0 }}>
                         <img src="/van_hoc_thieu_nhi.png" alt="Văn học thiếu nhi" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
                     </Link>
                 </div>

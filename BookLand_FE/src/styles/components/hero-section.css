@@ -118,9 +118,9 @@
 }
 
 .hero-promo-banner {
-  height: 160px;
+  height: auto;
   border-radius: 8px;
-  background-color: #eee;
+  background-color: transparent; /* Remove background color */
   display: flex;
   align-items: center;
   justify-content: center;

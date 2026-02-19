@@ -205,10 +205,18 @@ const HeroSection = () => {
 
                 {/* Middle Row: Promo Banners */}
                 <div className="hero-promo-banners">
-                    <Link to="/shop/category/promo1" className="hero-promo-banner" style={{ backgroundColor: '#FFB6C1', textDecoration: 'none' }}>Promo 1</Link>
-                    <Link to="/shop/category/promo2" className="hero-promo-banner" style={{ backgroundColor: '#E0FFFF', textDecoration: 'none' }}>Promo 2</Link>
-                    <Link to="/shop/category/promo3" className="hero-promo-banner" style={{ backgroundColor: '#F0E68C', textDecoration: 'none' }}>Promo 3</Link>
-                    <Link to="/shop/category/promo4" className="hero-promo-banner" style={{ backgroundColor: '#98FB98', textDecoration: 'none' }}>Promo 4</Link>
+                    <Link to="/shop/category/sach-giao-khoa" className="hero-promo-banner" style={{ padding: 0 }}>
+                        <img src="/sach_giao_khoa.png" alt="Sách giáo khoa" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                    </Link>
+                    <Link to="/shop/category/tieu-thuyet-gia-tuong" className="hero-promo-banner" style={{ padding: 0 }}>
+                        <img src="/tieu_thuyet_gia_tuong.png" alt="Tiểu thuyết giả tưởng" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                    </Link>
+                    <Link to="/shop/category/truyen-tranh" className="hero-promo-banner" style={{ padding: 0 }}>
+                        <img src="/truyen-tranh.png" alt="Truyện tranh" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                    </Link>
+                    <Link to="/shop/category/van-hoc-thieu-nhi" className="hero-promo-banner" style={{ padding: 0 }}>
+                        <img src="/van_hoc_thieu_nhi.png" alt="Văn học thiếu nhi" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                    </Link>
                 </div>
 
                 {/* Bottom Row: Icon Menu */}

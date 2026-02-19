@@ -141,16 +141,16 @@ const PaymentMethodPage = () => {
     };
 
     const modalFields: FieldConfig[] = [
-        { name: 'name', label: 'Method Name', type: 'text', required: true },
-        { name: 'providerCode', label: 'Provider Code', type: 'text', required: true, placeholder: 'e.g. VISAMASTER, COD' },
+        { name: 'name', label: t('admin.payment_method.modal.label_name'), type: 'text', required: true },
+        { name: 'providerCode', label: t('admin.payment_method.modal.label_code'), type: 'text', required: true, placeholder: 'e.g. VISAMASTER, COD' },
         {
             name: 'isOnline',
-            label: 'Payment Type',
+            label: t('admin.payment_method.modal.label_type'),
             type: 'select',
             required: true,
             options: [
-                { value: 'true', label: 'Online Payment' },
-                { value: 'false', label: 'Offline Payment' }
+                { value: 'true', label: t('admin.payment_method.status.online') },
+                { value: 'false', label: t('admin.payment_method.status.offline') }
             ]
         },
         { name: 'description', label: 'Description', type: 'textarea' }
@@ -160,15 +160,15 @@ const PaymentMethodPage = () => {
         <div className="admin-container">
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Payment Methods</h1>
-                    <p className="admin-subtitle">Manage payment options for customers</p>
+                    <h1 className="admin-title">{t('admin.payment_method.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.payment_method.subtitle')}</p>
                 </div>
                 <button
                     className="btn-primary"
                     onClick={handleAdd}
                 >
                     <Plus size={18} />
-                    Add Method
+                    {t('admin.payment_method.add_btn')}
                 </button>
             </div>
 
@@ -178,7 +178,7 @@ const PaymentMethodPage = () => {
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="Search by name or code..."
+                        placeholder={t('admin.payment_method.search_placeholder')}
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
@@ -198,16 +198,16 @@ const PaymentMethodPage = () => {
                                     <div className="th-content">ID {getSortIcon('id')}</div>
                                 </th>
                                 <th onClick={() => handleSort('name')} className="sortable-header">
-                                    <div className="th-content">Name {getSortIcon('name')}</div>
+                                    <div className="th-content">{t('admin.payment_method.table_header.name')} {getSortIcon('name')}</div>
                                 </th>
                                 <th onClick={() => handleSort('providerCode')} className="sortable-header">
-                                    <div className="th-content">Code {getSortIcon('providerCode')}</div>
+                                    <div className="th-content">{t('admin.payment_method.table_header.code')} {getSortIcon('providerCode')}</div>
                                 </th>
                                 <th className="sortable-header">
-                                    <div className="th-content">Type</div>
+                                    <div className="th-content">{t('admin.payment_method.table_header.type')}</div>
                                 </th>
-                                <th>Description</th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                <th>{t('admin.payment_method.table_header.description')}</th>
+                                <th style={{ textAlign: 'right' }}>{t('admin.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -235,7 +235,7 @@ const PaymentMethodPage = () => {
                                             backgroundColor: method.isOnline ? '#e8f0fe' : '#fce8e6',
                                             color: method.isOnline ? '#1967d2' : '#c5221f'
                                         }}>
-                                            {method.isOnline ? 'Online Payment' : 'Offline Payment'}
+                                            {method.isOnline ? t('admin.payment_method.status.online') : t('admin.payment_method.status.offline')}
                                         </span>
                                     </td>
                                     <td style={{ color: 'var(--shop-text-secondary)' }}>{method.description}</td>
@@ -264,7 +264,7 @@ const PaymentMethodPage = () => {
                 )}
                 {!isLoading && methods.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--shop-text-muted)' }}>
-                        No payment methods found.
+                        {t('admin.payment_method.empty_state')}
                     </div>
                 )}
             </div>
@@ -280,7 +280,7 @@ const PaymentMethodPage = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleModalSubmit}
                 mode={modalMode}
-                title={modalMode === 'create' ? 'Add Payment Method' : 'Edit Payment Method'}
+                title={modalMode === 'create' ? t('admin.payment_method.modal.add_title') : t('admin.payment_method.modal.edit_title')}
                 fields={modalFields}
                 initialData={selectedMethod ? {
                     ...selectedMethod,

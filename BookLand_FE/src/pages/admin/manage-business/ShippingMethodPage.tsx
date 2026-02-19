@@ -134,24 +134,24 @@ const ShippingMethodPage = () => {
     };
 
     const modalFields: FieldConfig[] = [
-        { name: 'name', label: 'Method Name', type: 'text', required: true },
-        { name: 'price', label: 'Price', type: 'number', required: true, placeholder: '0' },
-        { name: 'description', label: 'Description', type: 'textarea' }
+        { name: 'name', label: t('admin.shipping_method.modal.label_name'), type: 'text', required: true },
+        { name: 'price', label: t('admin.shipping_method.modal.label_price'), type: 'number', required: true, placeholder: '0' },
+        { name: 'description', label: t('admin.shipping_method.modal.label_desc'), type: 'textarea' }
     ];
 
     return (
         <div className="admin-container">
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Shipping Methods</h1>
-                    <p className="admin-subtitle">Manage shipping options and fees</p>
+                    <h1 className="admin-title">{t('admin.shipping_method.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.shipping_method.subtitle')}</p>
                 </div>
                 <button
                     className="btn-primary"
                     onClick={handleAdd}
                 >
                     <Plus size={18} />
-                    Add Method
+                    {t('admin.shipping_method.add_btn')}
                 </button>
             </div>
 
@@ -161,7 +161,7 @@ const ShippingMethodPage = () => {
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="Search shipping methods..."
+                        placeholder={t('admin.shipping_method.search_placeholder')}
                         value={searchTerm}
                         onChange={handleSearchChange}
                     />
@@ -176,13 +176,13 @@ const ShippingMethodPage = () => {
                                 <div className="th-content">ID {getSortIcon('id')}</div>
                             </th>
                             <th className="sortable-header">
-                                <div className="th-content">Name</div>
+                                <div className="th-content">{t('admin.shipping_method.table_header.name')}</div>
                             </th>
                             <th className="sortable-header">
-                                <div className="th-content">Price</div>
+                                <div className="th-content">{t('admin.shipping_method.table_header.price')}</div>
                             </th>
-                            <th>Description</th>
-                            <th style={{ textAlign: 'right' }}>Actions</th>
+                            <th>{t('admin.shipping_method.table_header.description')}</th>
+                            <th style={{ textAlign: 'right' }}>{t('admin.actions')}</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -218,7 +218,7 @@ const ShippingMethodPage = () => {
                 </table>
                 {methods.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--shop-text-muted)' }}>
-                        No shipping methods found.
+                        {t('admin.shipping_method.empty_state')}
                     </div>
                 )}
             </div>
@@ -234,7 +234,7 @@ const ShippingMethodPage = () => {
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleModalSubmit}
                 mode={modalMode}
-                title={modalMode === 'create' ? 'Add Shipping Method' : 'Edit Shipping Method'}
+                title={modalMode === 'create' ? t('admin.shipping_method.modal.add_title') : t('admin.shipping_method.modal.edit_title')}
                 fields={modalFields}
                 initialData={selectedMethod || undefined}
             />

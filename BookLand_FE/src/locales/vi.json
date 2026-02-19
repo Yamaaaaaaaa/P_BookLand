@@ -77,25 +77,65 @@
       "upload_images_fail": "Tải ảnh lên thất bại",
       "max_selection_warning": "Bạn chỉ có thể chọn tối đa {{count}} ảnh"
     },
+    "actions": "Hành động",
     "shipping_method": {
       "load_fail": "Tải phương thức vận chuyển thất bại",
       "create_success": "Tạo phương thức vận chuyển thành công",
-      "create_fail": "Tạo phương thức vận chuyển thất bại",
+      "create_fail": "Thao tác thất bại",
       "update_success": "Cập nhật phương thức vận chuyển thành công",
-      "update_fail": "Cập nhật phương thức vận chuyển thất bại",
+      "update_fail": "Thao tác thất bại",
       "delete_success": "Xóa phương thức vận chuyển thành công",
-      "delete_fail": "Xóa phương thức vận chuyển thất bại",
-      "confirm_delete": "Bạn có chắc chắn muốn xóa phương thức vận chuyển này?"
+      "delete_fail": "Xóa thất bại",
+      "confirm_delete": "Bạn có chắc chắn muốn xóa phương thức vận chuyển này?",
+      "title": "Phương thức vận chuyển",
+      "subtitle": "Quản lý tùy chọn và phí vận chuyển",
+      "add_btn": "Thêm phương thức",
+      "search_placeholder": "Tìm kiếm phương thức...",
+      "table_header": {
+        "name": "Tên",
+        "price": "Chi phí",
+        "description": "Mô tả"
+      },
+      "empty_state": "Không tìm thấy phương thức vận chuyển nào.",
+      "modal": {
+        "add_title": "Thêm phương thức vận chuyển",
+        "edit_title": "Chỉnh sửa phương thức vận chuyển",
+        "label_name": "Tên phương thức",
+        "label_price": "Chi phí",
+        "label_desc": "Mô tả"
+      }
     },
     "payment_method": {
       "load_fail": "Tải phương thức thanh toán thất bại",
       "create_success": "Tạo phương thức thanh toán thành công",
-      "create_fail": "Tạo phương thức thanh toán thất bại",
+      "create_fail": "Thao tác thất bại",
       "update_success": "Cập nhật phương thức thanh toán thành công",
-      "update_fail": "Cập nhật phương thức thanh toán thất bại",
+      "update_fail": "Thao tác thất bại",
       "delete_success": "Xóa phương thức thanh toán thành công",
-      "delete_fail": "Xóa phương thức thanh toán thất bại",
-      "confirm_delete": "Bạn có chắc chắn muốn xóa phương thức thanh toán này?"
+      "delete_fail": "Xóa thất bại",
+      "confirm_delete": "Bạn có chắc chắn muốn xóa phương thức thanh toán này?",
+      "title": "Phương thức thanh toán",
+      "subtitle": "Quản lý tùy chọn thanh toán cho khách hàng",
+      "add_btn": "Thêm phương thức",
+      "search_placeholder": "Tìm theo tên hoặc mã...",
+      "table_header": {
+        "code": "Mã",
+        "type": "Loại",
+        "name": "Tên",
+        "description": "Mô tả"
+      },
+      "empty_state": "Không tìm thấy phương thức thanh toán nào.",
+      "status": {
+        "online": "Thanh toán trực tuyến",
+        "offline": "Thanh toán khi nhận hàng"
+      },
+      "modal": {
+        "add_title": "Thêm phương thức thanh toán",
+        "edit_title": "Chỉnh sửa phương thức thanh toán",
+        "label_name": "Tên phương thức",
+        "label_code": "Mã nhà cung cấp",
+        "label_type": "Loại thanh toán"
+      }
     },
     "event": {
       "load_fail": "Tải danh sách sự kiện thất bại",
@@ -108,7 +148,26 @@
       "update_fail": "Cập nhật sự kiện thất bại",
       "load_detail_fail": "Tải chi tiết sự kiện thất bại",
       "add_images_success": "Đã thêm {{count}} ảnh",
-      "user_missing": "Thiếu thông tin người dùng. Vui lòng đăng nhập lại."
+      "user_missing": "Thiếu thông tin người dùng. Vui lòng đăng nhập lại.",
+      "title": "Sự kiện & Khuyến mãi",
+      "subtitle": "Quản lý doanh số, giảm giá và thông báo",
+      "add_btn": "Thêm sự kiện",
+      "search_placeholder": "Tìm kiếm sự kiện...",
+      "filter": {
+        "status_label": "Trạng thái",
+        "type_label": "Loại sự kiện",
+        "status_placeholder": "Tất cả trạng thái",
+        "type_placeholder": "Tất cả loại",
+        "clear_btn": "Xóa bộ lọc"
+      },
+      "table_header": {
+        "start_date": "Ngày bắt đầu",
+        "priority": "Ưu tiên",
+        "status": "Trạng thái",
+        "name": "Tên",
+        "type": "Loại"
+      },
+      "empty_state": "Không tìm thấy sự kiện nào phù hợp với bộ lọc."
     },
     "title": "BookLand Admin",
     "overview": "Tổng quan",

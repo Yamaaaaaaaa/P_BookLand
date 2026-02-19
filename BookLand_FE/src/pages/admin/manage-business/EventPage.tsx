@@ -116,15 +116,15 @@ const EventPage = () => {
         <div className="admin-container">
             <div className="admin-header">
                 <div>
-                    <h1 className="admin-title">Events & Promotions</h1>
-                    <p className="admin-subtitle">Manage sales, discounts, and notifications</p>
+                    <h1 className="admin-title">{t('admin.event.title')}</h1>
+                    <p className="admin-subtitle">{t('admin.event.subtitle')}</p>
                 </div>
                 <button
                     className="btn-primary"
                     onClick={() => navigate('/admin/manage-business/event/new')}
                 >
                     <Plus size={18} />
-                    Add Event
+                    {t('admin.event.add_btn')}
                 </button>
             </div>
 
@@ -134,7 +134,7 @@ const EventPage = () => {
                     <input
                         type="text"
                         className="search-input"
-                        placeholder="Search events..."
+                        placeholder={t('admin.event.search_placeholder')}
                         value={searchTerm}
                         onChange={(e) => {
                             setSearchTerm(e.target.value);
@@ -146,26 +146,26 @@ const EventPage = () => {
                 <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-end', flexWrap: 'wrap' }}>
                     <div style={{ flex: 1, minWidth: '200px' }}>
                         <MultiSelect
-                            label="Status"
+                            label={t('admin.event.filter.status_label')}
                             options={statusOptions}
                             value={selectedStatuses}
                             onChange={(vals) => {
                                 setSelectedStatuses(vals);
                                 setCurrentPage(1);
                             }}
-                            placeholder="All Statuses"
+                            placeholder={t('admin.event.filter.status_placeholder')}
                         />
                     </div>
                     <div style={{ flex: 1, minWidth: '200px' }}>
                         <MultiSelect
-                            label="Event Type"
+                            label={t('admin.event.filter.type_label')}
                             options={typeOptions}
                             value={selectedTypes}
                             onChange={(vals) => {
                                 setSelectedTypes(vals);
                                 setCurrentPage(1);
                             }}
-                            placeholder="All Types"
+                            placeholder={t('admin.event.filter.type_placeholder')}
                         />
                     </div>
 
@@ -180,7 +180,7 @@ const EventPage = () => {
                         className="btn-secondary"
                         style={{ height: '42px', whiteSpace: 'nowrap', flexShrink: 0 }}
                     >
-                        Clear Filters
+                        {t('admin.event.filter.clear_btn')}
                     </button>
                 </div>
             </div>
@@ -198,21 +198,21 @@ const EventPage = () => {
                                     <div className="th-content">ID {getSortIcon('id')}</div>
                                 </th>
                                 <th className="sortable-header">
-                                    <div className="th-content">Name</div>
+                                    <div className="th-content">{t('admin.event.table_header.name')}</div>
                                 </th>
                                 <th className="sortable-header">
-                                    <div className="th-content">Type</div>
+                                    <div className="th-content">{t('admin.event.table_header.type')}</div>
                                 </th>
                                 <th onClick={() => handleSort('startTime')} className="sortable-header">
-                                    <div className="th-content">Start Date {getSortIcon('startTime')}</div>
+                                    <div className="th-content">{t('admin.event.table_header.start_date')} {getSortIcon('startTime')}</div>
                                 </th>
                                 <th onClick={() => handleSort('priority')} className="sortable-header">
-                                    <div className="th-content">Priority {getSortIcon('priority')}</div>
+                                    <div className="th-content">{t('admin.event.table_header.priority')} {getSortIcon('priority')}</div>
                                 </th>
                                 <th className="sortable-header">
-                                    <div className="th-content">Status</div>
+                                    <div className="th-content">{t('admin.event.table_header.status')}</div>
                                 </th>
-                                <th style={{ textAlign: 'right' }}>Actions</th>
+                                <th style={{ textAlign: 'right' }}>{t('admin.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -276,7 +276,7 @@ const EventPage = () => {
                 )}
                 {!isLoading && events.length === 0 && (
                     <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--shop-text-muted)' }}>
-                        No events found matching your filters.
+                        {t('admin.event.empty_state')}
                     </div>
                 )}
             </div>

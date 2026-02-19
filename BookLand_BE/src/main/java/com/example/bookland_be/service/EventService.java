@@ -100,6 +100,19 @@ public class EventService {
         return convertToDTO(event);
     }
 
+    @Transactional(readOnly = true)
+    public EventDTO getHighestPriorityEvent() {
+        LocalDateTime now = LocalDateTime.now();
+        Event event = eventRepository.findFirstByStatusAndStartTimeLessThanEqualAndEndTimeGreaterThanEqualOrderByPriorityDesc(
+                EventStatus.ACTIVE, now, now)
+                .orElse(null);
+
+        if (event == null) {
+            return null;
+        }
+        return convertToDTO(event);
+    }
+
     @Transactional
     public EventDTO createEvent(EventRequest request) {
         validateEventTime(request.getStartTime(), request.getEndTime());

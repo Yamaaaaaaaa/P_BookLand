@@ -97,6 +97,11 @@ public class EventController {
         return ApiResponse.<EventDTO>builder().result(eventService.getEventById(id)).build();
     }
 
+    @GetMapping("/highest-priority")
+    public ApiResponse<EventDTO> getHighestPriorityEvent() {
+        return ApiResponse.<EventDTO>builder().result(eventService.getHighestPriorityEvent()).build();
+    }
+
     @PostMapping
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<EventDTO> createEvent(@Valid @RequestBody EventRequest request) {

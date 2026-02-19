@@ -60,4 +60,7 @@ public interface EventRepository extends JpaRepository<Event, Long>, JpaSpecific
     @Query("SELECT e FROM Event e WHERE e.status = 'ACTIVE' AND e.startTime > :now " +
             "ORDER BY e.startTime ASC")
     List<Event> findUpcomingEvents(@Param("now") LocalDateTime now);
+    // Find highest priority active event
+    Optional<Event> findFirstByStatusAndStartTimeLessThanEqualAndEndTimeGreaterThanEqualOrderByPriorityDesc(
+            Event.EventStatus status, LocalDateTime startTime, LocalDateTime endTime);
 }

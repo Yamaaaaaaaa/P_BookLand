@@ -1,5 +1,4 @@
 
-import FeaturedBooks from '../../components/FeaturedBooks';
 import HeroSection from '../../components/HeroSection';
 import FlashSale from '../../components/FlashSale';
 import TrendingSection from '../../components/TrendingSection';

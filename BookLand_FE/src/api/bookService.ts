@@ -37,6 +37,9 @@ const bookService = {
     updateBookStock: (id: number, quantity: number) => {
         return axiosClient.patch<any, ApiResponse<Book>>(`/api/books/${id}/stock`, null, { params: { quantity } });
     },
+    getBestSellingBooks: (params?: BookQueryParams & { period?: string }) => {
+        return axiosClient.get<any, ApiResponse<Page<Book>>>('/api/books/best-sellers', { params });
+    },
 };
 
 export default bookService;

@@ -19,17 +19,43 @@ import java.net.URLEncoder;
  *
  * @author CTT VNPAY
  */
+@org.springframework.stereotype.Component
 public class VnpayConfig {
 
-    public static String vnp_PayUrl = "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html";
-    public static String vnp_ReturnUrl = "http://localhost:5173/shop/payment-result";
-    public static String vnp_TmnCode = "FJZD83VF";
-    public static String secretKey = "EDJ79SH9XE5WYMKCXZZSQE39S881BDAG";
-    public static String vnp_ApiUrl = "https://sandbox.vnpayment.vn/merchant_webapi/api/transaction";
+    public static String vnp_PayUrl;
+    public static String vnp_ReturnUrl;
+    public static String vnp_TmnCode;
+    public static String secretKey;
+    public static String vnp_ApiUrl;
 
 
     public static String vnp_Version = "2.1.0";
     public static String vnp_Command = "querydr";
+
+    @org.springframework.beans.factory.annotation.Value("${vnpay.pay-url}")
+    public void setVnpPayUrl(String vnpPayUrl) {
+        VnpayConfig.vnp_PayUrl = vnpPayUrl;
+    }
+
+    @org.springframework.beans.factory.annotation.Value("${vnpay.return-url}")
+    public void setVnpReturnUrl(String vnpReturnUrl) {
+        VnpayConfig.vnp_ReturnUrl = vnpReturnUrl;
+    }
+
+    @org.springframework.beans.factory.annotation.Value("${vnpay.tmn-code}")
+    public void setVnpTmnCode(String vnpTmnCode) {
+        VnpayConfig.vnp_TmnCode = vnpTmnCode;
+    }
+
+    @org.springframework.beans.factory.annotation.Value("${vnpay.secret-key}")
+    public void setSecretKey(String secretKey) {
+        VnpayConfig.secretKey = secretKey;
+    }
+
+    @org.springframework.beans.factory.annotation.Value("${vnpay.api-url}")
+    public void setVnpApiUrl(String vnpApiUrl) {
+        VnpayConfig.vnp_ApiUrl = vnpApiUrl;
+    }
 
 
     public static String md5(String message) {

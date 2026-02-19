@@ -1,20 +1,38 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp } from 'lucide-react';
 import '../styles/components/trending-section.css';
-import { featuredBooks } from '../data/mockBooks';
+import bookService from '../api/bookService';
+import type { Book } from '../types/Book';
 
 const TrendingSection = () => {
-    const [activeTab, setActiveTab] = useState('daily');
+    const [activeTab, setActiveTab] = useState<string>('WEEK');
+    const [books, setBooks] = useState<Book[]>([]);
 
     const tabs = [
-        { id: 'daily', label: 'Xu Hướng Theo Ngày' },
-        { id: 'hot', label: 'Sách HOT - Giảm Sốc' },
-        { id: 'bestseller', label: 'Bestseller Ngoại Văn' }
+        { id: 'WEEK', label: 'Xu Hướng Theo Tuần' },
+        { id: 'MONTH', label: 'Xu Hướng Theo Tháng' },
+        { id: 'YEAR', label: 'Xu Hướng Theo Năm' }
     ];
 
-    // Subsets of books for different tabs (mocking variety)
-    const displayBooks = featuredBooks.slice(0, 10);
+    useEffect(() => {
+        const fetchTrendingBooks = async () => {
+            try {
+                const response = await bookService.getBestSellingBooks({
+                    period: activeTab as any, // Cast to match type if needed
+                    page: 0,
+                    size: 5
+                });
+                if (response.result && response.result.content) {
+                    setBooks(response.result.content);
+                }
+            } catch (error) {
+                console.error("Failed to fetch trending books", error);
+            }
+        };
+
+        fetchTrendingBooks();
+    }, [activeTab]);
 
     return (
         <section className="trending-section">
@@ -44,48 +62,43 @@ const TrendingSection = () => {
 
                 {/* Product Grid */}
                 <div className="trending-grid">
-                    {displayBooks.map((book, index) => {
-                        const isSoldOutSoon = index === 1 || index === 4 || index === 9; // Mocking some "almost out" items
-                        const soldCount = Math.floor(Math.random() * 500);
-
+                    {books.map((book, index) => {
                         return (
-                            <Link key={book.id} to={`/shop/book/${book.id}`} className="trending-card">
+                            <Link key={book.id} to={`/shop/book-detail/${book.id}`} className="trending-card">
                                 <div className="trending-image-wrapper">
                                     <img src={book.bookImageUrl} alt={book.name} className="trending-image" />
                                 </div>
                                 <div className="trending-info">
                                     <h3 className="trending-book-name">
-                                        {index % 3 === 0 && <span className="inline-badge">Xu hướng</span>}
-                                        {index % 7 === 0 && <span className="inline-badge inline-badge--new">Mới</span>}
+                                        {index === 0 && <span className="inline-badge">Top 1</span>}
                                         {book.name}
                                     </h3>
                                     <div className="trending-price-group">
                                         <span className="trending-current-price">
-                                            {book.finalPrice.toLocaleString('vi-VN')} đ
+                                            {book.finalPrice?.toLocaleString('vi-VN')} đ
                                         </span>
-                                        <span className="trending-discount">-{Math.round(book.sale * 100)}%</span>
+                                        {book.sale > 0 && (
+                                            <span className="trending-discount">-{Math.round(book.sale)}%</span>
+                                        )}
                                     </div>
-                                    <div className="trending-original-price">
-                                        {book.originalCost.toLocaleString('vi-VN')} đ
-                                    </div>
-                                    <div className={`trending-sold-bar ${isSoldOutSoon ? 'trending-sold-bar--warning' : ''}`}>
+                                    {book.sale > 0 && (
+                                        <div className="trending-original-price">
+                                            {book.originalCost.toLocaleString('vi-VN')} đ
+                                        </div>
+                                    )}
+                                    <div className="trending-sold-bar">
                                         <div
                                             className="trending-sold-progress"
-                                            style={{ width: isSoldOutSoon ? '90%' : '35%' }}
+                                            style={{ width: `${Math.min(book.stock, 100)}%` }}
                                         ></div>
                                         <span className="trending-sold-text">
-                                            {isSoldOutSoon ? 'Sắp hết' : `Đã bán ${soldCount}`}
+                                            Còn lại {book.stock}
                                         </span>
                                     </div>
                                 </div>
                             </Link>
                         );
                     })}
-                </div>
-
-                {/* View More Button */}
-                <div className="trending-footer">
-                    <button className="trending-view-more">Xem Thêm</button>
                 </div>
             </div>
         </section>

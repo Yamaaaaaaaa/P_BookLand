@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { ChevronRight, Grid, List, Filter as FilterIcon, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import { Grid, List, Filter as FilterIcon, ChevronLeft, ChevronRight as ChevronRightIcon } from 'lucide-react';
+import Breadcrumb from '../../components/common/Breadcrumb';
 import BookGrid from '../../components/BooksGrid';
 import bookService from '../../api/bookService';
 import type { Book } from '../../types/Book';
@@ -128,15 +129,12 @@ const BooksPage = () => {
         <div className="books-page">
             <div className="shop-container">
                 {/* Breadcrumbs */}
-                <div className="breadcrumb">
-                    <span>Trang chủ</span>
-                    <ChevronRight size={14} />
-                    <span>Sách tiếng Việt</span>
-                    <ChevronRight size={14} />
-                    <span>Văn học</span>
-                    <ChevronRight size={14} />
-                    <span className="current">Tác phẩm kinh điển</span>
-                </div>
+                <Breadcrumb
+                    items={[
+                        { label: 'Trang chủ', link: '/shop/home' },
+                        { label: 'Sách' }
+                    ]}
+                />
 
                 <div className="books-layout">
                     {/* Sidebar */}

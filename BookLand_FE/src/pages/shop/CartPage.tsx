@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, Truck, CreditCard } from 'lucide-react';
+import Breadcrumb from '../../components/common/Breadcrumb';
 import '../../styles/pages/cart.css';
 import cartService from '../../api/cartService';
 import billService from '../../api/billService';
@@ -183,6 +184,12 @@ const CartPage = () => {
     return (
         <div className="cart-page">
             <div className="shop-container">
+                <Breadcrumb
+                    items={[
+                        { label: 'Trang chủ', link: '/shop/home' },
+                        { label: 'Giỏ hàng' }
+                    ]}
+                />
                 <div className="cart-header-title">
                     GIỎ HÀNG <span>({cartItems.length} sản phẩm)</span>
                 </div>

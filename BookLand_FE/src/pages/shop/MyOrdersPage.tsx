@@ -3,7 +3,6 @@ import { useState, useEffect } from 'react';
 import {
     User,
     ClipboardList,
-
     ChevronDown,
     Eye,
     X,
@@ -16,6 +15,7 @@ import '../../styles/pages/profile.css'; // Re-use profile styles
 import userService from '../../api/userService';
 import billService from '../../api/billService';
 import bookCommentApi from '../../api/bookCommentApi';
+import paymentApi from '../../api/paymentApi';
 import { getCurrentUserId } from '../../utils/auth';
 import { formatCurrency } from '../../utils/formatters';
 import type { User as UserType } from '../../types/User';
@@ -99,6 +99,20 @@ const MyOrdersPage = () => {
         } catch (error) {
             console.error('Failed to fetch bill details:', error);
             toast.error('Không thể lấy chi tiết đơn hàng');
+        }
+    };
+
+    const handlePayment = async (billId: number) => {
+        try {
+            const response = await paymentApi.createPayment(billId);
+            if (response.result && response.result.url) {
+                window.location.href = response.result.url;
+            } else {
+                toast.error('Không thể tạo đường dẫn thanh toán');
+            }
+        } catch (error) {
+            console.error("Payment creation failed", error);
+            toast.error('Có lỗi xảy ra khi tạo thanh toán');
         }
     };
 
@@ -245,6 +259,7 @@ const MyOrdersPage = () => {
                                                     <th style={{ padding: '12px' }}>Mã đơn</th>
                                                     <th style={{ padding: '12px' }}>Ngày mua</th>
                                                     <th style={{ padding: '12px' }}>Tổng tiền</th>
+                                                    <th style={{ padding: '12px' }}>TT Thanh toán</th>
                                                     <th style={{ padding: '12px' }}>Trạng thái</th>
                                                     <th style={{ padding: '12px' }}></th>
                                                 </tr>
@@ -256,6 +271,17 @@ const MyOrdersPage = () => {
                                                         <td style={{ padding: '12px' }}>{order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : '---'}</td>
                                                         <td style={{ padding: '12px', color: '#C92127', fontWeight: 700 }}>{formatCurrency(order.totalCost)}</td>
                                                         <td style={{ padding: '12px' }}>
+                                                            {order.paymentMethodName === 'VNPAY' ? (
+                                                                order.status === 'APPROVED' || order.status === 'COMPLETED' || order.status === 'SHIPPING' || order.status === 'SHIPPED' ? (
+                                                                    <span style={{ color: '#1e7e34', fontWeight: 500 }}>Đã thanh toán</span>
+                                                                ) : (
+                                                                    <span style={{ color: '#f57c00', fontWeight: 500 }}>Chưa thanh toán</span>
+                                                                )
+                                                            ) : (
+                                                                <span style={{ color: '#666' }}>COD</span>
+                                                            )}
+                                                        </td>
+                                                        <td style={{ padding: '12px' }}>
                                                             <span className={`status-badge ${order.status.toLowerCase()}`} style={{
                                                                 fontSize: '11px',
                                                                 padding: '2px 8px',
@@ -266,7 +292,27 @@ const MyOrdersPage = () => {
                                                                 {order.status}
                                                             </span>
                                                         </td>
-                                                        <td style={{ padding: '12px', textAlign: 'right' }}>
+                                                        <td style={{ padding: '12px', textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                            {order.paymentMethodName === 'VNPAY' && order.status === 'PENDING' && (
+                                                                <button
+                                                                    onClick={() => handlePayment(order.id)}
+                                                                    style={{
+                                                                        backgroundColor: '#005ba6',
+                                                                        color: 'white',
+                                                                        border: 'none',
+                                                                        padding: '4px 8px',
+                                                                        borderRadius: '4px',
+                                                                        cursor: 'pointer',
+                                                                        fontSize: '12px',
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        gap: '4px'
+                                                                    }}
+                                                                    title="Thanh toán ngay"
+                                                                >
+                                                                    Thanh toán
+                                                                </button>
+                                                            )}
                                                             <button
                                                                 onClick={() => handleViewOrderDetails(order.id)}
                                                                 style={{ background: 'none', border: '1px solid #ddd', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
@@ -298,7 +344,6 @@ const MyOrdersPage = () => {
                             </button>
                         </div>
                         <div className="modal-body">
-                            {/* ... Customer Info same as before ... */}
                             <div className="order-detail-info">
                                 <div className="info-column">
                                     <h4>Thông tin khách hàng</h4>

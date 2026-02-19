@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { CheckCircle, XCircle } from 'lucide-react';
+import Breadcrumb from '../../components/common/Breadcrumb';
 import paymentApi from '../../api/paymentApi';
 
 const PaymentResultPage = () => {
@@ -35,7 +36,13 @@ const PaymentResultPage = () => {
 
     return (
         <div className="payment-result-page" style={{ padding: '60px 0', minHeight: '80vh', backgroundColor: '#f0f0f0' }}>
-            <div className="shop-container" style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <div className="shop-container" style={{ maxWidth: '800px', margin: '0 auto' }}>
+                <Breadcrumb
+                    items={[
+                        { label: 'Trang chủ', link: '/shop/home' },
+                        { label: 'Kết quả thanh toán' }
+                    ]}
+                />
                 <div className="result-card" style={{ background: 'white', padding: '40px', borderRadius: '8px', textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
 
                     {status === 'loading' && (

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Star, ArrowLeft, Truck, RotateCcw, ShieldCheck, ChevronRight, Minus, Plus, Heart } from 'lucide-react';
 import '../../styles/pages/book-detail.css';
+import Breadcrumb from '../../components/common/Breadcrumb';
 import BookCard from '../../components/BookCard';
 import bookService from '../../api/bookService';
 import cartService from '../../api/cartService';
@@ -208,13 +209,13 @@ const BookDetailPage = () => {
         <div className="book-detail-page">
             <div className="shop-container">
                 {/* Breadcrumb */}
-                <nav className="detail-breadcrumb">
-                    <Link to="/shop/home">Trang chủ</Link>
-                    <ChevronRight size={14} />
-                    <Link to="/shop/books">Sách</Link>
-                    <ChevronRight size={14} />
-                    <span>{book.name}</span>
-                </nav>
+                <Breadcrumb
+                    items={[
+                        { label: 'Trang chủ', link: '/shop/home' },
+                        { label: 'Sách', link: '/shop/books' },
+                        { label: book.name }
+                    ]}
+                />
 
                 <div className="detail-main-content">
                     {/* Left: Product Media & Policy */}

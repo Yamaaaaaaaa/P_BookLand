@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Heart } from 'lucide-react';
+import Breadcrumb from '../../components/common/Breadcrumb';
 import '../../styles/pages/wishlist.css';
 import wishlistService from '../../api/wishlistService';
 import { getCurrentUserId } from '../../utils/auth';
@@ -79,6 +80,12 @@ const WishList = () => {
     return (
         <div className="wishlist-page">
             <div className="wishlist-container">
+                <Breadcrumb
+                    items={[
+                        { label: 'Trang chủ', link: '/shop/home' },
+                        { label: 'Yêu thích' }
+                    ]}
+                />
                 <h2 className="wishlist-header-title">Sản phẩm yêu thích</h2>
 
                 {wishlist.length === 0 ? (

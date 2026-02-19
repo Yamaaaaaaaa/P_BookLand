@@ -14,11 +14,21 @@ const HomePage = () => {
     return (
         <div>
             <HeroSection />
-            <FlashSale />
-            <TrendingSection />
-            <FeaturedBookcases />
-            <WeeklyBestseller />
-            <Recommendations />
+            <div id="super-sale-section">
+                <FlashSale />
+            </div>
+            <div id="trending-section">
+                <TrendingSection />
+            </div>
+            <div id="featured-section">
+                <FeaturedBookcases />
+            </div>
+            <div id="bestseller-section">
+                <WeeklyBestseller />
+            </div>
+            <div id="recommendation-section">
+                <Recommendations />
+            </div>
             <Newsletter />
         </div>
     );

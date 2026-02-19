@@ -43,20 +43,26 @@ const HeroSection = () => {
                 {/* Bottom Row: Icon Menu */}
                 <div className="hero-icon-menu">
                     {[
-                        { label: 'Flash Sale', icon: '⚡', path: '/flash-sale' },
-                        { label: 'Uu đãi sốc', icon: '🎁', path: '/hot-deals' },
-                        { label: 'Mã giảm giá', icon: '🎟️', path: '/vouchers' },
-                        { label: 'Đinh Tị', icon: '📖', path: '/brand/dinh-ti' },
-                        { label: 'ZenBooks', icon: '📚', path: '/brand/zenbooks' },
-                        { label: 'Sản phẩm mới', icon: '🆕', path: '/shop/books?sort=newest' },
-                        { label: 'Phiên chợ cũ', icon: '🔄', path: '/used-books' },
-                        { label: 'Ngoại văn', icon: '🌐', path: '/foreign-books' },
-                        { label: 'Manga', icon: '👹', path: '/category/manga' },
+                        { label: 'Super Sale', icon: '⚡', id: 'super-sale-section' },
+                        { label: 'Xu Hướng', icon: '📈', id: 'trending-section' },
+                        { label: 'Nổi Bật', icon: '🌟', id: 'featured-section' },
+                        { label: 'Bán Chạy', icon: '🏆', id: 'bestseller-section' },
+                        { label: 'Gợi Ý', icon: '💡', id: 'recommendation-section' },
                     ].map((item, index) => (
-                        <Link key={index} to={item.path} className="hero-icon-item" style={{ textDecoration: 'none' }}>
+                        <div
+                            key={index}
+                            className="hero-icon-item"
+                            style={{ cursor: 'pointer' }}
+                            onClick={() => {
+                                const element = document.getElementById(item.id);
+                                if (element) {
+                                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                                }
+                            }}
+                        >
                             <div className="hero-icon-box">{item.icon}</div>
                             <span className="hero-icon-label">{item.label}</span>
-                        </Link>
+                        </div>
                     ))}
                 </div>
             </div>

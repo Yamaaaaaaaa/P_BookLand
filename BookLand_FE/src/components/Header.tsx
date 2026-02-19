@@ -227,8 +227,9 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                     </button>
 
                     {/* Logo */}
-                    <Link to="/shop/home" className="new-header__logo">
-                        Book<span className="new-header__logo-om">Land</span>
+                    {/* Logo */}
+                    <Link to="/shop/home" className="new-header__logo" style={{ display: 'flex', alignItems: 'center' }}>
+                        <img src="/logo.png" alt="BookLand" style={{ height: '40px', width: 'auto' }} />
                     </Link>
 
                     {/* Search Group (Category + Search) */}

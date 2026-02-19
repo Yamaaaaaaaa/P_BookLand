@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, Image as ImageIcon } from 'lucide-react';
 import GalleryModal from './GalleryModal';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import '../../styles/components/buttons.css';
 import '../../styles/components/forms.css';
 import '../../styles/pages/admin-management.css';
@@ -35,6 +36,7 @@ const AdminModal: React.FC<AdminModalProps> = ({
     fields,
     initialData
 }) => {
+    const { t } = useTranslation();
     const [formData, setFormData] = useState<any>({});
     const [isGalleryOpen, setIsGalleryOpen] = useState(false);
     const [activeField, setActiveField] = useState<string | null>(null);
@@ -75,7 +77,7 @@ const AdminModal: React.FC<AdminModalProps> = ({
     const handleGallerySelect = (selectedImages: { id: string; name: string; url: string }[]) => {
         if (selectedImages && selectedImages.length > 0 && activeField) {
             handleChange(activeField, selectedImages[0].url);
-            toast.success('Image selected');
+            toast.success(t('admin.common_modal.image_selected'));
         }
     };
 

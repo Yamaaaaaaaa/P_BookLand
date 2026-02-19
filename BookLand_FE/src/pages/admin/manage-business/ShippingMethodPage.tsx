@@ -8,8 +8,10 @@ import shippingMethodService from '../../../api/shippingMethodService';
 import '../../../styles/components/buttons.css';
 import '../../../styles/pages/admin-management.css';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const ShippingMethodPage = () => {
+    const { t } = useTranslation();
     const [methods, setMethods] = useState<ShippingMethod[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
@@ -49,7 +51,7 @@ const ShippingMethodPage = () => {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to load shipping methods");
+            toast.error(t('admin.shipping_method.load_fail'));
         }
     };
 
@@ -78,14 +80,14 @@ const ShippingMethodPage = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this shipping method?')) {
+        if (window.confirm(t('admin.shipping_method.confirm_delete'))) {
             try {
                 await shippingMethodService.deleteShippingMethod(id);
-                toast.success("Shipping method deleted successfully");
+                toast.success(t('admin.shipping_method.delete_success'));
                 fetchShippingMethods();
             } catch (error) {
                 console.error(error);
-                toast.error("Delete failed");
+                toast.error(t('admin.shipping_method.delete_fail'));
             }
         }
     };
@@ -116,18 +118,18 @@ const ShippingMethodPage = () => {
 
             if (modalMode === 'create') {
                 await shippingMethodService.createShippingMethod(dataToSubmit);
-                toast.success("Shipping method created successfully");
+                toast.success(t('admin.shipping_method.create_success'));
             } else {
                 if (selectedMethod) {
                     await shippingMethodService.updateShippingMethod(selectedMethod.id, dataToSubmit);
-                    toast.success("Shipping method updated successfully");
+                    toast.success(t('admin.shipping_method.update_success'));
                 }
             }
             fetchShippingMethods();
             setIsModalOpen(false);
         } catch (error) {
             console.error(error);
-            toast.error("Action failed");
+            toast.error(modalMode === 'create' ? t('admin.shipping_method.create_fail') : t('admin.shipping_method.update_fail'));
         }
     };
 

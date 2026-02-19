@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Heart } from 'lucide-react';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import '../styles/components/weekly-bestseller.css';
 import bookService from '../api/bookService';
 import categoryService from '../api/categoryService';
@@ -10,7 +11,6 @@ import wishlistService from '../api/wishlistService';
 import { getCurrentUserId } from '../utils/auth';
 import type { Book } from '../types/Book';
 import type { Category } from '../types/Category';
-import { useTranslation } from 'react-i18next';
 
 const WeeklyBestseller = () => {
     const [categories, setCategories] = useState<Category[]>([]);
@@ -63,33 +63,33 @@ const WeeklyBestseller = () => {
     const handleAddToCart = async (book: Book) => {
         const userId = getCurrentUserId();
         if (!userId) {
-            toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng");
+            toast.warning(t('home.bestseller.login_cart'));
             navigate('/login');
             return;
         }
         try {
             await cartService.addToCart(userId, { bookId: book.id, quantity: 1 });
-            toast.success("Đã thêm vào giỏ hàng thành công!");
+            toast.success(t('home.bestseller.add_cart_success'));
             window.dispatchEvent(new Event('cart:updated'));
         } catch (error) {
             console.error("Failed to add to cart", error);
-            toast.error("Thêm vào giỏ hàng thất bại.");
+            toast.error(t('home.bestseller.add_cart_fail'));
         }
     };
 
     const handleAddToWishlist = async (book: Book) => {
         const userId = getCurrentUserId();
         if (!userId) {
-            toast.warning("Vui lòng đăng nhập để thêm vào yêu thích");
+            toast.warning(t('home.bestseller.login_wishlist'));
             navigate('/login');
             return;
         }
         try {
             await wishlistService.addToWishlist(userId, { bookId: book.id });
-            toast.success("Đã thêm vào danh sách yêu thích!");
+            toast.success(t('home.bestseller.add_wishlist_success'));
         } catch (error) {
             console.error("Failed to add to wishlist", error);
-            toast.error("Thêm vào danh sách yêu thích thất bại.");
+            toast.error(t('home.bestseller.add_wishlist_fail'));
         }
     };
 

@@ -10,8 +10,10 @@ import { eventService } from '../../../api/eventService';
 import '../../../styles/components/buttons.css';
 import '../../../styles/pages/admin-management.css';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const EventPage = () => {
+    const { t } = useTranslation();
     const navigate = useNavigate();
     const [events, setEvents] = useState<Event[]>([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -69,7 +71,7 @@ const EventPage = () => {
             }
         } catch (error) {
             console.error('Error fetching events:', error);
-            toast.error('Failed to fetch events');
+            toast.error(t('admin.event.load_fail'));
         } finally {
             setIsLoading(false);
         }
@@ -98,14 +100,14 @@ const EventPage = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this event?')) {
+        if (window.confirm(t('admin.event.confirm_delete'))) {
             try {
                 await eventService.deleteEvent(id);
-                toast.success('Event deleted successfully');
+                toast.success(t('admin.event.delete_success'));
                 fetchEvents();
             } catch (error) {
                 console.error('Error deleting event:', error);
-                toast.error('Failed to delete event');
+                toast.error(t('admin.event.delete_fail'));
             }
         }
     };

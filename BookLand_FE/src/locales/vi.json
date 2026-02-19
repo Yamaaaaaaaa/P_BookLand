@@ -13,7 +13,13 @@
     "my-orders": "Đơn hàng của tôi",
     "my-reviews": "Đánh giá của tôi",
     "wishlist": "Sản phẩm yêu thích",
-    "Wishlist": "Sản phẩm yêu thích"
+    "Wishlist": "Sản phẩm yêu thích",
+    "notifications": {
+      "load_error": "Không thể tải thông báo",
+      "mark_all_read_success": "Đã đọc tất cả thông báo",
+      "delete_all_success": "Đã xóa tất cả thông báo đã đọc",
+      "delete_error": "Không thể xóa thông báo"
+    }
   },
   "home": {
     "hero": {
@@ -44,7 +50,13 @@
     "bestseller": {
       "title": "Bảng xếp hạng bán chạy Tháng",
       "sold": "Đã bán: {{count}}",
-      "add_to_cart": "Thêm vào giỏ"
+      "add_to_cart": "Thêm vào giỏ",
+      "login_cart": "Vui lòng đăng nhập để thêm vào giỏ hàng",
+      "add_cart_success": "Đã thêm vào giỏ hàng thành công!",
+      "add_cart_fail": "Thêm vào giỏ hàng thất bại.",
+      "login_wishlist": "Vui lòng đăng nhập để thêm vào yêu thích",
+      "add_wishlist_success": "Đã thêm vào danh sách yêu thích!",
+      "add_wishlist_fail": "Thêm vào danh sách yêu thích thất bại."
     },
     "recommendations": {
       "title": "Gợi ý cho bạn",
@@ -58,6 +70,46 @@
     }
   },
   "admin": {
+    "common_modal": {
+      "image_selected": "Đã chọn ảnh",
+      "load_images_fail": "Tải danh sách ảnh thất bại",
+      "upload_images_success": "Tải ảnh lên thành công",
+      "upload_images_fail": "Tải ảnh lên thất bại",
+      "max_selection_warning": "Bạn chỉ có thể chọn tối đa {{count}} ảnh"
+    },
+    "shipping_method": {
+      "load_fail": "Tải phương thức vận chuyển thất bại",
+      "create_success": "Tạo phương thức vận chuyển thành công",
+      "create_fail": "Tạo phương thức vận chuyển thất bại",
+      "update_success": "Cập nhật phương thức vận chuyển thành công",
+      "update_fail": "Cập nhật phương thức vận chuyển thất bại",
+      "delete_success": "Xóa phương thức vận chuyển thành công",
+      "delete_fail": "Xóa phương thức vận chuyển thất bại",
+      "confirm_delete": "Bạn có chắc chắn muốn xóa phương thức vận chuyển này?"
+    },
+    "payment_method": {
+      "load_fail": "Tải phương thức thanh toán thất bại",
+      "create_success": "Tạo phương thức thanh toán thành công",
+      "create_fail": "Tạo phương thức thanh toán thất bại",
+      "update_success": "Cập nhật phương thức thanh toán thành công",
+      "update_fail": "Cập nhật phương thức thanh toán thất bại",
+      "delete_success": "Xóa phương thức thanh toán thành công",
+      "delete_fail": "Xóa phương thức thanh toán thất bại",
+      "confirm_delete": "Bạn có chắc chắn muốn xóa phương thức thanh toán này?"
+    },
+    "event": {
+      "load_fail": "Tải danh sách sự kiện thất bại",
+      "delete_success": "Xóa sự kiện thành công",
+      "delete_fail": "Xóa sự kiện thất bại",
+      "confirm_delete": "Bạn có chắc chắn muốn xóa sự kiện này?",
+      "create_success": "Tạo sự kiện thành công",
+      "create_fail": "Tạo sự kiện thất bại",
+      "update_success": "Cập nhật sự kiện thành công",
+      "update_fail": "Cập nhật sự kiện thất bại",
+      "load_detail_fail": "Tải chi tiết sự kiện thất bại",
+      "add_images_success": "Đã thêm {{count}} ảnh",
+      "user_missing": "Thiếu thông tin người dùng. Vui lòng đăng nhập lại."
+    },
     "title": "BookLand Admin",
     "overview": "Tổng quan",
     "dashboard": "Bảng điều khiển",

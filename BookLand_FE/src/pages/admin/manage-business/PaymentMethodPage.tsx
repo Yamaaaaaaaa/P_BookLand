@@ -7,8 +7,10 @@ import paymentMethodService from '../../../api/paymentMethodService';
 import '../../../styles/components/buttons.css';
 import '../../../styles/pages/admin-management.css';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const PaymentMethodPage = () => {
+    const { t } = useTranslation();
     const [methods, setMethods] = useState<PaymentMethod[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +56,7 @@ const PaymentMethodPage = () => {
             }
         } catch (error) {
             console.error(error);
-            toast.error("Failed to load payment methods");
+            toast.error(t('admin.payment_method.load_fail'));
         } finally {
             setIsLoading(false);
         }
@@ -85,14 +87,14 @@ const PaymentMethodPage = () => {
     };
 
     const handleDelete = async (id: number) => {
-        if (window.confirm('Are you sure you want to delete this payment method?')) {
+        if (window.confirm(t('admin.payment_method.confirm_delete'))) {
             try {
                 await paymentMethodService.delete(id);
-                toast.success("Payment method deleted successfully");
+                toast.success(t('admin.payment_method.delete_success'));
                 fetchMethods();
             } catch (error) {
                 console.error(error);
-                toast.error("Delete failed");
+                toast.error(t('admin.payment_method.delete_fail'));
             }
         }
     };
@@ -123,18 +125,18 @@ const PaymentMethodPage = () => {
 
             if (modalMode === 'create') {
                 await paymentMethodService.create(dataToSubmit);
-                toast.success("Payment method created successfully");
+                toast.success(t('admin.payment_method.create_success'));
             } else {
                 if (selectedMethod) {
                     await paymentMethodService.update(selectedMethod.id, dataToSubmit);
-                    toast.success("Payment method updated successfully");
+                    toast.success(t('admin.payment_method.update_success'));
                 }
             }
             fetchMethods(); // Refresh list
             setIsModalOpen(false);
         } catch (error) {
             console.error(error);
-            toast.error("Action failed");
+            toast.error(modalMode === 'create' ? t('admin.payment_method.create_fail') : t('admin.payment_method.update_fail'));
         }
     };
 

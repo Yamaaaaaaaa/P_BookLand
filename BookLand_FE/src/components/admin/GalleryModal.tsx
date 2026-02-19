@@ -3,6 +3,7 @@ import { X, Upload, Check, Loader2, Image as ImageIcon } from 'lucide-react';
 import uploadService from '../../api/uploadService';
 import Pagination from './Pagination';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import '../../styles/components/gallery-modal.css';
 
 interface GalleryImage {
@@ -28,6 +29,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
     maxSelection,
     title = 'Select Images'
 }) => {
+    const { t } = useTranslation();
     const [images, setImages] = useState<GalleryImage[]>([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isUploading, setIsUploading] = useState(false);
@@ -61,7 +63,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
             }
         } catch (error) {
             console.error('Error fetching images:', error);
-            toast.error('Failed to load images');
+            toast.error(t('admin.common_modal.load_images_fail'));
         } finally {
             setIsLoading(false);
         }
@@ -73,13 +75,13 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
             setIsUploading(true);
             try {
                 await uploadService.uploadMultipleImages(files);
-                toast.success('Images uploaded successfully');
+                toast.success(t('admin.common_modal.upload_images_success'));
                 // Refresh images immediately after upload
                 setPage(0); // Go to first page to see new uploads
                 fetchImages();
             } catch (error) {
                 console.error('Error uploading images:', error);
-                toast.error('Failed to upload images');
+                toast.error(t('admin.common_modal.upload_images_fail'));
             } finally {
                 setIsUploading(false);
                 e.target.value = '';
@@ -94,7 +96,7 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
                 setSelectedImages(selectedImages.filter(item => item.id !== img.id));
             } else {
                 if (maxSelection && selectedImages.length >= maxSelection) {
-                    toast.warning(`You can only select up to ${maxSelection} images`);
+                    toast.warning(t('admin.common_modal.max_selection_warning', { count: maxSelection }));
                     return;
                 }
                 setSelectedImages([...selectedImages, img]);

@@ -18,8 +18,10 @@ import userService from '../../../api/userService';
 import '../../../styles/components/forms.css';
 import '../../../styles/components/buttons.css';
 import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 
 const EventFormPage = () => {
+    const { t } = useTranslation();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
     const isNew = id === 'new';
@@ -63,7 +65,7 @@ const EventFormPage = () => {
 
             } catch (error) {
                 console.error('Error fetching options:', error);
-                toast.error('Failed to load form options');
+                toast.error(t('admin.book_detail.options_fail'));
             }
         };
         fetchOptions();
@@ -129,7 +131,7 @@ const EventFormPage = () => {
                     }
                 } catch (error) {
                     console.error('Error fetching event:', error);
-                    toast.error('Failed to load event details');
+                    toast.error(t('admin.event.load_detail_fail'));
                     navigate('/admin/manage-business/event');
                 } finally {
                     setIsLoading(false);
@@ -155,14 +157,14 @@ const EventFormPage = () => {
                 images: [...(prev.images || []), ...uniqueNewImages]
             };
         });
-        toast.success(`Added ${newImages.length} images`);
+        toast.success(t('admin.event.add_images_success', { count: newImages.length }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         if (!formData.name || !formData.startTime || !formData.endTime) {
-            toast.error('Please fill in all required fields');
+            toast.error(t('admin.book_detail.validation_error'));
             return;
         }
 
@@ -172,7 +174,7 @@ const EventFormPage = () => {
             let createdById = currentUserId;
 
             if (!createdById) {
-                toast.error('User information missing. Please login again.');
+                toast.error(t('admin.event.user_missing'));
                 setIsSaving(false);
                 return;
             }
@@ -198,15 +200,15 @@ const EventFormPage = () => {
 
             if (isNew) {
                 await eventService.createEvent(submitData);
-                toast.success('Event created successfully');
+                toast.success(t('admin.event.create_success'));
             } else {
                 await eventService.updateEvent(Number(id), submitData);
-                toast.success('Event updated successfully');
+                toast.success(t('admin.event.update_success'));
             }
             navigate('/admin/manage-business/event');
         } catch (error) {
             console.error('Error saving event:', error);
-            toast.error('Failed to save event');
+            toast.error(isNew ? t('admin.event.create_fail') : t('admin.event.update_fail'));
         } finally {
             setIsSaving(false);
         }

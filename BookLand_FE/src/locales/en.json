@@ -13,7 +13,13 @@
     "my-orders": "My Orders",
     "my-reviews": "My Reviews",
     "wishlist": "Wishlist",
-    "Wishlist": "Wishlist"
+    "Wishlist": "Wishlist",
+    "notifications": {
+      "load_error": "Failed to load notifications",
+      "mark_all_read_success": "All notifications marked as read",
+      "delete_all_success": "All read notifications deleted",
+      "delete_error": "Failed to delete notifications"
+    }
   },
   "home": {
     "hero": {
@@ -44,7 +50,13 @@
     "bestseller": {
       "title": "Monthly Bestseller Rankings",
       "sold": "Sold: {{count}}",
-      "add_to_cart": "Add to Cart"
+      "add_to_cart": "Add to Cart",
+      "login_cart": "Please login to add to cart",
+      "add_cart_success": "Added to cart successfully!",
+      "add_cart_fail": "Failed to add to cart.",
+      "login_wishlist": "Please login to add to wishlist",
+      "add_wishlist_success": "Added to wishlist!",
+      "add_wishlist_fail": "Failed to add to wishlist."
     },
     "recommendations": {
       "title": "Recommended For You",
@@ -58,6 +70,46 @@
     }
   },
   "admin": {
+    "common_modal": {
+      "image_selected": "Image selected",
+      "load_images_fail": "Failed to load images",
+      "upload_images_success": "Images uploaded successfully",
+      "upload_images_fail": "Failed to upload images",
+      "max_selection_warning": "You can only select up to {{count}} images"
+    },
+    "shipping_method": {
+      "load_fail": "Failed to load shipping methods",
+      "create_success": "Shipping method created successfully",
+      "create_fail": "Failed to create shipping method",
+      "update_success": "Shipping method updated successfully",
+      "update_fail": "Failed to update shipping method",
+      "delete_success": "Shipping method deleted successfully",
+      "delete_fail": "Failed to delete shipping method",
+      "confirm_delete": "Are you sure you want to delete this shipping method?"
+    },
+    "payment_method": {
+      "load_fail": "Failed to load payment methods",
+      "create_success": "Payment method created successfully",
+      "create_fail": "Failed to create payment method",
+      "update_success": "Payment method updated successfully",
+      "update_fail": "Failed to update payment method",
+      "delete_success": "Payment method deleted successfully",
+      "delete_fail": "Failed to delete payment method",
+      "confirm_delete": "Are you sure you want to delete this payment method?"
+    },
+    "event": {
+      "load_fail": "Failed to load events",
+      "delete_success": "Event deleted successfully",
+      "delete_fail": "Failed to delete event",
+      "confirm_delete": "Are you sure you want to delete this event?",
+      "create_success": "Event created successfully",
+      "create_fail": "Failed to create event",
+      "update_success": "Event updated successfully",
+      "update_fail": "Failed to update event",
+      "load_detail_fail": "Failed to load event details",
+      "add_images_success": "Added {{count}} images",
+      "user_missing": "User information missing. Please login again."
+    },
     "title": "BookLand Admin",
     "overview": "Overview",
     "dashboard": "Dashboard",

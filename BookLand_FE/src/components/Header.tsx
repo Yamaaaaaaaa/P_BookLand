@@ -124,11 +124,11 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                 }
             } else {
                 console.error('API returned non-1000 code:', response?.code);
-                toast.error('Không thể tải thông báo');
+                toast.error(t('header.notifications.load_error'));
             }
         } catch (error) {
             console.error('Failed to fetch notifications:', error);
-            toast.error('Không thể tải thông báo');
+            toast.error(t('header.notifications.load_error'));
         } finally {
             setIsLoadingNotifications(false);
         }
@@ -165,7 +165,7 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
             if (response.code === 1000) {
                 setNotificationsList(prev => prev.map(n => ({ ...n, status: 'READ' })));
                 setUnreadCount(0);
-                toast.success('Đã đọc tất cả thông báo');
+                toast.success(t('header.notifications.mark_all_read_success'));
             }
         } catch (error) {
             console.error('Failed to mark all as read:', error);
@@ -178,11 +178,11 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
             const response = await notificationService.deleteAllReadNotifications(userId);
             if (response.code === 1000) {
                 setNotificationsList(prev => prev.filter(n => n.status === 'UNREAD'));
-                toast.success('Đã xóa tất cả thông báo đã đọc');
+                toast.success(t('header.notifications.delete_all_success'));
             }
         } catch (error) {
             console.error('Failed to delete all read notifications:', error);
-            toast.error('Không thể xóa thông báo');
+            toast.error(t('header.notifications.delete_error'));
         }
     };
 

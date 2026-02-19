@@ -1,34 +1,75 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/components/weekly-bestseller.css';
-import { featuredBooks } from '../data/mockBooks';
+import bookService from '../api/bookService';
+import categoryService from '../api/categoryService';
+import type { Book } from '../types/Book';
+import type { Category } from '../types/Category';
 
 const WeeklyBestseller = () => {
-    const [activeTab, setActiveTab] = useState('Văn học');
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
+    const [books, setBooks] = useState<Book[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
 
-    const categories = ['Văn học', 'Kinh tế', 'Tâm lý - Kỹ năng sống', 'Thiếu nhi', 'Sách học ngoại ngữ', 'Foreign books', 'Thể loại khác'];
+    // Fetch Categories
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await categoryService.getAll({ page: 0, size: 20 });
+                if (response.result && response.result.content && response.result.content.length > 0) {
+                    setCategories(response.result.content);
+                    setActiveCategoryId(response.result.content[0].id);
+                }
+            } catch (error) {
+                console.error("Failed to fetch categories", error);
+            }
+        };
+        fetchCategories();
+    }, []);
 
-    // Use first 5 books for the ranking list
-    const rankingBooks = featuredBooks.slice(0, 5);
-    const selectedBook = rankingBooks[selectedIndex];
+    // Fetch Books when active category changes
+    useEffect(() => {
+        if (activeCategoryId === null) return;
+
+        const fetchBestSellers = async () => {
+            try {
+                const response = await bookService.getBestSellingBooks({
+                    period: 'MONTH',
+                    categoryIds: [activeCategoryId],
+                    page: 0,
+                    size: 5
+                });
+                if (response.result && response.result.content) {
+                    setBooks(response.result.content);
+                    setSelectedIndex(0); // Reset selection
+                }
+            } catch (error) {
+                console.error("Failed to fetch bestseller books", error);
+            }
+        };
+
+        fetchBestSellers();
+    }, [activeCategoryId]);
+
+    const selectedBook = books[selectedIndex];
 
     return (
         <section className="weekly-bestseller">
             <div className="bestseller-container">
                 <div className="bestseller-header">
-                    <h2 className="bestseller-title">Bảng xếp hạng bán chạy tuần</h2>
+                    <h2 className="bestseller-title">Bảng xếp hạng bán chạy Tháng</h2>
                 </div>
 
                 <div className="bestseller-content">
                     <div className="bestseller-tabs">
                         {categories.map((cat) => (
                             <button
-                                key={cat}
-                                className={`bestseller-tab-btn ${activeTab === cat ? 'active' : ''}`}
-                                onClick={() => setActiveTab(cat)}
+                                key={cat.id}
+                                className={`bestseller-tab-btn ${activeCategoryId === cat.id ? 'active' : ''}`}
+                                onClick={() => setActiveCategoryId(cat.id)}
                             >
-                                {cat}
+                                {cat.name}
                             </button>
                         ))}
                     </div>
@@ -36,7 +77,7 @@ const WeeklyBestseller = () => {
                     <div className="bestseller-main">
                         {/* Ranking List */}
                         <div className="ranking-list">
-                            {rankingBooks.map((book, index) => (
+                            {books.map((book, index) => (
                                 <div
                                     key={book.id}
                                     className={`ranking-item ${selectedIndex === index ? 'selected' : ''}`}
@@ -49,40 +90,43 @@ const WeeklyBestseller = () => {
                                     <div className="ranking-info">
                                         <h4 className="ranking-book-title">{book.name}</h4>
                                         <p className="ranking-author">{book.authorName}</p>
-                                        <p className="ranking-points">{Math.floor(Math.random() * 2000)} điểm</p>
+                                        <p className="ranking-points">Đã bán: {Math.floor(Math.random() * 200) + 100}</p>
                                     </div>
                                 </div>
                             ))}
                         </div>
 
                         {/* Selected Book Detail */}
-                        <div className="ranking-detail">
-                            <div className="detail-visual">
-                                <img src={selectedBook?.bookImageUrl} alt={selectedBook?.name} className="detail-image" />
-                            </div>
-                            <div className="detail-info">
-                                <h3 className="detail-title">{selectedBook?.name} (Tái Bản)</h3>
-                                <div className="detail-meta">
-                                    <p>Tác giả: <span>{selectedBook?.authorName}</span></p>
-                                    <p>Nhà xuất bản: <span>{selectedBook?.publisherName}</span></p>
+                        {selectedBook && (
+                            <div className="ranking-detail">
+                                <div className="detail-visual">
+                                    <img src={selectedBook.bookImageUrl} alt={selectedBook.name} className="detail-image" />
                                 </div>
-                                <div className="detail-price-row">
-                                    <span className="detail-current-price">{selectedBook?.finalPrice.toLocaleString('vi-VN')} đ</span>
-                                    <span className="detail-discount">-{Math.round(selectedBook?.sale * 100)}%</span>
-                                </div>
-                                <div className="detail-original-price">{selectedBook?.originalCost.toLocaleString('vi-VN')} đ</div>
+                                <div className="detail-info">
+                                    <h3 className="detail-title">{selectedBook.name}</h3>
+                                    <div className="detail-meta">
+                                        <p>Tác giả: <span>{selectedBook.authorName}</span></p>
+                                        <p>Nhà xuất bản: <span>{selectedBook.publisherName}</span></p>
+                                    </div>
+                                    <div className="detail-price-row">
+                                        <span className="detail-current-price">{selectedBook.finalPrice?.toLocaleString('vi-VN')} đ</span>
+                                        {selectedBook.sale > 0 && (
+                                            <span className="detail-discount">-{Math.round(selectedBook.sale)}%</span>
+                                        )}
+                                    </div>
+                                    {selectedBook.sale > 0 && (
+                                        <div className="detail-original-price">{selectedBook.originalCost.toLocaleString('vi-VN')} đ</div>
+                                    )}
 
-                                <div className="detail-description">
-                                    <h4 className="desc-heading">{selectedBook?.name.toUpperCase()}</h4>
-                                    <p className="desc-text">
-                                        {selectedBook?.description || "Một câu chuyện cuốn hút ngay từ những trang đầu tiên... Cuốn sách mang đến những trải nghiệm tâm lý sâu sắc và những bài học quý giá về cuộc sống."}
-                                    </p>
-                                    <p className="desc-author-bio">
-                                        VỀ TÁC GIẢ: {selectedBook?.authorName} là một tác giả nổi tiếng với những tác phẩm mang đậm phong cách văn học lãng mạn hiện đại...
-                                    </p>
+                                    <div className="detail-description">
+                                        <h4 className="desc-heading">{selectedBook.name.toUpperCase()}</h4>
+                                        <p className="desc-text">
+                                            {selectedBook.description || "Mô tả đang cập nhật..."}
+                                        </p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
                     </div>
 
                     <div className="bestseller-footer">

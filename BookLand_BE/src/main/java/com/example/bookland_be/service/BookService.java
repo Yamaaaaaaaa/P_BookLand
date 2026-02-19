@@ -7,6 +7,7 @@ import com.example.bookland_be.entity.Book.BookStatus;
 import com.example.bookland_be.exception.AppException;
 import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.*;
+import com.example.bookland_be.dto.enums.BestSellerPeriod;
 import com.example.bookland_be.repository.specification.BookSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -43,6 +44,36 @@ public class BookService {
                 .and(BookSpecification.priceBetween(minPrice, maxPrice));
 
         return bookRepository.findAll(spec, pageable)
+                .map(this::convertToDTO);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<BookDTO> getBestSellingBooks(BestSellerPeriod period,
+                                             String keyword, Double minPrice, Double maxPrice,
+                                             java.util.List<Long> categoryIds,
+                                             java.util.List<Long> authorIds,
+                                             java.util.List<Long> publisherIds,
+                                             java.util.List<Long> seriesIds,
+                                             Pageable pageable) {
+        java.time.LocalDateTime startDate = null;
+        if (period != null) {
+            switch (period) {
+                case WEEK:
+                    startDate = java.time.LocalDateTime.now().minusWeeks(1);
+                    break;
+                case MONTH:
+                    startDate = java.time.LocalDateTime.now().minusMonths(1);
+                    break;
+                case YEAR:
+                    startDate = java.time.LocalDateTime.now().minusYears(1);
+                    break;
+                case ALL:
+                default:
+                    startDate = null;
+            }
+        }
+
+        return bookRepository.findBestSellingBooks(keyword, minPrice, maxPrice, startDate, categoryIds, authorIds, publisherIds, seriesIds, pageable)
                 .map(this::convertToDTO);
     }
 

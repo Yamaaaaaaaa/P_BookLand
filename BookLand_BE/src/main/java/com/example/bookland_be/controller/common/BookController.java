@@ -4,6 +4,7 @@ import com.example.bookland_be.dto.BookDTO;
 import com.example.bookland_be.dto.request.BookRequest;
 import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.entity.Book.BookStatus;
+import com.example.bookland_be.dto.enums.BestSellerPeriod;
 import com.example.bookland_be.service.BookService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -45,6 +46,24 @@ public class BookController {
 
         Page<BookDTO> books = bookService.getAllBooks(keyword, status, authorIds,
                 publisherIds, seriesIds, categoryIds, pinned, minPrice, maxPrice, pageable);
+        return ApiResponse.<Page<BookDTO>>builder().result(books).build();
+    }
+
+    @GetMapping("/best-sellers")
+    public ApiResponse<Page<BookDTO>> getBestSellingBooks(
+            @RequestParam(defaultValue = "ALL") BestSellerPeriod period,
+            @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Double minPrice,
+            @RequestParam(required = false) Double maxPrice,
+            @RequestParam(required = false) java.util.List<Long> categoryIds,
+            @RequestParam(required = false) java.util.List<Long> authorIds,
+            @RequestParam(required = false) java.util.List<Long> publisherIds,
+            @RequestParam(required = false) java.util.List<Long> seriesIds,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size
+    ) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<BookDTO> books = bookService.getBestSellingBooks(period, keyword, minPrice, maxPrice, categoryIds, authorIds, publisherIds, seriesIds, pageable);
         return ApiResponse.<Page<BookDTO>>builder().result(books).build();
     }
 

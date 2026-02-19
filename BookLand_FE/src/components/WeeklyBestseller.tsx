@@ -1,8 +1,13 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, Heart } from 'lucide-react';
+import { toast } from 'react-toastify';
 import '../styles/components/weekly-bestseller.css';
 import bookService from '../api/bookService';
 import categoryService from '../api/categoryService';
+import cartService from '../api/cartService';
+import wishlistService from '../api/wishlistService';
+import { getCurrentUserId } from '../utils/auth';
 import type { Book } from '../types/Book';
 import type { Category } from '../types/Category';
 
@@ -11,6 +16,7 @@ const WeeklyBestseller = () => {
     const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
     const [books, setBooks] = useState<Book[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
+    const navigate = useNavigate();
 
     // Fetch Categories
     useEffect(() => {
@@ -51,6 +57,39 @@ const WeeklyBestseller = () => {
 
         fetchBestSellers();
     }, [activeCategoryId]);
+
+    const handleAddToCart = async (book: Book) => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+            toast.warning("Vui lòng đăng nhập để thêm vào giỏ hàng");
+            navigate('/login');
+            return;
+        }
+        try {
+            await cartService.addToCart(userId, { bookId: book.id, quantity: 1 });
+            toast.success("Đã thêm vào giỏ hàng thành công!");
+            window.dispatchEvent(new Event('cart:updated'));
+        } catch (error) {
+            console.error("Failed to add to cart", error);
+            toast.error("Thêm vào giỏ hàng thất bại.");
+        }
+    };
+
+    const handleAddToWishlist = async (book: Book) => {
+        const userId = getCurrentUserId();
+        if (!userId) {
+            toast.warning("Vui lòng đăng nhập để thêm vào yêu thích");
+            navigate('/login');
+            return;
+        }
+        try {
+            await wishlistService.addToWishlist(userId, { bookId: book.id });
+            toast.success("Đã thêm vào danh sách yêu thích!");
+        } catch (error) {
+            console.error("Failed to add to wishlist", error);
+            toast.error("Thêm vào danh sách yêu thích thất bại.");
+        }
+    };
 
     const selectedBook = books[selectedIndex];
 
@@ -103,7 +142,9 @@ const WeeklyBestseller = () => {
                                     <img src={selectedBook.bookImageUrl} alt={selectedBook.name} className="detail-image" />
                                 </div>
                                 <div className="detail-info">
-                                    <h3 className="detail-title">{selectedBook.name}</h3>
+                                    <Link to={`/shop/book-detail/${selectedBook.id}`} className="detail-title-link">
+                                        <h3 className="detail-title">{selectedBook.name}</h3>
+                                    </Link>
                                     <div className="detail-meta">
                                         <p>Tác giả: <span>{selectedBook.authorName}</span></p>
                                         <p>Nhà xuất bản: <span>{selectedBook.publisherName}</span></p>
@@ -118,6 +159,22 @@ const WeeklyBestseller = () => {
                                         <div className="detail-original-price">{selectedBook.originalCost.toLocaleString('vi-VN')} đ</div>
                                     )}
 
+                                    <div className="detail-actions">
+                                        <button
+                                            className="action-btn add-to-cart-btn"
+                                            onClick={() => handleAddToCart(selectedBook)}
+                                        >
+                                            <ShoppingCart size={18} />
+                                            Thêm vào giỏ
+                                        </button>
+                                        <button
+                                            className="action-btn wishlist-btn"
+                                            onClick={() => handleAddToWishlist(selectedBook)}
+                                        >
+                                            <Heart size={18} />
+                                        </button>
+                                    </div>
+
                                     <div className="detail-description">
                                         <h4 className="desc-heading">{selectedBook.name.toUpperCase()}</h4>
                                         <p className="desc-text">
@@ -127,10 +184,6 @@ const WeeklyBestseller = () => {
                                 </div>
                             </div>
                         )}
-                    </div>
-
-                    <div className="bestseller-footer">
-                        <Link to="/ranking" className="bestseller-view-more">Xem thêm</Link>
                     </div>
                 </div>
             </div>

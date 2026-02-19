@@ -7,7 +7,6 @@ import FeaturedBookcases from '../../components/FeaturedBookcases';
 import WeeklyBestseller from '../../components/WeeklyBestseller';
 import Recommendations from '../../components/Recommendations';
 import Newsletter from '../../components/Newsletter';
-import { offerBooks } from '../../data/mockBooks';
 import '../../styles/pages/home.css';
 import '../../styles/components/book-card.css';
 
@@ -21,11 +20,6 @@ const HomePage = () => {
             <WeeklyBestseller />
             <Recommendations />
             <Newsletter />
-            <FeaturedBooks
-                subtitle="Special Offers"
-                title="Books With Offer"
-                books={offerBooks}
-            />
         </div>
     );
 };

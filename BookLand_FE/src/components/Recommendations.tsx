@@ -1,11 +1,31 @@
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Stars } from 'lucide-react';
 import '../styles/components/recommendations.css';
-import { featuredBooks } from '../data/mockBooks';
+import bookService from '../api/bookService';
+import type { Book } from '../types/Book';
 
 const Recommendations = () => {
-    // Show 10 books for the recommendation section
-    const recommendedBooks = featuredBooks.slice(0, 15);
+    const [books, setBooks] = useState<Book[]>([]);
+
+    useEffect(() => {
+        const fetchRecommendedBooks = async () => {
+            try {
+                const response = await bookService.getAllBooks({
+                    pinned: true,
+                    page: 0,
+                    size: 5
+                });
+                if (response.result && response.result.content) {
+                    setBooks(response.result.content);
+                }
+            } catch (error) {
+                console.error("Failed to fetch recommended books", error);
+            }
+        };
+
+        fetchRecommendedBooks();
+    }, []);
 
     return (
         <section className="recommendations-section">
@@ -17,8 +37,8 @@ const Recommendations = () => {
                 </div>
 
                 <div className="recommendations-grid">
-                    {recommendedBooks.map((book) => (
-                        <Link key={book.id} to={`/shop/book/${book.id}`} className="recommend-card">
+                    {books.map((book) => (
+                        <Link key={book.id} to={`/shop/book-detail/${book.id}`} className="recommend-card">
                             <div className="recommend-image-wrapper">
                                 <img src={book.bookImageUrl} alt={book.name} className="recommend-image" />
                             </div>
@@ -26,27 +46,28 @@ const Recommendations = () => {
                                 <h3 className="recommend-book-name">{book.name}</h3>
                                 <div className="recommend-price-row">
                                     <span className="recommend-current-price">
-                                        {book.finalPrice.toLocaleString('vi-VN')} đ
+                                        {book.finalPrice?.toLocaleString('vi-VN')} đ
                                     </span>
-                                    <span className="recommend-discount">-{Math.round(book.sale * 100)}%</span>
+                                    {book.sale > 0 && (
+                                        <span className="recommend-discount">-{Math.round(book.sale)}%</span>
+                                    )}
                                 </div>
-                                <div className="recommend-original-price">
-                                    {book.originalCost.toLocaleString('vi-VN')} đ
-                                </div>
+                                {book.sale > 0 && (
+                                    <div className="recommend-original-price">
+                                        {book.originalCost.toLocaleString('vi-VN')} đ
+                                    </div>
+                                )}
                                 <div className="recommend-stats">
                                     <div className="recommend-rating">
                                         <span className="star-filled">★★★★★</span>
                                     </div>
-                                    <span className="recommend-sold">| Đã bán {Math.floor(Math.random() * 100)}</span>
+                                    <span className="recommend-sold">| Đã bán {Math.floor(Math.random() * 100) + 1}</span>
                                 </div>
                             </div>
                         </Link>
                     ))}
                 </div>
 
-                <div className="recommendations-footer">
-                    <button className="recommend-view-all">Xem tất cả</button>
-                </div>
             </div>
         </section>
     );

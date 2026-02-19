@@ -21,7 +21,8 @@
 
 .hero-main-slider {
   position: relative;
-  height: 320px;
+  height: 100%;
+  min-height: 200px; /* Ensure a minimum height so it doesn't collapse if side banners are tiny, though unlikely */
   border-radius: 8px;
   overflow: hidden;
 }
@@ -100,13 +101,14 @@
 .hero-side-banner {
   flex: 1;
   border-radius: 8px;
-  background-color: #ddd;
+  height: auto;
+  background-color: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
   color: #555;
-  height: calc(160px - 6px); /* Half of main banner height minus half gap */
+  /* Removed fixed height constraint */
 }
 
 /* Middle Row: Promo Banners */

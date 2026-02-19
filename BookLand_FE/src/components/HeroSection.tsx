@@ -4,12 +4,9 @@ import '../styles/components/hero-section.css';
 import { useEffect, useState } from 'react';
 import type { Event } from '../types/Event';
 import { eventService } from '../api/eventService';
-import authorService from '../api/authorService';
-import type { Author } from '../types/Author';
 
 const HeroSection = () => {
     const [event, setEvent] = useState<Event | null>(null);
-    const [authors, setAuthors] = useState<Author[]>([]);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
 
@@ -27,20 +24,7 @@ const HeroSection = () => {
             }
         };
 
-        const fetchAuthors = async () => {
-            try {
-                // Fetch first 2 authors
-                const response = await authorService.getAllAuthors({ page: 0, size: 2 });
-                if (response.result && response.result.content) {
-                    setAuthors(response.result.content);
-                }
-            } catch (error) {
-                console.error("Failed to fetch authors", error);
-            }
-        };
-
         fetchEvent();
-        fetchAuthors();
     }, []);
 
     const images = event?.images || [];
@@ -117,89 +101,12 @@ const HeroSection = () => {
                         )}
                     </div>
                     <div className="hero-side-banners">
-                        {authors.length >= 2 ? (
-                            <>
-                                <div style={{
-                                    textTransform: 'uppercase',
-                                    fontWeight: 'bold',
-                                    color: '#C92127',
-                                    marginBottom: '4px',
-                                    fontSize: '14px',
-                                    paddingLeft: '4px'
-                                }}>
-                                    Tác giả nổi bật
-                                </div>
-                                {authors.slice(0, 2).map((author, index) => (
-                                    <div key={author.id} className="hero-side-banner" style={{
-                                        backgroundColor: index === 0 ? '#E1F5FE' : '#FFF3E0', // Light Blue / Light Orange
-                                        textDecoration: 'none',
-                                        display: 'flex',
-                                        flexDirection: 'row',
-                                        alignItems: 'center',
-                                        justifyContent: 'flex-start',
-                                        padding: '10px 15px',
-                                        textAlign: 'left',
-                                        gap: '15px'
-                                    }}>
-                                        <div style={{ flexShrink: 0 }}>
-                                            {author.authorImage ? (
-                                                <img
-                                                    src={author.authorImage}
-                                                    alt={author.name}
-                                                    style={{
-                                                        width: '80px',
-                                                        height: '80px',
-                                                        borderRadius: '50%',
-                                                        objectFit: 'cover',
-                                                        border: '2px solid white',
-                                                        boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                                                    }}
-                                                />
-                                            ) : (
-                                                <div style={{
-                                                    width: '80px',
-                                                    height: '80px',
-                                                    borderRadius: '50%',
-                                                    backgroundColor: '#ccc',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    color: '#fff',
-                                                    fontWeight: 'bold',
-                                                    fontSize: '24px'
-                                                }}>
-                                                    {author.name.charAt(0)}
-                                                </div>
-                                            )}
-                                        </div>
-                                        <div style={{ flex: 1, minWidth: 0 }}>
-                                            <h3 style={{ margin: '0 0 5px 0', fontSize: '16px', fontWeight: 'bold', color: '#333' }}>{author.name}</h3>
-                                            <p style={{
-                                                margin: '0',
-                                                fontSize: '12px',
-                                                color: '#666',
-                                                display: '-webkit-box',
-                                                WebkitLineClamp: 2,
-                                                WebkitBoxOrient: 'vertical',
-                                                overflow: 'hidden',
-                                                lineHeight: '1.4'
-                                            }}>
-                                                {author.description || 'Chưa có mô tả'}
-                                            </p>
-                                        </div>
-                                    </div>
-                                ))}
-                            </>
-                        ) : (
-                            <>
-                                <Link to="/shop/category/sale" className="hero-side-banner" style={{ backgroundColor: '#AEEEEE', textDecoration: 'none' }}>
-                                    Side Banner 1
-                                </Link>
-                                <Link to="/shop/category/new" className="hero-side-banner" style={{ backgroundColor: '#FFD39B', textDecoration: 'none' }}>
-                                    Side Banner 2
-                                </Link>
-                            </>
-                        )}
+                        <div className="hero-side-banner" style={{ padding: 0, overflow: 'hidden', backgroundColor: 'transparent' }}>
+                            <img src="/momo.png" alt="Momo" style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '8px', display: 'block' }} />
+                        </div>
+                        <div className="hero-side-banner" style={{ padding: 0, overflow: 'hidden', backgroundColor: 'transparent' }}>
+                            <img src="/vn-pay.png" alt="VNPay" style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '8px', display: 'block' }} />
+                        </div>
                     </div>
                 </div>
 

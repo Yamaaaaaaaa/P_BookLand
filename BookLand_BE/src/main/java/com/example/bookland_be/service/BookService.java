@@ -10,6 +10,7 @@ import com.example.bookland_be.repository.*;
 import com.example.bookland_be.dto.enums.BestSellerPeriod;
 import com.example.bookland_be.repository.specification.BookSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -77,6 +78,7 @@ public class BookService {
                 .map(this::convertToDTO);
     }
 
+    @Cacheable(value = "books", key = "#id")
     @Transactional(readOnly = true)
     public BookDTO getBookById(Long id) {
         Book book = bookRepository.findById(id)

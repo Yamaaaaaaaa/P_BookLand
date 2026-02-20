@@ -2,6 +2,8 @@ package com.example.bookland_be.dto;
 
 import com.example.bookland_be.entity.Book.BookStatus;
 import lombok.*;
+
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Set;
@@ -9,7 +11,7 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class BookDTO {
+public class BookDTO implements Serializable {
     private Long id;
     private String name;
     private String description;

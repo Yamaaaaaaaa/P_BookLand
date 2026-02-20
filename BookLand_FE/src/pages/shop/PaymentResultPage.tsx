@@ -42,7 +42,7 @@ const PaymentResultPage = () => {
                 <Breadcrumb
                     items={[
                         { label: t('shop.home_breadcrumb'), link: '/shop/home' },
-                        { label: t('shop.payment_result_breadcrumb', 'Kết quả thanh toán') }
+                        { label: t('shop.payment_result_breadcrumb', 'Result Payment') }
                     ]}
                 />
                 <div className="result-card" style={{ background: 'white', padding: '40px', borderRadius: '8px', textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>

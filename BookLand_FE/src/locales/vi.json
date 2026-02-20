@@ -626,7 +626,15 @@
     "search_result": "Kết quả tìm kiếm cho:",
     "loading": "Đang tải dữ liệu...",
     "empty_result": "Không tìm thấy sản phẩm nào khớp với lựa chọn của bạn.",
-    "view_more": "Xem thêm"
+    "view_more": "Xem thêm",
+    "chat": {
+      "title": "Chat với Admin",
+      "input_placeholder": "Nhập tin nhắn...",
+      "send": "Gửi",
+      "loading": "Đang tải...",
+      "no_messages": "Chưa có tin nhắn nào",
+      "start_conversation": "Gửi tin nhắn để bắt đầu trò chuyện với admin"
+    }
   },
   "product": {
     "add_to_cart": "Thêm vào giỏ hàng",

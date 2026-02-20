@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, X, MessageCircle } from 'lucide-react';
-import { useWebSocket } from '../context/WebSocketContext';
+import { Send, X, MessageCircle, Loader2 } from 'lucide-react';
+import { useTranslation } from 'react-i18next'; import { useWebSocket } from '../context/WebSocketContext';
 import chatService from '../api/chatService';
 import type { ChatMessage } from '../types/Chat';
 import { getCurrentUserId } from '../utils/auth';
@@ -16,6 +16,8 @@ const ChatWidget: React.FC = () => {
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { subscribe, isConnected } = useWebSocket();
     const userId = getCurrentUserId();
+
+    const { t } = useTranslation();
 
     // Fetch chat history when widget opens
     useEffect(() => {
@@ -106,7 +108,7 @@ const ChatWidget: React.FC = () => {
                     <div className="chat-widget-header">
                         <div className="chat-widget-header-info">
                             <MessageCircle size={20} />
-                            <span>Chat với Admin</span>
+                            <span> {t('shop.chat.title')}</span>
                         </div>
                         <div className="chat-widget-header-actions">
                             <button onClick={() => setIsOpen(false)} aria-label="Close chat">
@@ -118,12 +120,15 @@ const ChatWidget: React.FC = () => {
                     {/* Messages */}
                     <div className="chat-widget-messages">
                         {isLoading ? (
-                            <div className="chat-widget-loading">Đang tải...</div>
+                            <div className="chat-widget-loading">
+                                <Loader2 className="animate-spin" size={24} color="#C92127" style={{ marginRight: '10px' }} />
+                                <p>{t('shop.chat.loading')}</p>
+                            </div>
                         ) : messages.length === 0 ? (
                             <div className="chat-widget-empty">
                                 <MessageCircle size={48} />
-                                <p>Chưa có tin nhắn nào</p>
-                                <p className="chat-widget-empty-subtitle">Gửi tin nhắn để bắt đầu trò chuyện với admin</p>
+                                <p>{t('shop.chat.no_messages')}</p>
+                                <p className="chat-widget-empty-subtitle">{t('shop.chat.start_conversation')}</p>
                             </div>
                         ) : (
                             messages.map((msg) => (
@@ -148,7 +153,7 @@ const ChatWidget: React.FC = () => {
                         <input
                             type="text"
                             className="chat-widget-input"
-                            placeholder="Nhập tin nhắn..."
+                            placeholder={t('shop.chat.input_placeholder')}
                             value={newMessage}
                             onChange={(e) => setNewMessage(e.target.value)}
                         />

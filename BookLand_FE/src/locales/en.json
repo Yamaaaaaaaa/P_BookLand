@@ -607,7 +607,15 @@
     "search_result": "Search results for:",
     "loading": "Loading data...",
     "empty_result": "No products found matching your selection.",
-    "view_more": "View More"
+    "view_more": "View More",
+    "chat": {
+      "title": "Chat with Admin",
+      "input_placeholder": "Type a message...",
+      "send": "Send",
+      "loading": "Loading...",
+      "no_messages": "No messages yet",
+      "start_conversation": "Send a message to start chatting with admin"
+    }
   },
   "product": {
     "add_to_cart": "Add to Cart",

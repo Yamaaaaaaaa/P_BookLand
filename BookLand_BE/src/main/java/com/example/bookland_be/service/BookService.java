@@ -1,6 +1,7 @@
 package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.BookDTO;
+import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.request.BookRequest;
 import com.example.bookland_be.entity.*;
 import com.example.bookland_be.entity.Book.BookStatus;
@@ -10,7 +11,9 @@ import com.example.bookland_be.repository.*;
 import com.example.bookland_be.dto.enums.BestSellerPeriod;
 import com.example.bookland_be.repository.specification.BookSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -30,8 +33,9 @@ public class BookService {
     private final SerieRepository serieRepository;
     private final CategoryRepository categoryRepository;
 
+    @Cacheable(value = "all_books")
     @Transactional(readOnly = true)
-    public Page<BookDTO> getAllBooks(String keyword, BookStatus status, java.util.List<Long> authorIds,
+    public PageResponse<BookDTO> getAllBooks(String keyword, BookStatus status, java.util.List<Long> authorIds,
                                      java.util.List<Long> publisherIds, java.util.List<Long> seriesIds, java.util.List<Long> categoryIds,
                                      Boolean pinned, Double minPrice, Double maxPrice,
                                      Pageable pageable) {
@@ -44,8 +48,8 @@ public class BookService {
                 .and(BookSpecification.isPinned(pinned))
                 .and(BookSpecification.priceBetween(minPrice, maxPrice));
 
-        return bookRepository.findAll(spec, pageable)
-                .map(this::convertToDTO);
+        return PageResponse.from(bookRepository.findAll(spec, pageable)
+                .map(this::convertToDTO));
     }
 
     @Transactional(readOnly = true)
@@ -86,6 +90,7 @@ public class BookService {
         return convertToDTO(book);
     }
 
+    @CacheEvict(value = "all_books", allEntries = true)
     @Transactional
     public BookDTO createBook(BookRequest request) {
         Author author = authorRepository.findById(request.getAuthorId())
@@ -128,6 +133,10 @@ public class BookService {
         return convertToDTO(savedBook);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "books", key = "#id"),
+            @CacheEvict(value = "all_books", allEntries = true)
+    })
     @Transactional
     public BookDTO updateBook(Long id, BookRequest request) {
         Book book = bookRepository.findById(id)
@@ -172,6 +181,10 @@ public class BookService {
         return convertToDTO(updatedBook);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "books", key = "#id"),
+            @CacheEvict(value = "all_books", allEntries = true)
+    })
     @Transactional
     public void deleteBook(Long id) {
         Book book = bookRepository.findById(id)
@@ -184,6 +197,10 @@ public class BookService {
         bookRepository.delete(book);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "books", key = "#id"),
+            @CacheEvict(value = "all_books", allEntries = true)
+    })
     @Transactional
     public BookDTO updateBookStock(Long id, Integer quantity) {
         Book book = bookRepository.findById(id)

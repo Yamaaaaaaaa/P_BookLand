@@ -1,6 +1,7 @@
 package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.BookDTO;
+import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.request.BookRequest;
 import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.entity.Book.BookStatus;
@@ -24,7 +25,7 @@ public class BookController {
     private final BookService bookService;
 
     @GetMapping
-    public ApiResponse<Page<BookDTO>> getAllBooks(
+    public ApiResponse<PageResponse<BookDTO>> getAllBooks(
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) BookStatus status,
             @RequestParam(required = false) java.util.List<Long> authorIds,
@@ -44,9 +45,9 @@ public class BookController {
                 : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<BookDTO> books = bookService.getAllBooks(keyword, status, authorIds,
+        PageResponse<BookDTO> books = bookService.getAllBooks(keyword, status, authorIds,
                 publisherIds, seriesIds, categoryIds, pinned, minPrice, maxPrice, pageable);
-        return ApiResponse.<Page<BookDTO>>builder().result(books).build();
+        return ApiResponse.<PageResponse<BookDTO>>builder().result(books).build();
     }
 
     @GetMapping("/best-sellers")

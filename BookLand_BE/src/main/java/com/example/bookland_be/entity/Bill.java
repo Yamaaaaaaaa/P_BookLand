@@ -43,6 +43,10 @@ public class Bill {
     @Builder.Default
     private BillStatus status = BillStatus.PENDING;
 
+    @Column(columnDefinition = "VARCHAR(20) DEFAULT 'PENDING'")
+    @Builder.Default
+    private String paymentStatus = "PENDING";
+
     @Column(updatable = false)
     private LocalDateTime createdAt;
 

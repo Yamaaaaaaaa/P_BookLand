@@ -32,6 +32,7 @@ export interface Bill {
     approvedById?: number;
     approvedByName?: string;
     status: BillStatus;
+    paymentStatus?: string;
     createdAt?: string;
     updatedAt?: string;
     approvedAt?: string;

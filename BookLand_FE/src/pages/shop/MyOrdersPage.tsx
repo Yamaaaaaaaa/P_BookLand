@@ -273,8 +273,8 @@ const MyOrdersPage = () => {
                                                         <td style={{ padding: '12px' }}>{order.createdAt ? new Date(order.createdAt).toLocaleDateString('vi-VN') : '---'}</td>
                                                         <td style={{ padding: '12px', color: '#C92127', fontWeight: 700 }}>{formatCurrency(order.totalCost)}</td>
                                                         <td style={{ padding: '12px' }}>
-                                                            {order.paymentMethodName === 'VNPAY' ? (
-                                                                order.status === 'APPROVED' || order.status === 'COMPLETED' || order.status === 'SHIPPING' || order.status === 'SHIPPED' ? (
+                                                            {order.paymentMethodName === 'VNPay' ? (
+                                                                order.paymentStatus === 'SUCCESS' ? (
                                                                     <span style={{ color: '#1e7e34', fontWeight: 500 }}>{t('profile.paid')}</span>
                                                                 ) : (
                                                                     <span style={{ color: '#f57c00', fontWeight: 500 }}>{t('profile.unpaid')}</span>
@@ -295,7 +295,7 @@ const MyOrdersPage = () => {
                                                             </span>
                                                         </td>
                                                         <td style={{ padding: '12px', textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                            {order.paymentMethodName === 'VNPAY' && order.status === 'PENDING' && (
+                                                            {order.paymentMethodName === 'VNPay' && order.paymentStatus === 'PENDING' && (
                                                                 <button
                                                                     onClick={() => handlePayment(order.id)}
                                                                     style={{

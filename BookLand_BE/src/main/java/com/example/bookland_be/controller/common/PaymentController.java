@@ -240,6 +240,7 @@ public class PaymentController {
             if(bill != null) {
                 bill.setStatus(Bill.BillStatus.APPROVED);
                 bill.setApprovedAt(java.time.LocalDateTime.now());
+                bill.setPaymentStatus("SUCCESS");
                 billRepository.save(bill);
             }
 

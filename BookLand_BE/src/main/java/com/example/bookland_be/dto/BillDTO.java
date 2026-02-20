@@ -25,4 +25,5 @@ public class BillDTO {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private LocalDateTime approvedAt;
+    private String paymentStatus;
 }

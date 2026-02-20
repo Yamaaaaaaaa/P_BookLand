@@ -325,6 +325,7 @@ public class BillService {
                 .createdAt(bill.getCreatedAt())
                 .updatedAt(bill.getUpdatedAt())
                 .approvedAt(bill.getApprovedAt())
+                .paymentStatus(bill.getPaymentStatus())
                 .build();
     }
 

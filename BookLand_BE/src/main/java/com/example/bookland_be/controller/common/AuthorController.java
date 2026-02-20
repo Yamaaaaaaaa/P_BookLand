@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -45,18 +46,21 @@ public class AuthorController {
         return ApiResponse.<AuthorDTO>builder().result(authorService.getAuthorById(id)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PostMapping
     public ApiResponse<AuthorDTO> createAuthor(@Valid @RequestBody AuthorRequest request) {
         return ApiResponse.<AuthorDTO>builder().result(authorService.createAuthor(request)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PutMapping("/{id}")
     public ApiResponse<AuthorDTO> updateAuthor(
             @PathVariable Long id,
             @Valid @RequestBody AuthorRequest request) {
         return ApiResponse.<AuthorDTO>builder().result(authorService.updateAuthor(id, request)).build();
     }
-
+    
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteAuthor(@PathVariable Long id) {
         authorService.deleteAuthor(id);

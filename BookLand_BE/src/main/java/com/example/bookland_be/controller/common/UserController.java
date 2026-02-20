@@ -101,8 +101,9 @@ public class UserController {
         return ApiResponse.<UserResponse>builder().result(updatedUser).build();
     }
 
+    // Ko cho MANAGER Xóa ng dùng
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     public ApiResponse<Void> deleteUser(@PathVariable Long id) {
         userService.deleteUser(id);
         return ApiResponse.<Void>builder().build();

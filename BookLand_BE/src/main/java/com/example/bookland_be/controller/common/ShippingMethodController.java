@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -44,12 +45,14 @@ public class ShippingMethodController {
         return ApiResponse.<ShippingMethodDTO>builder().result(shippingMethodService.getShippingMethodById(id)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @PostMapping
     public ApiResponse<ShippingMethodDTO> createShippingMethod(
             @Valid @RequestBody ShippingMethodRequest request) {
         return ApiResponse.<ShippingMethodDTO>builder().result(shippingMethodService.createShippingMethod(request)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ApiResponse<ShippingMethodDTO> updateShippingMethod(
             @PathVariable Long id,
@@ -57,6 +60,7 @@ public class ShippingMethodController {
         return ApiResponse.<ShippingMethodDTO>builder().result(shippingMethodService.updateShippingMethod(id, request)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteShippingMethod(@PathVariable Long id) {
         shippingMethodService.deleteShippingMethod(id);

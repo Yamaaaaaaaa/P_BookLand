@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -45,11 +46,13 @@ public class SerieController {
         return ApiResponse.<SerieDTO>builder().result(serieService.getSerieById(id)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PostMapping
     public ApiResponse<SerieDTO> createSerie(@Valid @RequestBody SerieRequest request) {
         return ApiResponse.<SerieDTO>builder().result(serieService.createSerie(request)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PutMapping("/{id}")
     public ApiResponse<SerieDTO> updateSerie(
             @PathVariable Long id,
@@ -57,6 +60,7 @@ public class SerieController {
         return ApiResponse.<SerieDTO>builder().result(serieService.updateSerie(id, request)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteSerie(@PathVariable Long id) {
         serieService.deleteSerie(id);

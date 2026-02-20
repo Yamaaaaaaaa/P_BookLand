@@ -13,6 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -46,18 +47,20 @@ public class SupplierController {
         return ApiResponse.<SupplierDTO>builder().result(supplierService.getSupplierById(id)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PostMapping
     public ApiResponse<SupplierDTO> createSupplier(@Valid @RequestBody SupplierRequest request) {
         return ApiResponse.<SupplierDTO>builder().result(supplierService.createSupplier(request)).build();
     }
-
+    
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PutMapping("/{id}")
     public ApiResponse<SupplierDTO> updateSupplier(
             @PathVariable Long id,
             @Valid @RequestBody SupplierRequest request) {
         return ApiResponse.<SupplierDTO>builder().result(supplierService.updateSupplier(id, request)).build();
     }
-
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteSupplier(@PathVariable Long id) {
         supplierService.deleteSupplier(id);

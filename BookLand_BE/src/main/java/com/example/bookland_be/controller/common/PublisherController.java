@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -43,11 +44,13 @@ public class PublisherController {
         return ApiResponse.<PublisherDTO>builder().result(publisherService.getPublisherById(id)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PostMapping
     public ApiResponse<PublisherDTO> createPublisher(@Valid @RequestBody PublisherRequest request) {
         return ApiResponse.<PublisherDTO>builder().result(publisherService.createPublisher(request)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @PutMapping("/{id}")
     public ApiResponse<PublisherDTO> updatePublisher(
             @PathVariable Long id,
@@ -55,6 +58,7 @@ public class PublisherController {
         return ApiResponse.<PublisherDTO>builder().result(publisherService.updatePublisher(id, request)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deletePublisher(@PathVariable Long id) {
         publisherService.deletePublisher(id);

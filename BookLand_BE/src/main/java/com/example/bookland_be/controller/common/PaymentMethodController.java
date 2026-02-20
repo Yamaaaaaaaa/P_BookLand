@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -42,12 +43,14 @@ public class PaymentMethodController {
         return ApiResponse.<PaymentMethodDTO>builder().result(paymentMethodService.getPaymentMethodById(id)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @PostMapping
     public ApiResponse<PaymentMethodDTO> createPaymentMethod(
             @Valid @RequestBody PaymentMethodRequest request) {
         return ApiResponse.<PaymentMethodDTO>builder().result(paymentMethodService.createPaymentMethod(request)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @PutMapping("/{id}")
     public ApiResponse<PaymentMethodDTO> updatePaymentMethod(
             @PathVariable Long id,
@@ -55,6 +58,7 @@ public class PaymentMethodController {
         return ApiResponse.<PaymentMethodDTO>builder().result(paymentMethodService.updatePaymentMethod(id, request)).build();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deletePaymentMethod(@PathVariable Long id) {
         paymentMethodService.deletePaymentMethod(id);

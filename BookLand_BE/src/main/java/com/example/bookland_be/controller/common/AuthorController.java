@@ -3,13 +3,13 @@
 package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.AuthorDTO;
+import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.request.AuthorRequest;
 import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.service.AuthorService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -24,7 +24,7 @@ public class AuthorController {
     private final AuthorService authorService;
 
     @GetMapping
-    public ApiResponse<Page<AuthorDTO>> getAllAuthors(
+    public ApiResponse<PageResponse<AuthorDTO>> getAllAuthors(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -36,8 +36,8 @@ public class AuthorController {
                 : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<AuthorDTO> authors = authorService.getAllAuthors(keyword, pageable);
-        return ApiResponse.<Page<AuthorDTO>>builder().result(authors).build();
+        PageResponse<AuthorDTO> authors = authorService.getAllAuthors(keyword, pageable);
+        return ApiResponse.<PageResponse<AuthorDTO>>builder().result(authors).build();
     }
 
     @GetMapping("/{id}")

@@ -14,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
@@ -52,8 +51,9 @@ public class BookService {
                 .map(this::convertToDTO));
     }
 
+    @Cacheable(value = "best_selling_books")
     @Transactional(readOnly = true)
-    public Page<BookDTO> getBestSellingBooks(BestSellerPeriod period,
+    public PageResponse<BookDTO> getBestSellingBooks(BestSellerPeriod period,
                                              String keyword, Double minPrice, Double maxPrice,
                                              java.util.List<Long> categoryIds,
                                              java.util.List<Long> authorIds,
@@ -78,8 +78,8 @@ public class BookService {
             }
         }
 
-        return bookRepository.findBestSellingBooks(keyword, minPrice, maxPrice, startDate, categoryIds, authorIds, publisherIds, seriesIds, pageable)
-                .map(this::convertToDTO);
+        return PageResponse.from(bookRepository.findBestSellingBooks(keyword, minPrice, maxPrice, startDate, categoryIds, authorIds, publisherIds, seriesIds, pageable)
+                .map(this::convertToDTO));
     }
 
     @Cacheable(value = "books", key = "#id")
@@ -90,7 +90,10 @@ public class BookService {
         return convertToDTO(book);
     }
 
-    @CacheEvict(value = "all_books", allEntries = true)
+    @Caching(evict = {
+            @CacheEvict(value = "all_books", allEntries = true),
+            @CacheEvict(value = "best_selling_books", allEntries = true)
+    })
     @Transactional
     public BookDTO createBook(BookRequest request) {
         Author author = authorRepository.findById(request.getAuthorId())

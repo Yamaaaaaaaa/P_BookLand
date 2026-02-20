@@ -1,5 +1,6 @@
 package com.example.bookland_be.controller.common;
 
+import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.PublisherDTO;
 import com.example.bookland_be.dto.request.PublisherRequest;
 import com.example.bookland_be.dto.response.ApiResponse;
@@ -7,7 +8,6 @@ import com.example.bookland_be.service.PublisherService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,7 +22,7 @@ public class PublisherController {
     private final PublisherService publisherService;
 
     @GetMapping
-    public ApiResponse<Page<PublisherDTO>> getAllPublishers(
+    public ApiResponse<PageResponse<PublisherDTO>> getAllPublishers(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -34,8 +34,8 @@ public class PublisherController {
                 : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<PublisherDTO> publishers = publisherService.getAllPublishers(keyword, pageable);
-        return ApiResponse.<Page<PublisherDTO>>builder().result(publishers).build();
+        PageResponse<PublisherDTO> publishers = publisherService.getAllPublishers(keyword, pageable);
+        return ApiResponse.<PageResponse<PublisherDTO>>builder().result(publishers).build();
     }
 
     @GetMapping("/{id}")

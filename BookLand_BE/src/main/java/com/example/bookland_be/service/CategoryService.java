@@ -1,6 +1,7 @@
 package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.CategoryDTO;
+import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.request.CategoryRequest;
 import com.example.bookland_be.entity.Category;
 import com.example.bookland_be.exception.AppException;
@@ -8,6 +9,9 @@ import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.CategoryRepository;
 import com.example.bookland_be.repository.specification.CategorySpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -20,18 +24,20 @@ public class CategoryService {
 
     private final CategoryRepository categoryRepository;
 
+    @Cacheable(value = "categories")
     @Transactional(readOnly = true)
-    public Page<CategoryDTO> getAllCategories(String keyword, Pageable pageable) {
+    public PageResponse<CategoryDTO> getAllCategories(String keyword, Pageable pageable) {
         Specification<Category> spec = Specification.unrestricted();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             spec = spec.and(CategorySpecification.searchByKeyword(keyword));
         }
 
-        return categoryRepository.findAll(spec, pageable)
-                .map(this::convertToDTO);
+        return PageResponse.from(categoryRepository.findAll(spec, pageable)
+                .map(this::convertToDTO));
     }
 
+    @Cacheable(value = "category", key = "#id")
     @Transactional(readOnly = true)
     public CategoryDTO getCategoryById(Long id) {
         Category category = categoryRepository.findById(id)
@@ -39,6 +45,7 @@ public class CategoryService {
         return convertToDTO(category);
     }
 
+    @CacheEvict(value = "categories", allEntries = true)
     @Transactional
     public CategoryDTO createCategory(CategoryRequest request) {
         if (categoryRepository.existsByName(request.getName())) {
@@ -54,6 +61,10 @@ public class CategoryService {
         return convertToDTO(savedCategory);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "category", key = "#id"),
+            @CacheEvict(value = "categories", allEntries = true)
+    })
     @Transactional
     public CategoryDTO updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
@@ -72,6 +83,10 @@ public class CategoryService {
         return convertToDTO(updatedCategory);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "category", key = "#id"),
+            @CacheEvict(value = "categories", allEntries = true)
+    })
     @Transactional
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)

@@ -1,6 +1,7 @@
 // SerieService.java
 package com.example.bookland_be.service;
 
+import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.SerieDTO;
 import com.example.bookland_be.dto.request.SerieRequest;
 import com.example.bookland_be.entity.Serie;
@@ -9,6 +10,9 @@ import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.SerieRepository;
 import com.example.bookland_be.repository.specification.SerieSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -21,14 +25,16 @@ public class SerieService {
 
     private final SerieRepository serieRepository;
 
+    @Cacheable(value = "series")
     @Transactional(readOnly = true)
-    public Page<SerieDTO> getAllSeries(String keyword, Pageable pageable) {
+    public PageResponse<SerieDTO> getAllSeries(String keyword, Pageable pageable) {
         Specification<Serie> spec = SerieSpecification.searchByKeyword(keyword);
 
-        return serieRepository.findAll(spec, pageable)
-                .map(this::convertToDTO);
+        return PageResponse.from(serieRepository.findAll(spec, pageable)
+                .map(this::convertToDTO));
     }
 
+    @Cacheable(value = "serie", key = "#id")
     @Transactional(readOnly = true)
     public SerieDTO getSerieById(Long id) {
         Serie serie = serieRepository.findById(id)
@@ -36,6 +42,7 @@ public class SerieService {
         return convertToDTO(serie);
     }
 
+    @CacheEvict(value = "series", allEntries = true)
     @Transactional
     public SerieDTO createSerie(SerieRequest request) {
         if (serieRepository.existsByName(request.getName())) {
@@ -51,6 +58,10 @@ public class SerieService {
         return convertToDTO(savedSerie);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "serie", key = "#id"),
+            @CacheEvict(value = "series", allEntries = true)
+    })
     @Transactional
     public SerieDTO updateSerie(Long id, SerieRequest request) {
         Serie serie = serieRepository.findById(id)
@@ -68,6 +79,10 @@ public class SerieService {
         return convertToDTO(updatedSerie);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "serie", key = "#id"),
+            @CacheEvict(value = "series", allEntries = true)
+    })
     @Transactional
     public void deleteSerie(Long id) {
         Serie serie = serieRepository.findById(id)

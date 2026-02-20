@@ -10,7 +10,6 @@ import com.example.bookland_be.service.BookService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -51,7 +50,7 @@ public class BookController {
     }
 
     @GetMapping("/best-sellers")
-    public ApiResponse<Page<BookDTO>> getBestSellingBooks(
+    public ApiResponse<PageResponse<BookDTO>> getBestSellingBooks(
             @RequestParam(defaultValue = "ALL") BestSellerPeriod period,
             @RequestParam(required = false) String keyword,
             @RequestParam(required = false) Double minPrice,
@@ -64,8 +63,8 @@ public class BookController {
             @RequestParam(defaultValue = "10") int size
     ) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<BookDTO> books = bookService.getBestSellingBooks(period, keyword, minPrice, maxPrice, categoryIds, authorIds, publisherIds, seriesIds, pageable);
-        return ApiResponse.<Page<BookDTO>>builder().result(books).build();
+        PageResponse<BookDTO> books = bookService.getBestSellingBooks(period, keyword, minPrice, maxPrice, categoryIds, authorIds, publisherIds, seriesIds, pageable);
+        return ApiResponse.<PageResponse<BookDTO>>builder().result(books).build();
     }
 
     @GetMapping("/{id}")

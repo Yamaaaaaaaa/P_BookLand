@@ -3,6 +3,7 @@
 package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.AuthorDTO;
+import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.request.AuthorRequest;
 import com.example.bookland_be.entity.Author;
 import com.example.bookland_be.exception.AppException;
@@ -10,6 +11,9 @@ import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.AuthorRepository;
 import com.example.bookland_be.repository.specification.AuthorSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,14 +26,16 @@ public class AuthorService {
 
     private final AuthorRepository authorRepository;
 
+    @Cacheable(value = "authors")
     @Transactional(readOnly = true)
-    public Page<AuthorDTO> getAllAuthors(String keyword, Pageable pageable) {
+    public PageResponse<AuthorDTO> getAllAuthors(String keyword, Pageable pageable) {
         Specification<Author> spec = AuthorSpecification.searchByKeyword(keyword);
 
-        return authorRepository.findAll(spec, pageable)
-                .map(this::convertToDTO);
+        return PageResponse.from(authorRepository.findAll(spec, pageable)
+                .map(this::convertToDTO));
     }
 
+    @Cacheable(value = "author", key = "#id")
     @Transactional(readOnly = true)
     public AuthorDTO getAuthorById(Long id) {
         Author author = authorRepository.findById(id)
@@ -37,6 +43,7 @@ public class AuthorService {
         return convertToDTO(author);
     }
 
+    @CacheEvict(value = "authors", allEntries = true)
     @Transactional
     public AuthorDTO createAuthor(AuthorRequest request) {
         if (authorRepository.existsByName(request.getName())) {
@@ -53,6 +60,10 @@ public class AuthorService {
         return convertToDTO(savedAuthor);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "author", key = "#id"),
+            @CacheEvict(value = "authors", allEntries = true)
+    })
     @Transactional
     public AuthorDTO updateAuthor(Long id, AuthorRequest request) {
         Author author = authorRepository.findById(id)
@@ -71,6 +82,10 @@ public class AuthorService {
         return convertToDTO(updatedAuthor);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "author", key = "#id"),
+            @CacheEvict(value = "authors", allEntries = true)
+    })
     @Transactional
     public void deleteAuthor(Long id) {
         Author author = authorRepository.findById(id)

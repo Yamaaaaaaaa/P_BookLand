@@ -1,6 +1,7 @@
 package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.CategoryDTO;
+import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.request.CategoryRequest;
 import com.example.bookland_be.dto.response.ApiResponse;
 import com.example.bookland_be.service.CategoryService;
@@ -9,7 +10,6 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -26,7 +26,7 @@ public class CategoryController {
 
     @GetMapping
     @Operation(summary = "Lấy danh sách danh mục", description = "Lấy danh sách danh mục có phân trang và tìm kiếm")
-    public ApiResponse<Page<CategoryDTO>> getAllCategories(
+    public ApiResponse<PageResponse<CategoryDTO>> getAllCategories(
             @RequestParam(required = false) String keyword,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -38,8 +38,8 @@ public class CategoryController {
                 : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        Page<CategoryDTO> categories = categoryService.getAllCategories(keyword, pageable);
-        return ApiResponse.<Page<CategoryDTO>>builder().result(categories).build();
+        PageResponse<CategoryDTO> categories = categoryService.getAllCategories(keyword, pageable);
+        return ApiResponse.<PageResponse<CategoryDTO>>builder().result(categories).build();
     }
 
     @GetMapping("/{id}")

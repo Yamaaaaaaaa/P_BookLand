@@ -2,6 +2,7 @@
 // PublisherService.java
 package com.example.bookland_be.service;
 
+import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.PublisherDTO;
 import com.example.bookland_be.dto.request.PublisherRequest;
 import com.example.bookland_be.entity.Publisher;
@@ -10,6 +11,9 @@ import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.PublisherRepository;
 import com.example.bookland_be.repository.specification.PublisherSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -22,14 +26,16 @@ public class PublisherService {
 
     private final PublisherRepository publisherRepository;
 
+    @Cacheable(value = "publishers")
     @Transactional(readOnly = true)
-    public Page<PublisherDTO> getAllPublishers(String keyword, Pageable pageable) {
+    public PageResponse<PublisherDTO> getAllPublishers(String keyword, Pageable pageable) {
         Specification<Publisher> spec = PublisherSpecification.searchByKeyword(keyword);
 
-        return publisherRepository.findAll(spec, pageable)
-                .map(this::convertToDTO);
+        return PageResponse.from(publisherRepository.findAll(spec, pageable)
+                .map(this::convertToDTO));
     }
 
+    @Cacheable(value = "publisher", key = "#id")
     @Transactional(readOnly = true)
     public PublisherDTO getPublisherById(Long id) {
         Publisher publisher = publisherRepository.findById(id)
@@ -37,6 +43,7 @@ public class PublisherService {
         return convertToDTO(publisher);
     }
 
+    @CacheEvict(value = "publishers", allEntries = true)
     @Transactional
     public PublisherDTO createPublisher(PublisherRequest request) {
         if (publisherRepository.existsByName(request.getName())) {
@@ -52,6 +59,10 @@ public class PublisherService {
         return convertToDTO(savedPublisher);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "publisher", key = "#id"),
+            @CacheEvict(value = "publishers", allEntries = true)
+    })
     @Transactional
     public PublisherDTO updatePublisher(Long id, PublisherRequest request) {
         Publisher publisher = publisherRepository.findById(id)
@@ -69,6 +80,10 @@ public class PublisherService {
         return convertToDTO(updatedPublisher);
     }
 
+    @Caching(evict = {
+            @CacheEvict(value = "publisher", key = "#id"),
+            @CacheEvict(value = "publishers", allEntries = true)
+    })
     @Transactional
     public void deletePublisher(Long id) {
         Publisher publisher = publisherRepository.findById(id)

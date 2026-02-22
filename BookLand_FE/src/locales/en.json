@@ -14,6 +14,7 @@
     "my-reviews": "My Reviews",
     "wishlist": "Wishlist",
     "Wishlist": "Wishlist",
+    "mark_all_read": "Mark all as read",
     "notifications": {
       "load_error": "Failed to load notifications",
       "mark_all_read_success": "All notifications marked as read",
@@ -548,28 +549,29 @@
     "bach-hoa": "Online Groceries - Souvenirs"
   },
   "footer": {
-    "description": "Nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    "company": {
-      "title": "Company",
-      "about_us": "About Us",
-      "careers": "Careers",
-      "affiliates": "Affiliates",
-      "blog": "Blog"
+    "description": "BookLand – Your online book paradise with thousands of domestic and international titles. Easy shopping, fast delivery, great prices.",
+    "shop": {
+      "title": "Explore",
+      "home": "Home",
+      "books": "All Books",
+      "articles": "Articles & Blog",
+      "about": "About BookLand"
     },
     "help": {
-      "title": "Help",
+      "title": "Support",
       "contact_us": "Contact Us",
       "faqs": "FAQs",
       "terms": "Terms & Conditions",
       "privacy": "Privacy Policy"
     },
-    "resources": {
-      "title": "Resources",
-      "gift_cards": "Gift Cards",
-      "sitemap": "Sitemap",
-      "stores": "Store Locator",
+    "account": {
+      "title": "Account",
+      "login": "Login",
+      "profile": "My Profile",
+      "orders": "My Orders",
       "wishlist": "Wishlist"
     },
+    "payment_methods": "Payments",
     "copyright": "© 2026 BookLand. All rights reserved."
   },
   "auth": {
@@ -592,7 +594,11 @@
     "register_button": "Register",
     "error_login": "Login failed. Please check your information.",
     "error_register": "Registration failed. Please try again.",
-    "error_password_match": "Passwords do not match."
+    "error_password_match": "Passwords do not match.",
+    "toast_login_success": "Logged in successfully! Welcome back",
+    "toast_register_success": "Registered successfully! Please login to continue.",
+    "toast_logout_success": "Logged out successfully. See you again!",
+    "toast_login_required": "You need to login to access this page."
   },
   "shop": {
     "home_breadcrumb": "Home",

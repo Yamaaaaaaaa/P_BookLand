@@ -14,6 +14,7 @@
     "my-reviews": "Đánh giá của tôi",
     "wishlist": "Sản phẩm yêu thích",
     "Wishlist": "Sản phẩm yêu thích",
+    "mark_all_read": "Đánh dấu tất cả đã đọc",
     "notifications": {
       "load_error": "Không thể tải thông báo",
       "mark_all_read_success": "Đã đọc tất cả thông báo",
@@ -567,28 +568,29 @@
     "bach-hoa": "Bách Hóa Online - Lưu Niệm"
   },
   "footer": {
-    "description": "Nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    "company": {
-      "title": "Công ty",
-      "about_us": "Về chúng tôi",
-      "careers": "Tuyển dụng",
-      "affiliates": "Đối tác",
-      "blog": "Blog"
+    "description": "BookLand – Thiên đường sách trực tuyến với hàng ngàn đầu sách trong nước và quốc tế. Mua sắm dễ dàng, giao hàng nhanh chóng, giá cả hợp lý.",
+    "shop": {
+      "title": "Khám phá",
+      "home": "Trang chủ",
+      "books": "Tất cả sách",
+      "articles": "Bài viết & Blog",
+      "about": "Về BookLand"
     },
     "help": {
-      "title": "Trợ giúp",
-      "contact_us": "Liên hệ",
+      "title": "Hỗ trợ",
+      "contact_us": "Liên hệ với chúng tôi",
       "faqs": "Câu hỏi thường gặp",
       "terms": "Điều khoản dịch vụ",
       "privacy": "Chính sách bảo mật"
     },
-    "resources": {
-      "title": "Tài nguyên",
-      "gift_cards": "Thẻ quà tặng",
-      "sitemap": "Sơ đồ trang",
-      "stores": "Cửa hàng",
+    "account": {
+      "title": "Tài khoản",
+      "login": "Đăng nhập",
+      "profile": "Hồ sơ cá nhân",
+      "orders": "Đơn hàng của tôi",
       "wishlist": "Sản phẩm yêu thích"
     },
+    "payment_methods": "Thanh toán",
     "copyright": "© 2026 BookLand. Bản quyền đã được bảo hộ."
   },
   "auth": {
@@ -611,7 +613,11 @@
     "register_button": "Đăng ký",
     "error_login": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
     "error_register": "Đăng ký thất bại. Vui lòng thử lại.",
-    "error_password_match": "Mật khẩu xác nhận không khớp."
+    "error_password_match": "Mật khẩu xác nhận không khớp.",
+    "toast_login_success": "Đăng nhập thành công! Chào mừng bạn trở lại",
+    "toast_register_success": "Đăng ký thành công! Hãy đăng nhập để tiếp tục.",
+    "toast_logout_success": "Đã đăng xuất thành công. Hẹn gặp lại!",
+    "toast_login_required": "Bạn cần đăng nhập để truy cập trang này."
   },
   "shop": {
     "home_breadcrumb": "Trang chủ",

@@ -38,8 +38,8 @@ const CartPage = () => {
 
         setIsLoading(true);
         try {
-            // Fetch cart
-            const cartRes = await cartService.getUserCart(userId);
+            // Fetch cart - dùng endpoint /my (lấy từ JWT token, không cần userId)
+            const cartRes = await cartService.getMyCart();
             if (cartRes.result && cartRes.result.items) {
                 setCartItems(cartRes.result.items);
                 if (selectedIds.length === 0) {

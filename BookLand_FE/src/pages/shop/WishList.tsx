@@ -26,7 +26,8 @@ const WishList = () => {
 
         setIsLoading(true);
         try {
-            const response = await wishlistService.getUserWishlist(userId);
+            // Dùng endpoint /my (lấy từ JWT token, không cần sử dụng userId)
+            const response = await wishlistService.getMyWishlist();
             if (response.result) {
                 setWishlist(response.result);
             }

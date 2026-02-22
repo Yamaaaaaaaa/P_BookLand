@@ -3,6 +3,10 @@ import type { ApiResponse } from '../types/api';
 import type { Cart, AddToCartRequest, UpdateCartItemRequest } from '../types/Cart';
 
 const cartService = {
+    // Lấy giỏ hàng của user hiện tại qua JWT (endpoint mới)
+    getMyCart: () => {
+        return axiosClient.get<any, ApiResponse<Cart>>(`/api/cart/my`);
+    },
     getUserCart: (userId: number) => {
         return axiosClient.get<any, ApiResponse<Cart>>(`/api/cart/${userId}`);
     },

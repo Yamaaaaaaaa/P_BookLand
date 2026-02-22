@@ -5,6 +5,7 @@ import authService from '../../../api/authService';
 import userService from '../../../api/userService';
 import '../../../styles/pages/auth.css';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 
 const LoginPage = () => {
     const { t } = useTranslation();
@@ -35,13 +36,16 @@ const LoginPage = () => {
                     console.error("Failed to fetch user ID after login:", userErr);
                 }
 
+                toast.success(t('auth.toast_login_success'));
                 navigate('/shop/home');
             }
         } catch (err: any) {
             console.error(err);
             setError(t('auth.error_login'));
+            toast.error(t('auth.error_login'));
         }
     };
+
 
     return (
         <div className="auth-page">

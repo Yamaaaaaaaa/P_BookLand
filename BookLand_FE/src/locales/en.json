@@ -593,7 +593,11 @@
     "register_button": "Register",
     "error_login": "Login failed. Please check your information.",
     "error_register": "Registration failed. Please try again.",
-    "error_password_match": "Passwords do not match."
+    "error_password_match": "Passwords do not match.",
+    "toast_login_success": "Logged in successfully! Welcome back",
+    "toast_register_success": "Registered successfully! Please login to continue.",
+    "toast_logout_success": "Logged out successfully. See you again!",
+    "toast_login_required": "You need to login to access this page."
   },
   "shop": {
     "home_breadcrumb": "Home",

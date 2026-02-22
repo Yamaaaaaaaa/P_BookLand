@@ -612,7 +612,11 @@
     "register_button": "Đăng ký",
     "error_login": "Đăng nhập thất bại. Vui lòng kiểm tra lại thông tin.",
     "error_register": "Đăng ký thất bại. Vui lòng thử lại.",
-    "error_password_match": "Mật khẩu xác nhận không khớp."
+    "error_password_match": "Mật khẩu xác nhận không khớp.",
+    "toast_login_success": "Đăng nhập thành công! Chào mừng bạn trở lại",
+    "toast_register_success": "Đăng ký thành công! Hãy đăng nhập để tiếp tục.",
+    "toast_logout_success": "Đã đăng xuất thành công. Hẹn gặp lại!",
+    "toast_login_required": "Bạn cần đăng nhập để truy cập trang này."
   },
   "shop": {
     "home_breadcrumb": "Trang chủ",

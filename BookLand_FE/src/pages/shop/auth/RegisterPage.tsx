@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import authService from '../../../api/authService';
 import '../../../styles/pages/auth.css';
 import { useTranslation } from 'react-i18next';
+import { toast } from 'react-toastify';
 
 const RegisterPage = () => {
     const { t } = useTranslation();
@@ -31,10 +32,12 @@ const RegisterPage = () => {
                 email,
                 password
             });
+            toast.success(t('auth.toast_register_success'));
             navigate('/shop/login');
         } catch (err) {
             console.error(err);
             setError(t('auth.error_register'));
+            toast.error(t('auth.error_register'));
         }
     };
 

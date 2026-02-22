@@ -8,6 +8,8 @@ import cartService from '../api/cartService';
 import userService from '../api/userService';
 import { getCurrentUserId, setCustomerUserId } from '../utils/auth';
 import { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
+import { useTranslation } from 'react-i18next';
 import '../styles/variables.css';
 import '../styles/base.css';
 import '../styles/components/header.css';
@@ -15,8 +17,10 @@ import '../styles/components/footer.css';
 
 const ShopLayout = () => {
     const navigate = useNavigate();
+    const { t } = useTranslation();
 
     const [cartCount, setCartCount] = useState(0);
+
 
     const fetchCartCount = async () => {
         const userId = getCurrentUserId();
@@ -81,8 +85,10 @@ const ShopLayout = () => {
             }
         }
         logoutCustomer();
+        toast.success(t('auth.toast_logout_success'));
         navigate('/shop/login');
     };
+
 
     return (
         <div className="shop-layout">

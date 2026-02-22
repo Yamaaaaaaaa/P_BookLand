@@ -14,6 +14,7 @@
     "my-reviews": "My Reviews",
     "wishlist": "Wishlist",
     "Wishlist": "Wishlist",
+    "mark_all_read": "Mark all as read",
     "notifications": {
       "load_error": "Failed to load notifications",
       "mark_all_read_success": "All notifications marked as read",

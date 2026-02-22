@@ -567,28 +567,29 @@
     "bach-hoa": "Bách Hóa Online - Lưu Niệm"
   },
   "footer": {
-    "description": "Nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    "company": {
-      "title": "Công ty",
-      "about_us": "Về chúng tôi",
-      "careers": "Tuyển dụng",
-      "affiliates": "Đối tác",
-      "blog": "Blog"
+    "description": "BookLand – Thiên đường sách trực tuyến với hàng ngàn đầu sách trong nước và quốc tế. Mua sắm dễ dàng, giao hàng nhanh chóng, giá cả hợp lý.",
+    "shop": {
+      "title": "Khám phá",
+      "home": "Trang chủ",
+      "books": "Tất cả sách",
+      "articles": "Bài viết & Blog",
+      "about": "Về BookLand"
     },
     "help": {
-      "title": "Trợ giúp",
-      "contact_us": "Liên hệ",
+      "title": "Hỗ trợ",
+      "contact_us": "Liên hệ với chúng tôi",
       "faqs": "Câu hỏi thường gặp",
       "terms": "Điều khoản dịch vụ",
       "privacy": "Chính sách bảo mật"
     },
-    "resources": {
-      "title": "Tài nguyên",
-      "gift_cards": "Thẻ quà tặng",
-      "sitemap": "Sơ đồ trang",
-      "stores": "Cửa hàng",
+    "account": {
+      "title": "Tài khoản",
+      "login": "Đăng nhập",
+      "profile": "Hồ sơ cá nhân",
+      "orders": "Đơn hàng của tôi",
       "wishlist": "Sản phẩm yêu thích"
     },
+    "payment_methods": "Thanh toán",
     "copyright": "© 2026 BookLand. Bản quyền đã được bảo hộ."
   },
   "auth": {

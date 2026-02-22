@@ -548,28 +548,29 @@
     "bach-hoa": "Online Groceries - Souvenirs"
   },
   "footer": {
-    "description": "Nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-    "company": {
-      "title": "Company",
-      "about_us": "About Us",
-      "careers": "Careers",
-      "affiliates": "Affiliates",
-      "blog": "Blog"
+    "description": "BookLand – Your online book paradise with thousands of domestic and international titles. Easy shopping, fast delivery, great prices.",
+    "shop": {
+      "title": "Explore",
+      "home": "Home",
+      "books": "All Books",
+      "articles": "Articles & Blog",
+      "about": "About BookLand"
     },
     "help": {
-      "title": "Help",
+      "title": "Support",
       "contact_us": "Contact Us",
       "faqs": "FAQs",
       "terms": "Terms & Conditions",
       "privacy": "Privacy Policy"
     },
-    "resources": {
-      "title": "Resources",
-      "gift_cards": "Gift Cards",
-      "sitemap": "Sitemap",
-      "stores": "Store Locator",
+    "account": {
+      "title": "Account",
+      "login": "Login",
+      "profile": "My Profile",
+      "orders": "My Orders",
       "wishlist": "Wishlist"
     },
+    "payment_methods": "Payments",
     "copyright": "© 2026 BookLand. All rights reserved."
   },
   "auth": {

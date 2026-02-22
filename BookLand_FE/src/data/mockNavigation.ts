@@ -13,11 +13,11 @@ export const mainNavLinks: NavLink[] = [
 ];
 
 export const footerLinks = {
-  company: [
-    { label: 'footer.company.about_us', href: '/shop/about' },
-    { label: 'footer.company.careers', href: '/shop/careers' },
-    { label: 'footer.company.affiliates', href: '/shop/affiliates' },
-    { label: 'footer.company.blog', href: '/shop/blog' }
+  shop: [
+    { label: 'footer.shop.home', href: '/shop/home' },
+    { label: 'footer.shop.books', href: '/shop/books' },
+    { label: 'footer.shop.articles', href: '/shop/articles' },
+    { label: 'footer.shop.about', href: '/shop/about' }
   ],
   help: [
     { label: 'footer.help.contact_us', href: '/shop/contact' },
@@ -25,10 +25,10 @@ export const footerLinks = {
     { label: 'footer.help.terms', href: '/shop/terms' },
     { label: 'footer.help.privacy', href: '/shop/privacy' }
   ],
-  resources: [
-    { label: 'footer.resources.gift_cards', href: '/shop/gift-cards' },
-    { label: 'footer.resources.sitemap', href: '/shop/sitemap' },
-    { label: 'footer.resources.stores', href: '/shop/stores' },
-    { label: 'footer.resources.wishlist', href: '/shop/wishlist' }
+  account: [
+    { label: 'footer.account.login', href: '/auth/login' },
+    { label: 'footer.account.profile', href: '/shop/profile' },
+    { label: 'footer.account.orders', href: '/shop/my-orders' },
+    { label: 'footer.account.wishlist', href: '/shop/wishlist' }
   ]
 };

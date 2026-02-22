@@ -23,7 +23,7 @@ PTIT_BookLand/
 | **Backend** | Spring Boot 3, Java, Spring Security, Spring Data JPA |
 | **Database** | MySQL 8 |
 | **Cache** | Redis |
-| **Auth** | JWT (custom) + Keycloak (IDP) |
+| **Auth** | JWT (custom) |
 | **Payment** | VNPay |
 | **Storage** | Supabase Storage |
 | **Real-time** | WebSocket (STOMP over SockJS) |

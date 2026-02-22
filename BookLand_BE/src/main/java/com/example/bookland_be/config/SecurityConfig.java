@@ -1,5 +1,6 @@
 package com.example.bookland_be.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -17,41 +18,54 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-//@EnableMethodSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
-    private final String[] POST_PUBLIC_ENDPOINTS = { "/users", "/auth/token", "/auth/introspect", "/auth/refresh", "/auth/logout-old", "/auth/register", "/auth/login", "/auth/logout-keycloak"};
-    private final String[] GET_PUBLIC_ENDPOINTS = {"/home", "/users", "/v3/api-docs"};
+    private final String[] PUBLIC_ENDPOINTS = {
+            "/ws/**", // SockJS + STOMP cần truy cập vào HẾT các đường dẫn "con" như /ws/info, /ws/234/random/websocket,...
+            "/users",
+            "/auth/token",
+            "/auth/introspect",
+            "/auth/refresh",
+            "/auth/logout",
+            "/auth/register",
+            "/auth/login",
+            "/auth/admin/login",
+            "/auth/logout-keycloak",
+            "/home"};
 
-//    @Autowired
-//    private CustomJwtDecoder customJwtDecoder;
+    private static final String[] API_DOC_ENDPOINTS = {
+            "/swagger-ui/**",
+            "/v2/api-docs",
+            "/v3/api-docs",
+            "/v3/api-docs/**",
+            "/configuration/ui",
+            "/configuration/security",
+            "/swagger-resources/**",
+            "/swagger-ui.html",
+    };
+
+    @Autowired
+    private CustomJwtDecoder customJwtDecoder;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity httpSecurity) throws Exception {
         httpSecurity
                 .cors(Customizer.withDefaults())
+
                 .authorizeHttpRequests(request ->
                     request
-                        // ===== Swagger =====
-                        .requestMatchers(
-                                "/swagger-ui.html",
-                                "/swagger-ui/**",
-                                "/v3/api-docs/**"
-                        ).permitAll()
+                        .requestMatchers(API_DOC_ENDPOINTS).permitAll()
+                        .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
 
+                        .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
 
-                        // ===== Public APIs =====
-                        .requestMatchers(HttpMethod.POST, POST_PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers(HttpMethod.GET, GET_PUBLIC_ENDPOINTS).permitAll()
+                            // Các Request còn lại thì cần xác thực
+                        .anyRequest().authenticated())
 
-                        // Các Request còn lại thì cần xác thực
-                        .anyRequest().authenticated());
-
-
-//        httpSecurity.oauth2ResourceServer(oauth2 ->
-//                oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJwtDecoder))
-//        );
-
-        httpSecurity.csrf(AbstractHttpConfigurer::disable);
+                .oauth2ResourceServer(oauth2 ->
+                        oauth2.jwt(jwtConfigurer -> jwtConfigurer.decoder(customJwtDecoder)) // Custom cách ta Decode JWT Token (Do ta còn lưu Token Logout vào DB nữa)
+                )
+                .csrf(AbstractHttpConfigurer::disable);
         return httpSecurity.build();
     }
 

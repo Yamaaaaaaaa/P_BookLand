@@ -28,7 +28,9 @@ dependencies {
     /* ================= CORE ================= */
 
     // Web + REST + Tomcat + Spring MVC
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
 
     // Thymeleaf (nếu có render HTML)
     implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
@@ -81,17 +83,16 @@ dependencies {
     /* ================= API DOC ================= */
 
     // Swagger / OpenAPI
-    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.15'
 
-
+    // PostGre xài cho Supabase
+    runtimeOnly 'org.postgresql:postgresql'
 
     /* ================= TEST ================= */
 
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
-    // Keycloak Admin Client (CRUD User / Role / Client / Realm)
-    implementation 'org.keycloak:keycloak-admin-client:22.0.5'
 }
 
 tasks.named('test') {

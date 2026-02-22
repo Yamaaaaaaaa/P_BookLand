@@ -1,56 +1,91 @@
 package com.example.bookland_be.entity;
 
+
+import lombok.*;
+import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Set;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
-import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
-import lombok.experimental.FieldDefaults;
-
 @Entity
+@Table(name = "users")
 @Getter
 @Setter
-@Builder // Khai báo để các bên khác tạo Entity dễ hơn
 @NoArgsConstructor
 @AllArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE)
-@Table(name = "users") // tên bảng trong MySQL
+@Builder
 public class User {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    Long id;
+    private Long id;
 
-    @Column(nullable = false, unique = true, length = 255)
-    String email;
+    @Column(unique = true, nullable = false)
+    private String username;
 
-    @Column(nullable = false, length = 255)
-    String password;
+    private String firstName;
 
-    @Column(nullable = false, length = 255)
-    String username;
+    private String lastName;
 
-    @Column(nullable = false, length = 255)
-    String firstName;
+    private LocalDate dob;
 
-    @Column(nullable = false, length = 255)
-    String lastName;
+    @Column(unique = true, nullable = false)
+    private String email;
 
-    LocalDate dob; // DATE trong MySQL → LocalDate
+    @Column(nullable = false)
+    private String password;
 
-    @ManyToMany
-    Set<Role> roles;
+    @Column(length = 50)
+    private String phone;
 
-    @Column(nullable = false, unique = true, length = 255)
-    String userId; // Sử dụng cho oauth keycloak
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private UserStatus status = UserStatus.ENABLE;
+
+    @Column(updatable = false)
+    private LocalDateTime createdAt;
+
+    @ManyToMany(fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "user_role",
+            joinColumns = @JoinColumn(name = "userId"),
+            inverseJoinColumns = @JoinColumn(name = "roleId")
+    )
+    @Builder.Default
+    private Set<Role> roles = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<Address> addresses = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<Cart> carts = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<Bill> bills = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<Wishlist> wishlists = new HashSet<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<BookComment> comments = new HashSet<>();
+
+    @OneToMany(mappedBy = "to", cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<Notification> receivedNotifications = new HashSet<>();
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = LocalDateTime.now();
+    }
+
+    public enum UserStatus {
+        ENABLE, DISABLE
+    }
 }

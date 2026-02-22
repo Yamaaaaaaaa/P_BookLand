@@ -64,3 +64,12 @@ PTIT_BookLand/
 > - On `CANCELED`: **stock is automatically restored** for all books in the order
 > - `COMPLETED` and `CANCELED` are **terminal states** — no further transitions are allowed
 > - Only `ADMIN`, `MANAGER`, and `ORDER_STAFF` roles can update order status
+
+
+## DEMO: 
+![alt text](demo.png)
+![alt text](demo-1.png)
+![alt text](demo-2.png)
+![alt text](demo-3.png)
+![alt text](demo-4.png)
+![alt text](demo-5.png)

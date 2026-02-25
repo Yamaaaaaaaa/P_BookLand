@@ -103,6 +103,21 @@ public class CartService {
     }
 
     @Transactional
+    public CartDTO removeMultipleFromCart(Long userId, List<Long> bookIds) {
+        Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.BUYING)
+                .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));
+
+        List<CartItem> itemsToRemove = cartItemRepository
+                .findByCartIdAndBookIdIn(cart.getId(), bookIds);
+
+        cart.getItems().removeAll(itemsToRemove);
+        cartItemRepository.deleteAllInBatch(itemsToRemove);
+        cartRepository.save(cart);
+
+        return convertToDTO(cart);
+    }
+
+    @Transactional
     public void clearCart(Long userId) {
         Cart cart = cartRepository.findByUserIdAndStatus(userId, CartStatus.BUYING)
                 .orElseThrow(() -> new AppException(ErrorCode.CART_NOT_FOUND));

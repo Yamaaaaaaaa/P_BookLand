@@ -99,6 +99,27 @@
   margin-bottom: 12px;
 }
 
+.btn-delete-selected {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: 1px solid #C92127;
+  color: #C92127;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+  white-space: nowrap;
+}
+
+.btn-delete-selected:hover {
+  background: #C92127;
+  color: white;
+}
+
 .bar-labels {
   display: flex;
   align-items: center;

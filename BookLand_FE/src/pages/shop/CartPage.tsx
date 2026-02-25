@@ -86,7 +86,7 @@ const CartPage = () => {
         try {
             await cartService.updateCartItem(userId, bookId, { quantity: newQuantity });
             // Refresh cart
-            const cartRes = await cartService.getUserCart(userId);
+            const cartRes = await cartService.getMyCart();
             if (cartRes.result) {
                 setCartItems(cartRes.result.items);
             }
@@ -97,17 +97,28 @@ const CartPage = () => {
     };
 
     const removeItem = async (bookId: number) => {
-        const userId = getCurrentUserId();
-        if (!userId) return;
-
         try {
-            await cartService.removeFromCart(userId, bookId);
+            await cartService.removeMultipleFromMyCart([bookId]);
             setCartItems(items => items.filter(item => item.bookId !== bookId));
             setSelectedIds(ids => ids.filter(id => id !== bookId));
             toast.success(t('cart.remove_success'));
             window.dispatchEvent(new Event('cart:updated'));
         } catch (error) {
             console.error('Failed to remove item:', error);
+            toast.error(t('cart.remove_error'));
+        }
+    };
+
+    const removeSelectedItems = async () => {
+        if (selectedIds.length === 0) return;
+        try {
+            await cartService.removeMultipleFromMyCart(selectedIds);
+            setCartItems(items => items.filter(item => !selectedIds.includes(item.bookId)));
+            setSelectedIds([]);
+            toast.success(t('cart.remove_selected_success'));
+            window.dispatchEvent(new Event('cart:updated'));
+        } catch (error) {
+            console.error('Failed to remove selected items:', error);
             toast.error(t('cart.remove_error'));
         }
     };
@@ -216,6 +227,15 @@ const CartPage = () => {
                                     <span className="checkmark"></span>
                                     {t('cart.select_all')} ({t('cart.item_count', { count: cartItems.length })})
                                 </label>
+                                {selectedIds.length > 0 && (
+                                    <button
+                                        className="btn-delete-selected"
+                                        onClick={removeSelectedItems}
+                                    >
+                                        <Trash2 size={14} />
+                                        {t('cart.remove_selected', { count: selectedIds.length })}
+                                    </button>
+                                )}
                                 <div className="bar-labels">
                                     <span className="bar-label-qty">{t('cart.label_quantity')}</span>
                                     <span className="bar-label-subtotal">{t('cart.label_subtotal')}</span>

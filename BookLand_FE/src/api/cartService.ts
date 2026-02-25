@@ -21,6 +21,9 @@ const cartService = {
     },
     clearCart: (userId: number) => {
         return axiosClient.delete<any, ApiResponse<void>>(`/api/cart/${userId}/clear`);
+    },
+    removeMultipleFromMyCart: (bookIds: number[]) => {
+        return axiosClient.delete<any, ApiResponse<Cart>>(`/api/cart/my/items/batch`, { data: bookIds });
     }
 };
 

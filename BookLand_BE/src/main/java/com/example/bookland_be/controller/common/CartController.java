@@ -13,11 +13,12 @@ import com.example.bookland_be.service.CartService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/cart")
@@ -40,7 +41,6 @@ public class CartController {
         return ApiResponse.<CartDTO>builder().result(cartService.getUserCart(user.getId())).build();
     }
 
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @GetMapping("/{userId}")
     public ApiResponse<CartDTO> getUserCart(@PathVariable Long userId) {
         return ApiResponse.<CartDTO>builder().result(cartService.getUserCart(userId)).build();
@@ -72,5 +72,20 @@ public class CartController {
     public ApiResponse<Void> clearCart(@PathVariable Long userId) {
         cartService.clearCart(userId);
         return ApiResponse.<Void>builder().build();
+    }
+
+    /**
+     * DELETE /api/cart/my/items/batch - Xóa nhiều sản phẩm khỏi giỏ hàng của user hiện tại
+     * Request body: danh sách bookId cần xóa, ví dụ: [1, 2, 3]
+     */
+    @DeleteMapping("/my/items/batch")
+    public ApiResponse<CartDTO> removeMultipleFromMyCart(@RequestBody List<Long> bookIds) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_EXISTED));
+        return ApiResponse.<CartDTO>builder()
+                .result(cartService.removeMultipleFromCart(user.getId(), bookIds))
+                .build();
     }
 }

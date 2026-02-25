@@ -702,7 +702,9 @@
     "confirm_order": "XÁC NHẬN ĐƠN HÀNG",
     "checkout_note": "(Giảm giá trên web chỉ áp dụng cho bán lẻ)",
     "login_required": "Vui lòng đăng nhập để xem giỏ hàng",
-    "select_shipping_payment_warning": "Vui lòng chọn phương thức vận chuyển và thanh toán"
+    "select_shipping_payment_warning": "Vui lòng chọn phương thức vận chuyển và thanh toán",
+    "remove_selected": "Xóa đã chọn ({{count}})",
+    "remove_selected_success": "Đã xóa các sản phẩm đã chọn khỏi giỏ hàng"
   },
   "checkout": {
     "step_cart": "Giỏ hàng",

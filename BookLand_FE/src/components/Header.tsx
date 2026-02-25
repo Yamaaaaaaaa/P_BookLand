@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, Bell, User, Menu, X, ChevronDown, LayoutGrid } from 'lucide-react';
+import { Search, ShoppingCart, Bell, User, Menu, X, ChevronDown } from 'lucide-react';
 import '../styles/components/header.css';
 import { categories, userMenuItems, mockUser } from '../../mockNewUI/headerMockData';
 import notificationService from '../api/notificationService';
@@ -19,7 +19,6 @@ interface HeaderProps {
 const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) => {
     const { t, i18n } = useTranslation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-    const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false);
     const [isNotificationOpen, setIsNotificationOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
@@ -31,7 +30,6 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
     const userId = getCurrentUserId();
     const { subscribe, isConnected } = useWebSocket();
 
-    const categoryMenuRef = useRef<HTMLDivElement>(null);
     const notificationRef = useRef<HTMLDivElement>(null);
     const userMenuRef = useRef<HTMLDivElement>(null);
     const langMenuRef = useRef<HTMLDivElement>(null);
@@ -189,9 +187,7 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
     // Close dropdowns when clicking outside
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
-            if (categoryMenuRef.current && !categoryMenuRef.current.contains(event.target as Node)) {
-                setIsCategoryMenuOpen(false);
-            }
+
             if (notificationRef.current && !notificationRef.current.contains(event.target as Node)) {
                 setIsNotificationOpen(false);
             }
@@ -243,66 +239,6 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                     <Link to="/shop/home" className="new-header__logo" style={{ display: 'flex', alignItems: 'center' }}>
                         <img src="/logo.png" alt="BookLand" style={{ height: '40px', width: 'auto' }} />
                     </Link>
-
-                    {/* Search Group (Category + Search) */}
-                    <div className="new-header__search-group">
-                        <div className="new-header__category-wrapper" ref={categoryMenuRef}>
-                            <button
-                                className="new-header__category-btn"
-                                onClick={() => navigate('/shop/books')}
-                                title={t('header.book_categories')}
-                            >
-                                <LayoutGrid size={28} color="#7A7E7F" strokeWidth={1.5} />
-                            </button>
-
-                            {/* Category Mega Menu */}
-                            {isCategoryMenuOpen && (
-                                <div className="new-header__mega-menu">
-                                    {/* Left Sidebar - Categories */}
-                                    <div className="new-header__mega-menu-sidebar">
-                                        <h3 className="new-header__mega-menu-title">{t('header.book_categories')}</h3>
-                                        <div className="new-header__mega-menu-categories">
-                                            {categories.map((category) => (
-                                                <Link
-                                                    key={category.id}
-                                                    to={`/shop/category/${category.id}`}
-                                                    className="new-header__mega-menu-category"
-                                                >
-                                                    {t(`category.${category.id}`) || category.name}
-                                                </Link>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    {/* ... Mega Menu Content (Simplified for brevity, keeping structure) ... */}
-                                    {/* Right Panel - Featured Content */}
-                                    <div className="new-header__mega-menu-content">
-                                        {/* ... (Keeping existing mega menu content logic if needed or can be simplified) ... */}
-                                        {/* For now, I'll keep the static structure but ideally this should be dynamic or translated too if hardcoded */}
-                                        <div className="new-header__mega-menu-header">
-                                            <div className="new-header__mega-menu-badge">
-                                                <span className="new-header__mega-menu-badge-icon">📚</span>
-                                                <span className="new-header__mega-menu-badge-text">Sách Trong Nước</span>
-                                            </div>
-                                        </div>
-                                        {/* ... Rest of mega menu ... */}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <form className="new-header__search" onSubmit={handleSearchSubmit}>
-                            <input
-                                type="text"
-                                className="new-header__search-input"
-                                placeholder={t('header.search_placeholder')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            <button className="new-header__search-btn" type="submit" aria-label="Search">
-                                <Search size={20} color="white" />
-                            </button>
-                        </form>
-                    </div>
 
                     {/* Actions */}
                     <div className="new-header__actions">
@@ -512,27 +448,108 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
 
             {/* Mobile Menu */}
             <div className={`new-header__mobile-menu ${isMobileMenuOpen ? 'new-header__mobile-menu--open' : ''}`}>
+                {/* Mobile Header */}
                 <div className="new-header__mobile-header">
-                    <h3>{t('header.book_categories')}</h3>
+                    <Link to="/shop/home" className="new-header__mobile-logo" onClick={closeMobileMenu}>
+                        <img src="/logo.png" alt="BookLand" style={{ height: '32px', width: 'auto' }} />
+                    </Link>
                     <button onClick={closeMobileMenu} className="new-header__mobile-close">
                         <X size={24} />
                     </button>
                 </div>
 
-                <div className="new-header__mobile-category-list">
-                    {categories.map((category) => (
-                        <div key={category.id} className="new-header__mobile-category-item">
-                            <Link
-                                to={`/shop/category/${category.id}`}
-                                className="new-header__mobile-category-link"
-                                onClick={closeMobileMenu}
-                            >
-                                {category.icon && <span className="new-header__mobile-category-icon">{category.icon}</span>}
-                                <span>{t(`category.${category.id}`) || category.name}</span>
-                                {category.subcategories && <ChevronDown size={16} />}
+                {/* Mobile Search */}
+                <div className="new-header__mobile-search-wrapper">
+                    <form className="new-header__mobile-search" onSubmit={(e) => { handleSearchSubmit(e); closeMobileMenu(); }}>
+                        <input
+                            type="text"
+                            className="new-header__mobile-search-input"
+                            placeholder={t('header.search_placeholder')}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <button className="new-header__mobile-search-btn" type="submit" aria-label="Search">
+                            <Search size={18} color="white" />
+                        </button>
+                    </form>
+                </div>
+
+                {/* Mobile Nav Links */}
+                <div className="new-header__mobile-nav">
+                    <Link to="/shop/home" className="new-header__mobile-nav-link" onClick={closeMobileMenu}>
+                        🏠 <span>{t('header.home') || 'Trang chủ'}</span>
+                    </Link>
+                    <Link to="/shop/books" className="new-header__mobile-nav-link" onClick={closeMobileMenu}>
+                        📚 <span>{t('header.books')}</span>
+                    </Link>
+                    <Link to="/shop/wishlist" className="new-header__mobile-nav-link" onClick={closeMobileMenu}>
+                        ❤️ <span>{t('header.wishlist') || 'Yêu thích'}</span>
+                    </Link>
+                    <Link to="/shop/cart" className="new-header__mobile-nav-link" onClick={closeMobileMenu}>
+                        🛒 <span>{t('header.cart')}</span>
+                        {cartItemCount > 0 && (
+                            <span className="new-header__mobile-nav-badge">{cartItemCount}</span>
+                        )}
+                    </Link>
+                </div>
+
+                {/* Mobile User / Auth Section */}
+                <div className="new-header__mobile-section-title">{t('header.account')}</div>
+                <div className="new-header__mobile-user-section">
+                    {isAuthenticated ? (
+                        <>
+                            {userMenuItems.map((item) => (
+                                item.id === 'logout' ? (
+                                    <button
+                                        key={item.id}
+                                        onClick={() => { onLogout(); closeMobileMenu(); }}
+                                        className="new-header__mobile-nav-link new-header__mobile-nav-link--danger"
+                                    >
+                                        <span>{item.icon}</span>
+                                        <span>{t(`header.${item.id}`) || item.label}</span>
+                                    </button>
+                                ) : (
+                                    <Link
+                                        key={item.id}
+                                        to={item.href}
+                                        className="new-header__mobile-nav-link"
+                                        onClick={closeMobileMenu}
+                                    >
+                                        <span>{item.icon}</span>
+                                        <span>{t(`header.${item.id}`) || item.label}</span>
+                                    </Link>
+                                )
+                            ))}
+                        </>
+                    ) : (
+                        <div className="new-header__mobile-auth-btns">
+                            <Link to="/shop/login" className="new-header__auth-dropdown-btn new-header__auth-dropdown-btn--login" onClick={closeMobileMenu}>
+                                {t('header.login')}
+                            </Link>
+                            <Link to="/shop/register" className="new-header__auth-dropdown-btn new-header__auth-dropdown-btn--register" onClick={closeMobileMenu}>
+                                {t('header.register')}
                             </Link>
                         </div>
-                    ))}
+                    )}
+                </div>
+
+                {/* Mobile Language Switcher */}
+                <div className="new-header__mobile-lang">
+                    <span className="new-header__mobile-section-title">{t('header.language') || 'Ngôn ngữ'}</span>
+                    <div className="new-header__mobile-lang-btns">
+                        <button
+                            className={`new-header__mobile-lang-btn ${i18n.language === 'vi' ? 'active' : ''}`}
+                            onClick={() => changeLanguage('vi')}
+                        >
+                            🇻🇳 VN
+                        </button>
+                        <button
+                            className={`new-header__mobile-lang-btn ${i18n.language === 'en' ? 'active' : ''}`}
+                            onClick={() => changeLanguage('en')}
+                        >
+                            🇬🇧 EN
+                        </button>
+                    </div>
                 </div>
             </div>
         </header >

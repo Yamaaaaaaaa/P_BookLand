@@ -264,6 +264,11 @@
   color: #666;
 }
 
+.item-quantity-control button:disabled {
+  color: #ccc;
+  cursor: not-allowed;
+}
+
 .item-quantity-control input {
   width: 40px;
   height: 32px;

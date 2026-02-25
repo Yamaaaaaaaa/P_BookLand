@@ -675,11 +675,12 @@
     "add_cart_success": "Đã thêm {{quantity}} cuốn \"{{name}}\" vào giỏ hàng",
     "add_wishlist_success": "Đã thêm \"{{name}}\" vào danh sách yêu thích",
     "add_cart_error": "Không thể thêm vào giỏ hàng. Vui lòng thử lại.",
-    "add_wishlist_error": "Không thể thêm vào danh sách yêu thích.",
+    "add_wishlist_error": "Không thể thêm vào danh sách yêu thích, Sản phẩm đã trong danh sách yêu thích rồi!",
     "load_error": "Không thể tải thông tin sản phẩm",
     "not_found": "Không tìm thấy sản phẩm",
     "back_home": "Quay lại cửa hàng",
-    "review_loading": "Đang tải đánh giá..."
+    "review_loading": "Đang tải đánh giá...",
+    "view_more": "Xem thêm"
   },
   "cart": {
     "title": "GIỎ HÀNG",
@@ -842,7 +843,7 @@
     "add_to_cart_success": "Đã thêm \"{{name}}\" vào giỏ hàng",
     "add_wishlist_success": "Đã thêm \"{{name}}\" vào danh sách yêu thích",
     "add_to_cart_error": "Không thể thêm vào giỏ hàng. Vui lòng thử lại.",
-    "add_wishlist_error": "Không thể thêm vào danh sách yêu thích.",
+    "add_wishlist_error": "Không thể thêm vào danh sách yêu thích, Sản phẩm đã có trong danh sách yêu thích!",
     "series_tag": "Tập {{volume}}",
     "author_label": "Tác giả:",
     "updating_desc": "Đang cập nhật nội dung...",

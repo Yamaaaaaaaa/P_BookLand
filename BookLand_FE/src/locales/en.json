@@ -656,11 +656,12 @@
     "add_cart_success": "Added {{quantity}} \"{{name}}\" to cart",
     "add_wishlist_success": "Added \"{{name}}\" to wishlist",
     "add_cart_error": "Failed to add to cart. Please try again.",
-    "add_wishlist_error": "Failed to add to wishlist.",
+    "add_wishlist_error": "Failed to add to wishlist, Product is already in wishlist!.",
     "load_error": "Failed to load product info",
     "not_found": "Product Not Found",
     "back_home": "Back to Shop",
-    "review_loading": "Loading reviews..."
+    "review_loading": "Loading reviews...",
+    "view_more": "View More"
   },
   "cart": {
     "title": "SHOPPING CART",
@@ -821,7 +822,7 @@
     "add_to_cart_success": "Added \"{{name}}\" to cart",
     "add_wishlist_success": "Added \"{{name}}\" to wishlist",
     "add_to_cart_error": "Failed to add to cart. Please try again.",
-    "add_wishlist_error": "Failed to add to wishlist.",
+    "add_wishlist_error": "Failed to add to wishlist, Product is already in wishlist!",
     "series_tag": "Vol {{volume}}",
     "author_label": "Author:",
     "updating_desc": "Content updating...",

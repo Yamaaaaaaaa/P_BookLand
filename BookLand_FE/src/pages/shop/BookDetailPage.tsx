@@ -245,8 +245,9 @@ const BookDetailPage = () => {
                                         className={`btn-add-wishlist ${isAddingToWishlist ? 'loading' : ''}`}
                                         onClick={handleAddToWishlist}
                                         disabled={isAddingToWishlist}
+                                        title={t('product.add_to_wishlist', 'Thêm vào yêu thích')}
                                     >
-                                        <Heart size={20} fill={isAddingToWishlist ? "currentColor" : "none"} />
+                                        <Heart size={22} />
                                     </button>
                                 </div>
                             </div>
@@ -322,12 +323,12 @@ const BookDetailPage = () => {
                             </div>
 
                             <div className="quantity-section">
-                                <label>{t('product.quantity')}</label>
+                                {/* <label>{t('product.quantity')}</label>
                                 <div className="quantity-control">
                                     <button onClick={() => handleQuantityChange('dec')}><Minus size={14} /></button>
                                     <input type="text" value={quantity} readOnly />
                                     <button onClick={() => handleQuantityChange('inc')}><Plus size={14} /></button>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
 

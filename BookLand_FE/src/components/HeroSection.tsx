@@ -8,6 +8,7 @@ import { useTranslation } from 'react-i18next';
 
 const HeroSection = () => {
     const [imageUrls, setImageUrls] = useState<string[]>([]);
+    const [eventId, setEventId] = useState<number | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [imgLoading, setImgLoading] = useState(true);
@@ -18,6 +19,7 @@ const HeroSection = () => {
             try {
                 const response = await eventService.getHighestPriorityEvent();
                 if (response.result) {
+                    setEventId(response.result.id);
                     const images = response.result.images || [];
                     const sorted = [...images].sort((a, b) => {
                         if (a.imageType === 'MAIN') return -1;
@@ -70,7 +72,11 @@ const HeroSection = () => {
                             </div>
                         ) : imageUrls.length > 0 ? (
                             <>
-                                <div className="hero-slider-item" style={{ position: 'relative', overflow: 'hidden' }}>
+                                <Link
+                                    to={eventId ? `/shop/event-detail/${eventId}` : '#'}
+                                    className="hero-slider-item"
+                                    style={{ position: 'relative', overflow: 'hidden', display: 'block', cursor: eventId ? 'pointer' : 'default' }}
+                                >
                                     {imgLoading && (
                                         <div style={{
                                             position: 'absolute', inset: 0,
@@ -101,10 +107,10 @@ const HeroSection = () => {
                                             transition: 'opacity 0.3s ease'
                                         }}
                                     />
-                                </div>
+                                </Link>
                                 <div className="hero-slider-nav">
-                                    <button className="hero-slider-arrow prev" onClick={prevSlide}><ChevronLeft size={24} /></button>
-                                    <button className="hero-slider-arrow next" onClick={nextSlide}><ChevronRight size={24} /></button>
+                                    <button className="hero-slider-arrow prev" onClick={e => { e.preventDefault(); prevSlide(); }}><ChevronLeft size={24} /></button>
+                                    <button className="hero-slider-arrow next" onClick={e => { e.preventDefault(); nextSlide(); }}><ChevronRight size={24} /></button>
                                 </div>
                                 <div className="hero-slider-dots">
                                     {imageUrls.map((_, index) => (

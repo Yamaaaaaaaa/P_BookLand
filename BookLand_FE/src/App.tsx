@@ -36,6 +36,7 @@ import SeriePage from './pages/admin/manage-information/SeriePage';
 import AdminBookDetailPage from './pages/admin/manage-information/AdminBookDetailPage';
 import AdminUserDetailPage from './pages/admin/manage-information/AdminUserDetailPage';
 import WishList from './pages/shop/WishList';
+import EventDetailPage from './pages/shop/EventDetailPage';
 import EventPage from './pages/admin/manage-business/EventPage';
 import EventFormPage from './pages/admin/manage-business/EventFormPage';
 import Gallery from './pages/admin/Gallery';
@@ -62,6 +63,7 @@ function App() {
           <Route path="payment-result" element={<PaymentResultPage />} />
           <Route path="books" element={<BooksPage />} />
           <Route path="book-detail/:id" element={<BookDetailPage />} />
+          <Route path="event-detail/:id" element={<EventDetailPage />} />
 
           {/* Protected Customer Routes */}
           <Route element={<ProtectedRoute checkAuth={isCustomerAuthenticated} redirectPath="/shop/login" />}>

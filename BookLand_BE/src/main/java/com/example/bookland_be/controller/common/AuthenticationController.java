@@ -69,4 +69,11 @@ public class AuthenticationController {
         var result = authenticationService.refreshToken(refreshRequest);
         return ApiResponse.<AuthenticationResponse>builder().result(result).build();
     }
+
+    // Đăng nhập bằng Google (FE gửi id_token từ Google Sign-In)
+    @PostMapping("/google")
+    public ApiResponse<LoginResponse> loginWithGoogle(@RequestBody GoogleLoginRequest request) {
+        var result = authenticationService.loginWithGoogle(request);
+        return ApiResponse.<LoginResponse>builder().result(result).build();
+    }
 }

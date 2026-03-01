@@ -599,7 +599,10 @@
     "toast_login_success": "Logged in successfully! Welcome back",
     "toast_register_success": "Registered successfully! Please login to continue.",
     "toast_logout_success": "Logged out successfully. See you again!",
-    "toast_login_required": "You need to login to access this page."
+    "toast_login_required": "You need to login to access this page.",
+    "login_with_google": "Continue with Google",
+    "google_login_error": "Google login failed. Please try again.",
+    "or_divider": "or"
   },
   "shop": {
     "home_breadcrumb": "Home",

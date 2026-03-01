@@ -165,3 +165,58 @@
     padding: 30px 20px;
   }
 }
+
+/* ─── Google Login / Divider ─── */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px;
+}
+
+.auth-divider__line {
+  flex: 1;
+  height: 1px;
+  background-color: #e0e0e0;
+}
+
+.auth-divider__text {
+  font-size: 13px;
+  color: #999;
+  white-space: nowrap;
+}
+
+.google-login-wrapper {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+/* Ép Google button chiếm full width */
+.google-login-wrapper > div,
+.google-login-wrapper iframe {
+  width: 100% !important;
+}
+
+.google-login-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px;
+  color: #555;
+  font-size: 14px;
+}
+
+.google-login-spinner {
+  width: 18px;
+  height: 18px;
+  border: 2px solid #ddd;
+  border-top-color: #c92127;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}

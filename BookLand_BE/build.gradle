@@ -59,6 +59,9 @@ dependencies {
     // OAuth2 Resource Server (JWT, Keycloak, ...)
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 
+    // OAuth2 Client (Google Login - verify id_token)
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
+
 
     /* ================= DEV ================= */
 

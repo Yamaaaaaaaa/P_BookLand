@@ -20,7 +20,11 @@ const authService = {
     },
     introspect: (token: string) => {
         return axiosClient.post<any, ApiResponse<{ valid: boolean }>>('/auth/introspect', { token, tokenType: 'Bearer' });
-    }
+    },
+    loginWithGoogle: (idToken: string) => {
+        return axiosClient.post<any, ApiResponse<LoginResponse>>('/auth/google', { idToken });
+    },
 };
 
 export default authService;
+

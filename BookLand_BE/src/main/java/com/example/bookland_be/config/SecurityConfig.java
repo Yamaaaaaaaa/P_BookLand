@@ -31,6 +31,7 @@ public class SecurityConfig {
             "/auth/login",
             "/auth/admin/login",
             "/auth/logout-keycloak",
+            "/auth/google",   // Google OAuth2 login
             "/home"};
 
     // Public GET endpoints - ai cũng có thể đọc, không cần đăng nhập

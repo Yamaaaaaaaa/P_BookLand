@@ -618,7 +618,10 @@
     "toast_login_success": "Đăng nhập thành công! Chào mừng bạn trở lại",
     "toast_register_success": "Đăng ký thành công! Hãy đăng nhập để tiếp tục.",
     "toast_logout_success": "Đã đăng xuất thành công. Hẹn gặp lại!",
-    "toast_login_required": "Bạn cần đăng nhập để truy cập trang này."
+    "toast_login_required": "Bạn cần đăng nhập để truy cập trang này.",
+    "login_with_google": "Đăng nhập bằng Google",
+    "google_login_error": "Đăng nhập Google thất bại. Vui lòng thử lại.",
+    "or_divider": "hoặc"
   },
   "shop": {
     "home_breadcrumb": "Trang chủ",

@@ -23,4 +23,6 @@ public interface AuthenticationService {
     public AuthenticationResponse refreshToken(RefreshRequest refreshRequest) throws JOSEException, ParseException;
 
     public UserResponse register(RegisterRequest request);
+
+    public LoginResponse loginWithGoogle(GoogleLoginRequest request);
 }

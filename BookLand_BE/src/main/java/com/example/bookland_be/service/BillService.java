@@ -34,6 +34,7 @@ public class BillService {
     private final ShippingMethodRepository shippingMethodRepository;
     private final EventApplicationService eventApplicationService;
     private final NotificationService notificationService;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public Page<BillDTO> getAllBills(Long userId, BillStatus status,
@@ -244,6 +245,19 @@ public class BillService {
         String content = String.format("Đơn hàng #%d của bạn đã được chuyển sang trạng thái: %s", 
                 updatedBill.getId(), newStatus.name());
         notificationService.createNotification(updatedBill.getUser().getId(), "BILL_STATUS", title, content, request.getApprovedById());
+
+        // Send email notification to user
+        String emailTo = updatedBill.getUser().getEmail();
+        if (emailTo != null && !emailTo.isEmpty()) {
+            Map<String, Object> templateModel = Map.of(
+                "name", updatedBill.getUser().getUsername(),
+                "message", String.format("Đơn hàng #%d của bạn đã được cập nhật trạng thái mới.", updatedBill.getId()),
+                "details", String.format("Trạng thái hiện tại: %s", newStatus.name()),
+                "actionUrl", "http://localhost:5173", // Replace with your actual frontend URL if different
+                "actionText", "Truy cập BookLand"
+            );
+            emailService.sendEmailWithHtmlTemplate(emailTo, title, "email-template", templateModel);
+        }
 
         return convertToDTO(updatedBill);
     }

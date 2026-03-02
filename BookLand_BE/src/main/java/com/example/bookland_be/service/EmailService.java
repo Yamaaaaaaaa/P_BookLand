@@ -33,7 +33,7 @@ public class EmailService {
             // true = multipart message, utf-8
             MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
 
-            helper.setFrom("sonasked1@gmail.com"); // Cập nhật trùng với mail bạn dùng cấu hình nếu muốn
+            helper.setFrom("pbookland2k4@gmail.com"); // Cập nhật trùng với mail bạn dùng cấu hình nếu muốn
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlBody, true); // true = isHtml

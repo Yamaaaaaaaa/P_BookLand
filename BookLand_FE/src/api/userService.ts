@@ -58,6 +58,18 @@ const userService = {
     },
     adminUpdateUserStatus: (id: number, status: UserStatus) => {
         return axiosClient.patch<any, ApiResponse<User>>(`/admin/users/${id}/status`, null, { params: { status } });
+    },
+    adminSendCustomEmail: (data: {
+        userIds?: number[];
+        sendToAll: boolean;
+        subject: string;
+        title: string;
+        message: string;
+        details?: string;
+        actionUrl?: string;
+        actionText?: string;
+    }) => {
+        return axiosClient.post<any, ApiResponse<string>>('/admin/users/send-email', data);
     }
 };
 

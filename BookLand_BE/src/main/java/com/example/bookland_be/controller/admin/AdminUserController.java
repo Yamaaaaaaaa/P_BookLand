@@ -112,4 +112,13 @@ public class AdminUserController {
         userService.deleteUser(id);
         return ResponseEntity.noContent().build();
     }
+
+    /**
+     * Gửi email tuỳ chỉnh cho người dùng
+     */
+    @PostMapping("/send-email")
+    public ResponseEntity<ApiResponse<String>> sendCustomEmail(@RequestBody com.example.bookland_be.dto.request.SendCustomEmailRequest request) {
+        userService.sendCustomEmails(request);
+        return ResponseEntity.ok(ApiResponse.<String>builder().result("Gửi email thành công").build());
+    }
 }

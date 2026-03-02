@@ -32,6 +32,8 @@ public class SecurityConfig {
             "/auth/admin/login",
             "/auth/logout-keycloak",
             "/auth/google",   // Google OAuth2 login
+            "/auth/test-email",
+            "/vnpay/**",
             "/home"};
 
     // Public GET endpoints - ai cũng có thể đọc, không cần đăng nhập

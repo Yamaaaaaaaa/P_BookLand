@@ -44,9 +44,9 @@ services:
       # hoặc giữ nguyên AWS RDS URL của bạn nếu không muốn dùng db local
       - REDIS_HOST=bookland-redis
       - REDIS_PORT=6379
-      - DB_URL=${DB_URL}
-      - DB_USERNAME=${DB_USERNAME}
-      - DB_PASSWORD=${DB_PASSWORD}
+      # - DB_URL=${DB_URL}
+      # - DB_USERNAME=${DB_USERNAME}
+      # - DB_PASSWORD=${DB_PASSWORD}
     env_file:
       - ./BookLand_BE/.env
 

@@ -562,6 +562,15 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                 <div className="new-header__mobile-user-section">
                     {isAuthenticated ? (
                         <>
+                            <Link to="/shop/profile" className="new-header__user-info" style={{ textDecoration: 'none' }} onClick={closeMobileMenu}>
+                                <div className="new-header__user-avatar">
+                                    <User size={24} />
+                                </div>
+                                <div className="new-header__user-details">
+                                    <h4 style={{ margin: '0 0 4px', fontSize: '15px', color: '#333' }}>{mockUser.name}</h4>
+                                    <p style={{ margin: 0, fontSize: '12px', color: '#999' }}>{mockUser.role}</p>
+                                </div>
+                            </Link>
                             {userMenuItems.map((item) => (
                                 item.id === 'logout' ? (
                                     <button

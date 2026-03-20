@@ -7,37 +7,41 @@ import '../../../styles/pages/auth.css';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'react-toastify';
 
+
 const LoginPage = () => {
     const { t } = useTranslation();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState('');
+    const [googleLoading, setGoogleLoading] = useState(false);
     const navigate = useNavigate();
     const location = useLocation();
 
+    // Hàm lưu token và navigate sau khi login thành công (dùng chung cho cả 2 luồng)
+    const handleLoginSuccess = async (accessToken: string, refreshToken: string) => {
+        setCustomerToken(accessToken);
+        setCustomerRefreshToken(refreshToken);
+        try {
+            const userRes = await userService.getOwnProfile();
+            if (userRes.result) {
+                setCustomerUserId(userRes.result.id);
+            }
+        } catch (userErr) {
+            console.error('Failed to fetch user ID after login:', userErr);
+        }
+        toast.success(t('auth.toast_login_success'));
+        navigate('/shop/home');
+    };
+
+    // Đăng nhập thường
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
-
         try {
             const response = await authService.login({ email, password });
             if (response.result) {
-                setCustomerToken(response.result.accessToken);
-                setCustomerRefreshToken(response.result.refreshToken);
-
-                // Fetch and set user ID
-                try {
-                    const userRes = await userService.getOwnProfile();
-                    if (userRes.result) {
-                        setCustomerUserId(userRes.result.id);
-                    }
-                } catch (userErr) {
-                    console.error("Failed to fetch user ID after login:", userErr);
-                }
-
-                toast.success(t('auth.toast_login_success'));
-                navigate('/shop/home');
+                await handleLoginSuccess(response.result.accessToken, response.result.refreshToken);
             }
         } catch (err: any) {
             console.error(err);
@@ -46,6 +50,21 @@ const LoginPage = () => {
         }
     };
 
+    // Handler cho GoogleLogin credential (id_token)
+    const handleGoogleCredential = async (credential: string) => {
+        setGoogleLoading(true);
+        try {
+            const response = await authService.loginWithGoogle(credential);
+            if (response.result) {
+                await handleLoginSuccess(response.result.accessToken, response.result.refreshToken);
+            }
+        } catch (err: any) {
+            console.error('Google login error:', err);
+            toast.error(t('auth.google_login_error'));
+        } finally {
+            setGoogleLoading(false);
+        }
+    };
 
     return (
         <div className="auth-page">
@@ -118,10 +137,65 @@ const LoginPage = () => {
                             {t('auth.login_button')}
                         </button>
                     </form>
+
+                    {/* Divider */}
+                    <div className="auth-divider">
+                        <span className="auth-divider__line" />
+                        <span className="auth-divider__text">{t('auth.or_divider')}</span>
+                        <span className="auth-divider__line" />
+                    </div>
+
+                    {/* Google Login Button — dùng GoogleLogin component để lấy id_token */}
+                    <GoogleLoginButton
+                        onCredential={handleGoogleCredential}
+                        loading={googleLoading}
+                        label={t('auth.login_with_google')}
+                    />
                 </div>
             </div>
         </div>
     );
 };
 
+// ─── Google Login Button (dùng GoogleLogin component của @react-oauth/google) ───
+import { GoogleLogin } from '@react-oauth/google';
+
+interface GoogleLoginButtonProps {
+    onCredential: (idToken: string) => void;
+    loading: boolean;
+    label: string;
+}
+
+const GoogleLoginButton = ({ onCredential, loading, label }: GoogleLoginButtonProps) => {
+    return (
+        <div className="google-login-wrapper">
+            {loading ? (
+                <div className="google-login-loading">
+                    <span className="google-login-spinner" />
+                    <span>Đang xử lý...</span>
+                </div>
+            ) : (
+                <GoogleLogin
+                    onSuccess={(credentialResponse) => {
+                        if (credentialResponse.credential) {
+                            onCredential(credentialResponse.credential);
+                        }
+                    }}
+                    onError={() => {
+                        import('react-toastify').then(({ toast }) => {
+                            toast.error(label);
+                        });
+                    }}
+                    width="100%"
+                    text="continue_with"
+                    shape="rectangular"
+                    logo_alignment="left"
+
+                />
+            )}
+        </div>
+    );
+};
+
 export default LoginPage;
+

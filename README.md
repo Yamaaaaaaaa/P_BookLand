@@ -31,6 +31,38 @@ PTIT_BookLand/
 | **Deploy** | AWS (BE), Vercel / Static (FE) |
 
 ---
+## Run Docker: 
+
+```bash
+# Clone repository
+git clone
+
+docker-compose build
+
+docker-compose up -d
+```
+
+## Run without Docker: 
+
+```bash
+# Clone repository
+git clone 
+
+# Navigate to backend directory
+cd BookLand_BE
+
+# Build and run backend
+./gradlew bootRun
+
+# Navigate to frontend directory
+cd ../BookLand_FE
+
+# Install dependencies
+npm install
+
+# Run frontend
+npm run dev
+```
 
 ## System Architecture Diagrams
 

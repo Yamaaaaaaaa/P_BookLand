@@ -146,6 +146,34 @@
   background-color: #fff1f1;
 }
 
+.btn-add-wishlist {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+  background: white;
+  border: 2px solid #C92127;
+  color: #C92127;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+}
+
+.btn-add-wishlist:hover {
+  background-color: #fff1f1;
+}
+
+.btn-add-wishlist:hover svg {
+  fill: #C92127;
+}
+
+.btn-add-wishlist:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .btn-buy-now {
   flex: 1;
   height: 48px;

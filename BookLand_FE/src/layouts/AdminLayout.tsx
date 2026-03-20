@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { logoutAdmin, getAdminRefreshToken } from '../utils/auth';
 import authService from '../api/authService';
-import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt, ImageIcon, MessageCircle, Shield, ChevronDown } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt, ImageIcon, MessageCircle, Shield, ChevronDown, Mail } from 'lucide-react';
 import '../styles/layouts/admin.css';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -93,6 +93,9 @@ const AdminLayout = () => {
                         <div className="admin-nav-title">{t('admin.communication')}</div>
                         <Link to="/admin/chat" className={`admin-nav-item ${isActive('/chat') ? 'active' : ''}`}>
                             <MessageCircle /> {t('admin.chat.title')}
+                        </Link>
+                        <Link to="/admin/send-email" className={`admin-nav-item ${isActive('/send-email') ? 'active' : ''}`}>
+                            <Mail /> Gửi Email
                         </Link>
                     </div>
 

@@ -10,6 +10,7 @@ const ADMIN_EMAIL = 'admin@gmail.com';
 
 const ChatWidget: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [unreadCount, setUnreadCount] = useState(0);
     const [messages, setMessages] = useState<ChatMessage[]>([]);
     const [newMessage, setNewMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -34,13 +35,17 @@ const ChatWidget: React.FC = () => {
                     const newMsg: ChatMessage = JSON.parse(message.body);
                     setMessages(prev => [...prev, newMsg]);
                     scrollToBottom();
+                    // Nếu chat đang đóng và tin nhắn đến từ admin → tăng unread
+                    if (!isOpen && newMsg.fromUserId !== userId) {
+                        setUnreadCount(prev => prev + 1);
+                    }
                 } catch (error) {
                     console.error('Failed to parse chat message:', error);
                 }
             });
             return () => unsubscribe();
         }
-    }, [isConnected, userId]);
+    }, [isConnected, userId, isOpen]);
 
     // Auto-scroll to bottom
     useEffect(() => {
@@ -94,10 +99,15 @@ const ChatWidget: React.FC = () => {
             {!isOpen && (
                 <button
                     className="chat-widget-button"
-                    onClick={() => setIsOpen(true)}
+                    onClick={() => { setIsOpen(true); setUnreadCount(0); }}
                     aria-label="Open chat"
                 >
                     <MessageCircle size={24} />
+                    {unreadCount > 0 && (
+                        <span className="chat-widget-badge">
+                            {unreadCount > 99 ? '99+' : unreadCount}
+                        </span>
+                    )}
                 </button>
             )}
 

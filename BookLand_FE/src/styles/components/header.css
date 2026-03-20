@@ -726,15 +726,14 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
+  padding: 14px 20px;
   background-color: #C92127;
   color: white;
 }
 
-.new-header__mobile-header h3 {
-  font-size: 16px;
-  font-weight: 600;
-  margin: 0;
+.new-header__mobile-logo {
+  display: flex;
+  align-items: center;
 }
 
 .new-header__mobile-close {
@@ -745,8 +744,109 @@
   padding: 4px;
 }
 
+/* Mobile Search */
+.new-header__mobile-search-wrapper {
+  padding: 14px 16px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.new-header__mobile-search {
+  display: flex;
+  border: 1px solid #CDCFD0;
+  border-radius: 8px;
+  overflow: hidden;
+  background: white;
+  height: 40px;
+}
+
+.new-header__mobile-search-input {
+  flex: 1;
+  border: none;
+  padding: 0 12px;
+  font-size: 13px;
+  outline: none;
+  color: #333;
+}
+
+.new-header__mobile-search-input::placeholder {
+  color: #9CA3AF;
+}
+
+.new-header__mobile-search-btn {
+  background-color: #C92127;
+  border: none;
+  width: 44px;
+  border-radius: 0 8px 8px 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+/* Mobile Section Title */
+.new-header__mobile-section-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 12px 20px 6px;
+  background-color: #fafafa;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* Mobile Nav Links */
+.new-header__mobile-nav {
+  padding: 6px 0;
+  border-bottom: 1px solid #efefef;
+}
+
+.new-header__mobile-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  color: #333;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.15s;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.new-header__mobile-nav-link:hover,
+.new-header__mobile-nav-link:active {
+  background-color: #fff5f5;
+  color: #C92127;
+}
+
+.new-header__mobile-nav-link--danger {
+  color: #C92127;
+}
+
+.new-header__mobile-nav-badge {
+  margin-left: auto;
+  background-color: #FFD700;
+  color: #C92127;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px 7px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Mobile Category List */
 .new-header__mobile-category-list {
-  padding: 8px 0;
+  padding: 6px 0;
+  border-bottom: 1px solid #efefef;
 }
 
 .new-header__mobile-category-item {
@@ -757,21 +857,75 @@
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 16px 20px;
+  padding: 13px 20px;
   color: #333;
   text-decoration: none;
   font-size: 14px;
   font-weight: 500;
+  transition: background-color 0.15s;
 }
 
+.new-header__mobile-category-link:hover,
 .new-header__mobile-category-link:active {
   background-color: #f5f5f5;
+  color: #C92127;
 }
 
 .new-header__mobile-category-icon {
   font-size: 18px;
   width: 24px;
   text-align: center;
+}
+
+/* Mobile User Section */
+.new-header__mobile-user-section {
+  padding: 6px 0;
+  border-bottom: 1px solid #efefef;
+}
+
+/* Mobile Auth Buttons */
+.new-header__mobile-auth-btns {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px 20px;
+}
+
+/* Mobile Language Switcher */
+.new-header__mobile-lang {
+  padding-bottom: 16px;
+  border-bottom: 1px solid #efefef;
+}
+
+.new-header__mobile-lang-btns {
+  display: flex;
+  gap: 10px;
+  padding: 10px 20px;
+}
+
+.new-header__mobile-lang-btn {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #CDCFD0;
+  border-radius: 6px;
+  background: white;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  color: #555;
+  transition: all 0.15s;
+}
+
+.new-header__mobile-lang-btn.active {
+  background-color: #FFF5F5;
+  border-color: #C92127;
+  color: #C92127;
+  font-weight: 700;
+}
+
+.new-header__mobile-lang-btn:hover {
+  border-color: #C92127;
+  color: #C92127;
 }
 
 /* Responsive - Unified Breakpoint at 1024px */
@@ -836,6 +990,21 @@
   .new-header__user-dropdown {
     width: 90vw;
     max-width: 360px;
+  }
+}
+
+/* Small Mobile: hide search + actions from header bar */
+@media (max-width: 768px) {
+  .new-header__search-group {
+    display: none;
+  }
+
+  .new-header__actions {
+    display: none;
+  }
+
+  .new-header__lang-selector {
+    display: none;
   }
 }
 

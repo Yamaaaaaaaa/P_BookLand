@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, Truck, CreditCard } from 'lucide-react';
 import Breadcrumb from '../../components/common/Breadcrumb';
@@ -38,8 +38,8 @@ const CartPage = () => {
 
         setIsLoading(true);
         try {
-            // Fetch cart
-            const cartRes = await cartService.getUserCart(userId);
+            // Fetch cart - dùng endpoint /my (lấy từ JWT token, không cần userId)
+            const cartRes = await cartService.getMyCart();
             if (cartRes.result && cartRes.result.items) {
                 setCartItems(cartRes.result.items);
                 if (selectedIds.length === 0) {
@@ -76,38 +76,70 @@ const CartPage = () => {
         fetchData();
     }, [t]);
 
-    const updateQuantity = async (bookId: number, currentQuantity: number, delta: number) => {
-        const userId = getCurrentUserId();
-        if (!userId) return;
+    // Debounce timers: bookId -> NodeJS.Timeout
+    const debounceTimers = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+
+    const updateQuantity = (bookId: number, currentQuantity: number, delta: number) => {
+        const item = cartItems.find(i => i.bookId === bookId);
+        if (!item) return;
 
         const newQuantity = currentQuantity + delta;
         if (newQuantity < 1) return;
+        if (newQuantity > item.availableStock) return;
 
-        try {
-            await cartService.updateCartItem(userId, bookId, { quantity: newQuantity });
-            // Refresh cart
-            const cartRes = await cartService.getUserCart(userId);
-            if (cartRes.result) {
-                setCartItems(cartRes.result.items);
-            }
-        } catch (error) {
-            console.error('Failed to update quantity:', error);
-            toast.error(t('cart.update_error'));
+        // Snapshot state cũ để rollback nếu API lỗi
+        const previousItems = cartItems;
+
+        // Optimistic update: cập nhật UI ngay
+        setCartItems(prev => prev.map(i =>
+            i.bookId === bookId
+                ? { ...i, quantity: newQuantity, subtotal: i.finalPrice * newQuantity }
+                : i
+        ));
+
+        // Hủy timer cũ nếu user vẫn đang nhấn
+        if (debounceTimers.current[bookId]) {
+            clearTimeout(debounceTimers.current[bookId]);
         }
+
+        // Gọi API ngầm sau 600ms dừng nhấn
+        const userId = getCurrentUserId();
+        if (!userId) return;
+        debounceTimers.current[bookId] = setTimeout(async () => {
+            try {
+                await cartService.updateCartItem(userId, bookId, { quantity: newQuantity });
+            } catch (error) {
+                console.error('Failed to sync quantity:', error);
+                toast.error(t('cart.update_error'));
+                // Rollback về state cũ nếu API lỗi
+                setCartItems(previousItems);
+            }
+        }, 600);
     };
 
     const removeItem = async (bookId: number) => {
-        const userId = getCurrentUserId();
-        if (!userId) return;
-
         try {
-            await cartService.removeFromCart(userId, bookId);
+            await cartService.removeMultipleFromMyCart([bookId]);
             setCartItems(items => items.filter(item => item.bookId !== bookId));
             setSelectedIds(ids => ids.filter(id => id !== bookId));
             toast.success(t('cart.remove_success'));
             window.dispatchEvent(new Event('cart:updated'));
         } catch (error) {
             console.error('Failed to remove item:', error);
+            toast.error(t('cart.remove_error'));
+        }
+    };
+
+    const removeSelectedItems = async () => {
+        if (selectedIds.length === 0) return;
+        try {
+            await cartService.removeMultipleFromMyCart(selectedIds);
+            setCartItems(items => items.filter(item => !selectedIds.includes(item.bookId)));
+            setSelectedIds([]);
+            toast.success(t('cart.remove_selected_success'));
+            window.dispatchEvent(new Event('cart:updated'));
+        } catch (error) {
+            console.error('Failed to remove selected items:', error);
             toast.error(t('cart.remove_error'));
         }
     };
@@ -216,6 +248,15 @@ const CartPage = () => {
                                     <span className="checkmark"></span>
                                     {t('cart.select_all')} ({t('cart.item_count', { count: cartItems.length })})
                                 </label>
+                                {selectedIds.length > 0 && (
+                                    <button
+                                        className="btn-delete-selected"
+                                        onClick={removeSelectedItems}
+                                    >
+                                        <Trash2 size={14} />
+                                        {t('cart.remove_selected', { count: selectedIds.length })}
+                                    </button>
+                                )}
                                 <div className="bar-labels">
                                     <span className="bar-label-qty">{t('cart.label_quantity')}</span>
                                     <span className="bar-label-subtotal">{t('cart.label_subtotal')}</span>
@@ -256,9 +297,15 @@ const CartPage = () => {
                                         </div>
                                         <div className="item-quantity-col">
                                             <div className="item-quantity-control">
-                                                <button onClick={() => updateQuantity(item.bookId, item.quantity, -1)}><Minus size={14} /></button>
+                                                <button
+                                                    onClick={() => updateQuantity(item.bookId, item.quantity, -1)}
+                                                    disabled={item.quantity <= 1}
+                                                ><Minus size={14} /></button>
                                                 <input type="text" value={item.quantity} readOnly />
-                                                <button onClick={() => updateQuantity(item.bookId, item.quantity, 1)}><Plus size={14} /></button>
+                                                <button
+                                                    onClick={() => updateQuantity(item.bookId, item.quantity, 1)}
+                                                    disabled={item.quantity >= item.availableStock}
+                                                ><Plus size={14} /></button>
                                             </div>
                                             <div className="item-available-stock">
                                                 {t('cart.available_stock', { count: item.availableStock })}

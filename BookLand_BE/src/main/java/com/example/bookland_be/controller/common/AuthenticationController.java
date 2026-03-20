@@ -1,19 +1,22 @@
 package com.example.bookland_be.controller.common;
 
 import com.example.bookland_be.dto.request.*;
-import com.example.bookland_be.dto.response.*;
+import com.example.bookland_be.dto.response.ApiResponse;
+import com.example.bookland_be.dto.response.AuthenticationResponse;
+import com.example.bookland_be.dto.response.IntrospectResponse;
+import com.example.bookland_be.dto.response.LoginResponse;
+import com.example.bookland_be.dto.response.UserResponse;
 import com.example.bookland_be.service.AuthenticationService;
+import com.example.bookland_be.service.EmailService;
 import com.nimbusds.jose.JOSEException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/auth")
@@ -22,6 +25,7 @@ import java.text.ParseException;
 @SecurityRequirement(name = "BearerAuth")
 public class AuthenticationController {
     AuthenticationService authenticationService;
+    EmailService emailService;
 
     // API Lấy Token mới bằng RefreshToken
     @PostMapping("/refresh")
@@ -68,5 +72,29 @@ public class AuthenticationController {
     public ApiResponse<AuthenticationResponse> refresh(@RequestBody RefreshRequest refreshRequest)  throws JOSEException, ParseException{
         var result = authenticationService.refreshToken(refreshRequest);
         return ApiResponse.<AuthenticationResponse>builder().result(result).build();
+    }
+
+    // Đăng nhập bằng Google (FE gửi id_token từ Google Sign-In)
+    @PostMapping("/google")
+    public ApiResponse<LoginResponse> loginWithGoogle(@RequestBody GoogleLoginRequest request) {
+        var result = authenticationService.loginWithGoogle(request);
+        return ApiResponse.<LoginResponse>builder().result(result).build();
+    }
+
+    // API Test Gửi Mail
+    @PostMapping("/test-email")
+    public ApiResponse<String> testEmail(@RequestParam String to) {
+        Map<String, Object> model = Map.of(
+            "name", "Khách Hàng Test",
+            "message", "Đây là một email thử nghiệm hệ thống BookLand. Nếu bạn nhận được email này, tính năng SMTP đang hoạt động rất tốt!",
+            "details", "Test connection với Google SMTP qua cổng 587.",
+            "actionUrl", "http://localhost:5173",
+            "actionText", "Truy cập BookLand"
+        );
+        emailService.sendEmailWithHtmlTemplate(to, "Test Email từ BookLand", "email-template", model);
+        
+        return ApiResponse.<String>builder()
+                .result("Đang gửi mail đến " + to + ". Hãy kiểm tra hộp thư của bạn!")
+                .build();
     }
 }

@@ -139,6 +139,12 @@ export const userMenuItems: UserMenuItem[] = [
   //   href: '/shop/orders'
   // },
   {
+    id: 'profile',
+    label: 'Tài khoản của tôi',
+    icon: '👤',
+    href: '/shop/profile'
+  },
+  {
     id: 'my-orders',
     label: 'Đơn hàng của tôi',
     icon: '📋',

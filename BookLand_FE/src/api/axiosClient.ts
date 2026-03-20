@@ -8,6 +8,7 @@ const axiosClient = axios.create({
     },
 });
 
+
 // Request Interceptor
 axiosClient.interceptors.request.use(
     async (config) => {
@@ -43,23 +44,80 @@ axiosClient.interceptors.request.use(
 
             if (shouldRefresh && hasRefreshToken) {
                 try {
-                    // Call refresh API directly to avoid circular dependency with authService
                     const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {
                         token: refreshToken
                     });
 
                     if (response.data && response.data.code === 1000 && response.data.result) {
-                        // Backend returns 'token' in result for refresh endpoint
                         const { token: newToken } = response.data.result;
-                        
                         if (newToken) {
                             localStorage.setItem('customerToken', newToken);
-                            token = newToken; // Use new token for this request
-                            console.log('Successfully refreshed access token');
+                            token = newToken;
+                            console.log('Successfully refreshed customer access token');
                         }
+                    } else {
+                        throw new Error("Refresh token response failed");
                     }
                 } catch (refreshError) {
-                    console.error('Failed to refresh token', refreshError);
+                    console.error('Failed to refresh customer token', refreshError);
+                    localStorage.removeItem('customerToken');
+                    localStorage.removeItem('customerRefreshToken');
+                    localStorage.removeItem('customerUserId');
+                    if (!window.location.pathname.includes('/shop/login')) {
+                        window.location.href = '/shop/login';
+                    }
+                }
+            }
+        }
+
+        // Auto Refresh Token for Admin
+        if (isAdminCallback) {
+            const refreshToken = localStorage.getItem('adminRefreshToken');
+            const hasRefreshToken = refreshToken && refreshToken !== 'undefined';
+            let shouldRefresh = false;
+
+            if (token) {
+                try {
+                    const { jwtDecode } = await import('jwt-decode');
+                    const decoded: any = jwtDecode(token);
+                    const now = Date.now() / 1000;
+
+                    // If token is about to expire (less than 5 minutes)
+                    if (decoded.exp && decoded.exp - now < 300) {
+                        shouldRefresh = true;
+                    }
+                } catch (error) {
+                    console.error('Error decoding admin token, attempting refresh', error);
+                    shouldRefresh = true;
+                }
+            } else if (hasRefreshToken) {
+                // No access token but we have a refresh token
+                shouldRefresh = true;
+            }
+
+            if (shouldRefresh && hasRefreshToken) {
+                try {
+                    const response = await axios.post(`${import.meta.env.VITE_API_URL}/auth/refresh`, {
+                        token: refreshToken
+                    });
+
+                    if (response.data && response.data.code === 1000 && response.data.result) {
+                        const { token: newToken } = response.data.result;
+                        if (newToken) {
+                            localStorage.setItem('adminToken', newToken);
+                            token = newToken;
+                            console.log('Successfully refreshed admin access token');
+                        }
+                    } else {
+                        throw new Error("Admin refresh token response failed");
+                    }
+                } catch (refreshError) {
+                    console.error('Failed to refresh admin token', refreshError);
+                    localStorage.removeItem('adminToken');
+                    localStorage.removeItem('adminRefreshToken');
+                    if (!window.location.pathname.includes('/admin/login')) {
+                        window.location.href = '/admin/login';
+                    }
                 }
             }
         }
@@ -100,6 +158,20 @@ axiosClient.interceptors.response.use(
                     break;
                 case 401:
                     // toast.error('Unauthorized access. Please login.');
+                    if (window.location.pathname.startsWith('/admin')) {
+                        if (!window.location.pathname.includes('/admin/login')) {
+                            localStorage.removeItem('adminToken');
+                            localStorage.removeItem('adminRefreshToken');
+                            window.location.href = '/admin/login';
+                        }
+                    } else {
+                        if (!window.location.pathname.includes('/shop/login')) {
+                            localStorage.removeItem('customerToken');
+                            localStorage.removeItem('customerRefreshToken');
+                            localStorage.removeItem('customerUserId');
+                            window.location.href = '/shop/login';
+                        }
+                    }
                     break;
                 case 403:
                     // toast.error('Forbidden: You do not have permission.');

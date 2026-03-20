@@ -31,7 +31,25 @@ public class SecurityConfig {
             "/auth/login",
             "/auth/admin/login",
             "/auth/logout-keycloak",
+            "/auth/google",   // Google OAuth2 login
+            "/auth/test-email",
+            "/vnpay/**",
             "/home"};
+
+    // Public GET endpoints - ai cũng có thể đọc, không cần đăng nhập
+    private final String[] PUBLIC_GET_ENDPOINTS = {
+            "/api/books",             // getAllBooks
+            "/api/books/**",          // getBookById, best-sellers, ...
+            "/api/categories",        // getAllCategories
+            "/api/categories/**",
+            "/api/series",            // getAllSeries
+            "/api/series/**",
+            "/api/authors",           // getAllAuthors
+            "/api/authors/**",
+            "/api/publishers",        // getAllPublishers
+            "/api/publishers/**",
+            "/api/events/highest-priority",
+    };
 
     private static final String[] API_DOC_ENDPOINTS = {
             "/swagger-ui/**",
@@ -56,6 +74,7 @@ public class SecurityConfig {
                     request
                         .requestMatchers(API_DOC_ENDPOINTS).permitAll()
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers(HttpMethod.GET, PUBLIC_GET_ENDPOINTS).permitAll()
 
                         .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")
 

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Star, ArrowLeft, Truck, RotateCcw, ShieldCheck, ChevronRight, Minus, Plus, Heart } from 'lucide-react';
+import { ShoppingCart, Star, ArrowLeft, Truck, RotateCcw, ShieldCheck, ChevronRight, Heart } from 'lucide-react';
 import '../../styles/pages/book-detail.css';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import BookCard from '../../components/BookCard';
@@ -21,7 +21,7 @@ const BookDetailPage = () => {
     const navigate = useNavigate();
     const [book, setBook] = useState<Book | null>(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [quantity, setQuantity] = useState(1);
+    const [quantity] = useState(1);
     const [isAddingToCart, setIsAddingToCart] = useState(false);
     const [isAddingToWishlist, setIsAddingToWishlist] = useState(false);
     const [relatedBooks, setRelatedBooks] = useState<Book[]>([]);
@@ -117,10 +117,7 @@ const BookDetailPage = () => {
         fetchComments();
     }, [id, commentPage]);
 
-    const handleQuantityChange = (type: 'inc' | 'dec') => {
-        if (type === 'inc') setQuantity(q => q + 1);
-        else if (quantity > 1) setQuantity(q => q - 1);
-    };
+
 
     const handleAddToCart = async () => {
         const userId = getCurrentUserId();
@@ -245,8 +242,9 @@ const BookDetailPage = () => {
                                         className={`btn-add-wishlist ${isAddingToWishlist ? 'loading' : ''}`}
                                         onClick={handleAddToWishlist}
                                         disabled={isAddingToWishlist}
+                                        title={t('product.add_to_wishlist', 'Thêm vào yêu thích')}
                                     >
-                                        <Heart size={20} fill={isAddingToWishlist ? "currentColor" : "none"} />
+                                        <Heart size={22} />
                                     </button>
                                 </div>
                             </div>
@@ -322,12 +320,12 @@ const BookDetailPage = () => {
                             </div>
 
                             <div className="quantity-section">
-                                <label>{t('product.quantity')}</label>
+                                {/* <label>{t('product.quantity')}</label>
                                 <div className="quantity-control">
                                     <button onClick={() => handleQuantityChange('dec')}><Minus size={14} /></button>
                                     <input type="text" value={quantity} readOnly />
                                     <button onClick={() => handleQuantityChange('inc')}><Plus size={14} /></button>
-                                </div>
+                                </div> */}
                             </div>
                         </div>
 

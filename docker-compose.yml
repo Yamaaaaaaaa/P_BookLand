@@ -1,0 +1,66 @@
+version: '3.8'
+
+services:
+  # 1. Database MySQL
+  bookland-db:
+    image: mysql:8.0
+    container_name: bookland-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: bookland_db
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+    volumes:
+      # Ánh xạ SQL script vào để tự động chạy khi khởi tạo DB lần đầu
+      - ./BookLand_DB/db_mysql:/docker-entrypoint-initdb.d
+      - mysql_data:/var/lib/mysql
+
+  # 2. Redis
+  bookland-redis:
+    image: redis:7-alpine
+    container_name: bookland-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 3. Backend Spring Boot
+  bookland-be:
+    build: 
+      context: ./BookLand_BE
+      dockerfile: Dockerfile
+    container_name: bookland-be
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - bookland-redis
+      # Tạm tắt depends_on bookland-db nếu bạn dùng DB trên AWS RDS như cấu hình .env
+      # Nếu muốn dùng local MySQL thì đổi thông tin DB_URL bên dưới
+      # - bookland-db
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      # Đổi DB_URL thành bookland-db nếu muốn dùng DB từ MySQL container ở trên,
+      # hoặc giữ nguyên AWS RDS URL của bạn nếu không muốn dùng db local
+      - REDIS_HOST=bookland-redis
+      - REDIS_PORT=6379
+      # - DB_URL=${DB_URL}
+      # - DB_USERNAME=${DB_USERNAME}
+      # - DB_PASSWORD=${DB_PASSWORD}
+    env_file:
+      - ./BookLand_BE/.env
+
+  # 4. Frontend Vite/React
+  bookland-fe:
+    build:
+      context: ./BookLand_FE
+      dockerfile: Dockerfile
+    container_name: bookland-fe
+    restart: always
+    ports:
+      - "5173:80" # Map 5173 ở host vào cổng 80 của Nginx
+    depends_on:
+      - bookland-be
+
+volumes:
+  mysql_data:

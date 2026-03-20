@@ -2,14 +2,16 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import '../styles/components/hero-section.css';
 import { useEffect, useState } from 'react';
-import type { Event } from '../types/Event';
+
 import { eventService } from '../api/eventService';
 import { useTranslation } from 'react-i18next';
 
 const HeroSection = () => {
-    const [event, setEvent] = useState<Event | null>(null);
+    const [imageUrls, setImageUrls] = useState<string[]>([]);
+    const [eventId, setEventId] = useState<number | null>(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
+    const [imgLoading, setImgLoading] = useState(true);
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -17,7 +19,14 @@ const HeroSection = () => {
             try {
                 const response = await eventService.getHighestPriorityEvent();
                 if (response.result) {
-                    setEvent(response.result);
+                    setEventId(response.result.id);
+                    const images = response.result.images || [];
+                    const sorted = [...images].sort((a, b) => {
+                        if (a.imageType === 'MAIN') return -1;
+                        if (b.imageType === 'MAIN') return 1;
+                        return 0;
+                    });
+                    setImageUrls(sorted.map(img => img.imageUrl));
                 }
             } catch (error) {
                 console.error("Failed to fetch priority event", error);
@@ -29,19 +38,14 @@ const HeroSection = () => {
         fetchEvent();
     }, []);
 
-    const images = event?.images || [];
-    const sortedImages = [...images].sort((a, b) => {
-        if (a.imageType === 'MAIN') return -1;
-        if (b.imageType === 'MAIN') return 1;
-        return 0;
-    });
-
     const nextSlide = () => {
-        setCurrentSlide((prev) => (prev === sortedImages.length - 1 ? 0 : prev + 1));
+        setImgLoading(true);
+        setCurrentSlide((prev) => (prev === imageUrls.length - 1 ? 0 : prev + 1));
     };
 
     const prevSlide = () => {
-        setCurrentSlide((prev) => (prev === 0 ? sortedImages.length - 1 : prev - 1));
+        setImgLoading(true);
+        setCurrentSlide((prev) => (prev === 0 ? imageUrls.length - 1 : prev - 1));
     };
     return (
         <section className="hero-section">
@@ -66,32 +70,54 @@ const HeroSection = () => {
                                     }
                                 `}</style>
                             </div>
-                        ) : sortedImages.length > 0 ? (
+                        ) : imageUrls.length > 0 ? (
                             <>
-                                <div
+                                <Link
+                                    to={eventId ? `/shop/event-detail/${eventId}` : '#'}
                                     className="hero-slider-item"
-                                    style={{
-                                        backgroundImage: `url(${sortedImages[currentSlide]?.imageUrl})`,
-                                        backgroundSize: 'cover',
-                                        backgroundPosition: 'center',
-                                        cursor: 'pointer'
-                                    }}
-                                    onClick={() => {
-                                        // Navigate to event detail or related items if needed
-                                        // For now, just a placeholder or maybe scroll to Super Sale if it's that event
-                                    }}
+                                    style={{ position: 'relative', overflow: 'hidden', display: 'block', cursor: eventId ? 'pointer' : 'default' }}
                                 >
-                                </div>
+                                    {imgLoading && (
+                                        <div style={{
+                                            position: 'absolute', inset: 0,
+                                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                            backgroundColor: '#f0f0f0', zIndex: 1
+                                        }}>
+                                            <div style={{
+                                                border: '4px solid #f3f3f3',
+                                                borderTop: '4px solid #C92127',
+                                                borderRadius: '50%',
+                                                width: '40px', height: '40px',
+                                                animation: 'spin 1s linear infinite'
+                                            }} />
+                                        </div>
+                                    )}
+                                    <img
+                                        key={currentSlide}
+                                        src={imageUrls[currentSlide]}
+                                        alt={`Slide ${currentSlide + 1}`}
+                                        onLoad={() => setImgLoading(false)}
+                                        onError={() => setImgLoading(false)}
+                                        style={{
+                                            width: '100%',
+                                            height: '360px',
+                                            objectFit: 'cover',
+                                            display: 'block',
+                                            opacity: imgLoading ? 0 : 1,
+                                            transition: 'opacity 0.3s ease'
+                                        }}
+                                    />
+                                </Link>
                                 <div className="hero-slider-nav">
-                                    <button className="hero-slider-arrow prev" onClick={prevSlide}><ChevronLeft size={24} /></button>
-                                    <button className="hero-slider-arrow next" onClick={nextSlide}><ChevronRight size={24} /></button>
+                                    <button className="hero-slider-arrow prev" onClick={e => { e.preventDefault(); prevSlide(); }}><ChevronLeft size={24} /></button>
+                                    <button className="hero-slider-arrow next" onClick={e => { e.preventDefault(); nextSlide(); }}><ChevronRight size={24} /></button>
                                 </div>
                                 <div className="hero-slider-dots">
-                                    {sortedImages.map((_, index) => (
+                                    {imageUrls.map((_, index) => (
                                         <span
                                             key={index}
                                             className={`dot ${index === currentSlide ? 'active' : ''}`}
-                                            onClick={() => setCurrentSlide(index)}
+                                            onClick={() => { setImgLoading(true); setCurrentSlide(index); }}
                                         ></span>
                                     ))}
                                 </div>

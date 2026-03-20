@@ -1,6 +1,9 @@
 package com.example.bookland_be.service.impl;
 
 import com.example.bookland_be.dto.request.*;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.jwt.NimbusJwtDecoder;
 import com.example.bookland_be.dto.response.AuthenticationResponse;
 import com.example.bookland_be.dto.response.IntrospectResponse;
 import com.example.bookland_be.dto.response.LoginResponse;
@@ -207,6 +210,67 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         var token = generateToken(user, TokenType.REFRESH);
 
         return AuthenticationResponse.builder().token(token).authenticated(true).build();
+    }
+
+    @Override
+    @Transactional
+    public LoginResponse loginWithGoogle(GoogleLoginRequest request) {
+        // 1. Verify id_token với Google's public JWKS endpoint
+        JwtDecoder googleJwtDecoder = NimbusJwtDecoder
+                .withJwkSetUri("https://www.googleapis.com/oauth2/v3/certs")
+                .build();
+
+        Jwt googleJwt;
+        try {
+            googleJwt = googleJwtDecoder.decode(request.getIdToken());
+        } catch (Exception e) {
+            throw new AppException(ErrorCode.UNAUTHENTICATED);
+        }
+
+        // 2. Lấy thông tin từ Google JWT payload
+        String email = googleJwt.getClaimAsString("email");
+        String name  = googleJwt.getClaimAsString("name");
+        String given = googleJwt.getClaimAsString("given_name");   // firstName
+        String family= googleJwt.getClaimAsString("family_name");  // lastName
+
+        if (email == null) throw new AppException(ErrorCode.UNAUTHENTICATED);
+
+        // 3. Tìm user theo email, nếu chưa có → tạo mới
+        User user = userRepository.findByEmail(email).orElseGet(() -> {
+            Role userRole = roleRepository.findByName("USER");
+
+            // Username = phần trước @ của email (đảm bảo unique)
+            String baseUsername = email.split("@")[0];
+            String username = baseUsername;
+            int suffix = 1;
+            while (userRepository.existsByUsername(username)) {
+                username = baseUsername + suffix++;
+            }
+
+            // Tạo user mới — password random vì đăng nhập qua Google
+            User newUser = User.builder()
+                    .email(email)
+                    .username(username)
+                    .firstName(given != null ? given : (name != null ? name : username))
+                    .lastName(family != null ? family : "")
+                    .password(passwordEncoder.encode(UUID.randomUUID().toString()))
+                    .status(User.UserStatus.ENABLE)
+                    .roles(userRole != null ? Set.of(userRole) : new HashSet<>())
+                    .build();
+
+            return userRepository.save(newUser);
+        });
+
+        // 4. Phát JWT của hệ thống (giống login thường)
+        String accessToken  = generateToken(user, TokenType.ACCESS);
+        String refreshToken = generateToken(user, TokenType.REFRESH);
+
+        return LoginResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .expiresIn((int) VALID_DURATION)
+                .tokenType("Bearer")
+                .build();
     }
 
     public IntrospectResponse introspect(IntrospectRequest request) throws JOSEException, ParseException {

@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @Service
@@ -30,6 +31,7 @@ public class UserService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     @Transactional(readOnly = true)
     public Page<UserResponse> getAllUsers(String keyword, UserStatus status, Long roleId, Pageable pageable) {
@@ -142,6 +144,41 @@ public class UserService {
             throw new AppException(ErrorCode.USER_NOT_EXISTED);
         }
         userRepository.deleteById(id);
+    }
+
+    public void sendCustomEmails(SendCustomEmailRequest request) {
+        List<User> users;
+        if (request.isSendToAll()) {
+            users = userRepository.findAll();
+        } else {
+            if (request.getUserIds() == null || request.getUserIds().isEmpty()) {
+                throw new AppException(ErrorCode.USER_NOT_EXISTED); // Or a specific error
+            }
+            users = userRepository.findAllById(request.getUserIds());
+        }
+
+        for (User user : users) {
+            String email = user.getEmail();
+            if (email != null && !email.isEmpty() && email.contains("@")) {
+                java.util.Map<String, Object> templateModel = new java.util.HashMap<>();
+                templateModel.put("name", user.getUsername() != null ? user.getUsername() : "Customer");
+                templateModel.put("message", request.getMessage() != null ? request.getMessage() : "");
+                
+                if (request.getDetails() != null && !request.getDetails().isEmpty()) {
+                    templateModel.put("details", request.getDetails());
+                }
+                if (request.getActionUrl() != null && !request.getActionUrl().isEmpty()) {
+                    templateModel.put("actionUrl", request.getActionUrl());
+                }
+                if (request.getActionText() != null && !request.getActionText().isEmpty()) {
+                    templateModel.put("actionText", request.getActionText());
+                }
+
+                String subject = request.getSubject() != null && !request.getSubject().isEmpty() ? request.getSubject() : "Thông báo từ BookLand";
+
+                emailService.sendEmailWithHtmlTemplate(email, subject, "email-template", templateModel);
+            }
+        }
     }
 
 }

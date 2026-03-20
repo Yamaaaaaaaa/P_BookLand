@@ -14,6 +14,9 @@ import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.*;
 import com.example.bookland_be.repository.specification.EventSpecification;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -94,6 +97,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "events", key = "'id:' + #id")
     public EventDTO getEventById(Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
@@ -101,6 +105,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
+    @Cacheable(value = "events", key = "'highest-priority'")
     public EventDTO getHighestPriorityEvent() {
         LocalDateTime now = LocalDateTime.now();
         Event event = eventRepository.findFirstByStatusAndStartTimeLessThanEqualAndEndTimeGreaterThanEqualOrderByPriorityDesc(
@@ -114,6 +119,9 @@ public class EventService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "events", allEntries = true)
+    })
     public EventDTO createEvent(EventRequest request) {
         validateEventTime(request.getStartTime(), request.getEndTime());
 
@@ -260,6 +268,10 @@ public class EventService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "events", key = "'id:' + #id"),
+            @CacheEvict(value = "events", key = "'highest-priority'")
+    })
     public EventDTO updateEvent(Long id, EventRequest request) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
@@ -367,6 +379,10 @@ public class EventService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "events", key = "'id:' + #id"),
+            @CacheEvict(value = "events", key = "'highest-priority'")
+    })
     public EventDTO updateEventStatus(Long id, EventStatus status) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));
@@ -378,6 +394,10 @@ public class EventService {
     }
 
     @Transactional
+    @Caching(evict = {
+            @CacheEvict(value = "events", key = "'id:' + #id"),
+            @CacheEvict(value = "events", key = "'highest-priority'")
+    })
     public void deleteEvent(Long id) {
         Event event = eventRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.EVENT_NOT_FOUND));

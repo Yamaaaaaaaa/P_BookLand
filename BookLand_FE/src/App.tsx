@@ -36,11 +36,13 @@ import SeriePage from './pages/admin/manage-information/SeriePage';
 import AdminBookDetailPage from './pages/admin/manage-information/AdminBookDetailPage';
 import AdminUserDetailPage from './pages/admin/manage-information/AdminUserDetailPage';
 import WishList from './pages/shop/WishList';
+import EventDetailPage from './pages/shop/EventDetailPage';
 import EventPage from './pages/admin/manage-business/EventPage';
 import EventFormPage from './pages/admin/manage-business/EventFormPage';
 import Gallery from './pages/admin/Gallery';
 import AdminChatListPage from './pages/admin/AdminChatListPage';
 import AdminChatDetailPage from './pages/admin/AdminChatDetailPage';
+import AdminSendEmailPage from './pages/admin/AdminSendEmailPage';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -62,6 +64,7 @@ function App() {
           <Route path="payment-result" element={<PaymentResultPage />} />
           <Route path="books" element={<BooksPage />} />
           <Route path="book-detail/:id" element={<BookDetailPage />} />
+          <Route path="event-detail/:id" element={<EventDetailPage />} />
 
           {/* Protected Customer Routes */}
           <Route element={<ProtectedRoute checkAuth={isCustomerAuthenticated} redirectPath="/shop/login" />}>
@@ -87,6 +90,7 @@ function App() {
               <Route path="dashboard" element={<DashboardPage />} />
               <Route path="manage-user" element={<ManageUserPage />} />
               <Route path="manage-role" element={<ManageRolePage />} />
+              <Route path="send-email" element={<AdminSendEmailPage />} />
               <Route path="gallery" element={<Gallery />} />
               <Route path="chat" element={<AdminChatListPage />} />
               <Route path="chat/:userId" element={<AdminChatDetailPage />} />

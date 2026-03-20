@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # 1. Redis Cache
+  bookland-redis:
+    image: redis:7-alpine
+    container_name: bookland-redis
+    restart: always
+    ports:
+      - "6379:6379"
+
+  # 2. Backend Spring Boot API
+  bookland-be:
+    build: 
+      context: ./BookLand_BE
+      dockerfile: Dockerfile
+    container_name: bookland-be
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - bookland-redis
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - REDIS_HOST=bookland-redis
+      - REDIS_PORT=6379
+    env_file:
+      - ./BookLand_BE/.env
+
+# Chú ý: 
+# - Database (MySQL) đã dùng AWS RDS qua file .env nên không cần tạo container DB.
+# - Frontend tĩnh đã host trên CloudFlare Pages nên không cần container FE.

@@ -3,6 +3,10 @@ import type { ApiResponse } from '../types/api';
 import type { Wishlist, AddToWishlistRequest } from '../types/Wishlist';
 
 const wishlistService = {
+    // Lấy wishlist của user hiện tại qua JWT (endpoint mới)
+    getMyWishlist: () => {
+        return axiosClient.get<any, ApiResponse<Wishlist[]>>(`/api/wishlist/my`);
+    },
     getUserWishlist: (userId: number) => {
         return axiosClient.get<any, ApiResponse<Wishlist[]>>(`/api/wishlist/${userId}`);
     },

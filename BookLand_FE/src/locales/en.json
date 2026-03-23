@@ -896,12 +896,17 @@
     "price_700_up": "700,000đ - Up",
     "category_title": "CATEGORIES",
     "category_placeholder": "Search categories...",
+    "category_hints": "Comics · Horror · Romance · Science",
     "author_title": "AUTHORS",
     "author_placeholder": "Search authors...",
+    "author_hints": "Nguyen Nhat Anh · To Hoai · Nam Cao",
     "publisher_title": "PUBLISHERS",
     "publisher_placeholder": "Search publishers...",
+    "publisher_hints": "Kim Dong · Tre · Education · General",
     "series_title": "SERIES",
     "series_placeholder": "Search series...",
+    "series_hints": "Conan · Doraemon · One Piece · Naruto",
+    "hints_label": "Try:",
     "clear_section": "Clear All"
   },
   "book_management": {

@@ -95,6 +95,8 @@ const FilterSidebar = ({
             <SearchableFilterSection
                 title={t('filter.category_title')}
                 placeholder={t('filter.category_placeholder')}
+                hints={t('filter.category_hints').split(' · ')}
+                hintsLabel={t('filter.hints_label')}
                 onSearch={async (query) => {
                     const res = await categoryService.getAll({ keyword: query, size: 10 });
                     return res.result?.content || [];
@@ -115,6 +117,8 @@ const FilterSidebar = ({
             <SearchableFilterSection
                 title={t('filter.author_title')}
                 placeholder={t('filter.author_placeholder')}
+                hints={t('filter.author_hints').split(' · ')}
+                hintsLabel={t('filter.hints_label')}
                 onSearch={async (query) => {
                     const res = await authorService.getAllAuthors({ keyword: query, size: 10 });
                     return res.result?.content || [];
@@ -135,6 +139,8 @@ const FilterSidebar = ({
             <SearchableFilterSection
                 title={t('filter.publisher_title')}
                 placeholder={t('filter.publisher_placeholder')}
+                hints={t('filter.publisher_hints').split(' · ')}
+                hintsLabel={t('filter.hints_label')}
                 onSearch={async (query) => {
                     const res = await publisherService.getAllPublishers({ keyword: query, size: 10 });
                     return res.result?.content || [];
@@ -155,6 +161,8 @@ const FilterSidebar = ({
             <SearchableFilterSection
                 title={t('filter.series_title')}
                 placeholder={t('filter.series_placeholder')}
+                hints={t('filter.series_hints').split(' · ')}
+                hintsLabel={t('filter.hints_label')}
                 onSearch={async (query) => {
                     const res = await serieService.getAllSeries({ keyword: query, size: 10 });
                     return res.result?.content || [];
@@ -176,6 +184,8 @@ const FilterSidebar = ({
 const SearchableFilterSection = <T extends { id: number; name: string }>({
     title,
     placeholder,
+    hints,
+    hintsLabel,
     onSearch,
     getById,
     selectedIds,
@@ -185,6 +195,8 @@ const SearchableFilterSection = <T extends { id: number; name: string }>({
 }: {
     title: string;
     placeholder: string;
+    hints?: string[];
+    hintsLabel?: string;
     onSearch: (query: string) => Promise<T[]>;
     getById: (id: number) => Promise<T | null | undefined>;
     selectedIds: number[];
@@ -296,6 +308,26 @@ const SearchableFilterSection = <T extends { id: number; name: string }>({
                                 {item.name}
                                 {selectedIds.includes(item.id) && <span className="check-icon">✓</span>}
                             </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Hints - shown when input is empty */}
+                {!searchTerm && hints && hints.length > 0 && (
+                    <div className="filter-hints">
+                        {hintsLabel && <span className="filter-hints__label">{hintsLabel}</span>}
+                        {hints.map((hint) => (
+                            <button
+                                key={hint}
+                                type="button"
+                                className="filter-hint-chip"
+                                onClick={() => {
+                                    setSearchTerm(hint);
+                                    setIsOpen(true);
+                                }}
+                            >
+                                {hint}
+                            </button>
                         ))}
                     </div>
                 )}

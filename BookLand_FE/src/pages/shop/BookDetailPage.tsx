@@ -427,7 +427,10 @@ const BookDetailPage = () => {
                                                 <div className="bar-bg">
                                                     <div className="bar-fill" style={{ width: `${percent}%` }}></div>
                                                 </div>
-                                                <span>{percent.toFixed(0)}%</span>
+                                                <span className="chart-item__stat">
+                                                    <span className="chart-item__count">{count}</span>
+                                                    <span className="chart-item__percent">({percent.toFixed(0)}%)</span>
+                                                </span>
                                             </div>
                                         );
                                     })}

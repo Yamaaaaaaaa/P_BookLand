@@ -504,6 +504,28 @@
 
 .chart-item > span:first-child {
   width: 40px;
+  flex-shrink: 0;
+}
+
+/* Stat column: count + percent */
+.chart-item__stat {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 70px;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.chart-item__count {
+  font-weight: 600;
+  color: #444;
+  font-size: 12px;
+}
+
+.chart-item__percent {
+  color: #aaa;
+  font-size: 11px;
 }
 
 .bar-bg {

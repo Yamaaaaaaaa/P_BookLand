@@ -1,4 +1,4 @@
-import { Heart, Eye, ShoppingCart, Star } from 'lucide-react';
+import { Heart, ShoppingCart, Star } from 'lucide-react';
 import '../styles/components/book-card.css';
 import '../styles/components/buttons.css';
 import type { Book } from '../types/Book';
@@ -93,7 +93,7 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
     };
 
     return (
-        <div className={`book-card book-card--${viewMode}`}>
+        <Link to={`/shop/book-detail/${book.id}`} className={`book-card book-card--${viewMode}`} style={{ textDecoration: 'none', color: 'inherit' }}>
             <div className="book-card__image-wrapper">
                 <img
                     src={book.bookImageUrl || 'https://via.placeholder.com/150'}
@@ -124,9 +124,6 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
                     >
                         <Heart size={16} fill={isAddingToWishlist ? "currentColor" : "none"} />
                     </button>
-                    <Link className="book-card__action-btn" aria-label="Quick view" to={`/shop/book-detail/${book.id}`} >
-                        <Eye size={16} />
-                    </Link>
                     <button
                         className={`book-card__action-btn ${isAddingToCart ? 'loading' : ''}`}
                         aria-label="Add to cart"
@@ -183,7 +180,7 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
                     </div>
                 )}
             </div>
-        </div>
+        </Link>
     );
 };
 

@@ -6,6 +6,20 @@ import type { Bill } from '../../types/Bill';
 import '../../styles/pages/shipper.css';
 import { toast } from 'react-toastify';
 
+const formatCurrency = (amount: number) =>
+    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+
+const formatDate = (dateStr?: string) => {
+    if (!dateStr) return '—';
+    return new Date(dateStr).toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+};
+
 const ShipperDashboardPage = () => {
     const navigate = useNavigate();
     const [bills, setBills] = useState<Bill[]>([]);
@@ -66,19 +80,7 @@ const ShipperDashboardPage = () => {
         navigate('/shop/shipper/login');
     };
 
-    const formatCurrency = (amount: number) =>
-        new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
-
-    const formatDate = (dateStr?: string) => {
-        if (!dateStr) return '—';
-        return new Date(dateStr).toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    };
+    // formatCurrency and formatDate moved outside component
 
     return (
         <div className="shipper-dashboard">

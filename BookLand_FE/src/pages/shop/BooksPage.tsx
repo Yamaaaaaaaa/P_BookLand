@@ -126,21 +126,29 @@ const BooksPage = () => {
     };
 
     // Toggle handlers for multi-select filters
-    const handleToggle = (id: number, currentIds: number[], setter: (ids: number[]) => void) => {
-        if (currentIds.includes(id)) {
-            setter(currentIds.filter(item => item !== id));
-        } else {
-            setter([...currentIds, id]);
-        }
-    };
+    const handleCategoryToggle = useCallback((id: number) => {
+        setSelectedCategoryIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+    }, []);
 
-    const handleClearAllFilters = () => {
+    const handleAuthorToggle = useCallback((id: number) => {
+        setSelectedAuthorIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+    }, []);
+
+    const handlePublisherToggle = useCallback((id: number) => {
+        setSelectedPublisherIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+    }, []);
+
+    const handleSeriesToggle = useCallback((id: number) => {
+        setSelectedSeriesIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+    }, []);
+
+    const handleClearAllFilters = useCallback(() => {
         setSelectedCategoryIds([]);
         setSelectedAuthorIds([]);
         setSelectedPublisherIds([]);
         setSelectedSeriesIds([]);
         setSelectedPriceRange('');
-    };
+    }, []);
 
     return (
         <div className="books-page">
@@ -157,18 +165,18 @@ const BooksPage = () => {
                     {/* Sidebar */}
                     <FilterSidebar
                         selectedCategoryIds={selectedCategoryIds}
-                        onCategoryToggle={(id: number) => handleToggle(id, selectedCategoryIds, setSelectedCategoryIds)}
+                        onCategoryToggle={handleCategoryToggle}
                         onCategoryClear={() => setSelectedCategoryIds([])}
                         selectedPriceRange={selectedPriceRange}
                         onPriceRangeChange={setSelectedPriceRange}
                         selectedAuthorIds={selectedAuthorIds}
-                        onAuthorToggle={(id: number) => handleToggle(id, selectedAuthorIds, setSelectedAuthorIds)}
+                        onAuthorToggle={handleAuthorToggle}
                         onAuthorClear={() => setSelectedAuthorIds([])}
                         selectedPublisherIds={selectedPublisherIds}
-                        onPublisherToggle={(id: number) => handleToggle(id, selectedPublisherIds, setSelectedPublisherIds)}
+                        onPublisherToggle={handlePublisherToggle}
                         onPublisherClear={() => setSelectedPublisherIds([])}
                         selectedSeriesIds={selectedSeriesIds}
-                        onSeriesToggle={(id: number) => handleToggle(id, selectedSeriesIds, setSelectedSeriesIds)}
+                        onSeriesToggle={handleSeriesToggle}
                         onSeriesClear={() => setSelectedSeriesIds([])}
                         onClearAll={handleClearAllFilters}
                         isMobileOpen={isSidebarOpen}

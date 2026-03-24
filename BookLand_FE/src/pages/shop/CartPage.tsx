@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Trash2, Plus, Minus, ShoppingBag, Truck, CreditCard, Loader2 } from 'lucide-react';
 import Breadcrumb from '../../components/common/Breadcrumb';
@@ -204,13 +204,20 @@ const CartPage = () => {
         }
     };
 
-    const selectedItemsList = cartItems.filter(item => selectedIds.includes(item.bookId));
-    const itemsSubtotal = selectedItemsList.reduce((sum, item) => sum + item.subtotal, 0);
+    const selectedItemsList = useMemo(() => {
+        return cartItems.filter(item => selectedIds.includes(item.bookId));
+    }, [cartItems, selectedIds]);
 
-    const selectedShipping = shippingMethods.find(s => s.id === selectedShippingId);
-    const shippingPrice = selectedShipping ? selectedShipping.price : 0;
+    const itemsSubtotal = useMemo(() => {
+        return selectedItemsList.reduce((sum, item) => sum + item.subtotal, 0);
+    }, [selectedItemsList]);
 
-    const totalAmount = itemsSubtotal + shippingPrice;
+    const shippingPrice = useMemo(() => {
+        const selectedShipping = shippingMethods.find(s => s.id === selectedShippingId);
+        return selectedShipping ? selectedShipping.price : 0;
+    }, [shippingMethods, selectedShippingId]);
+
+    const totalAmount = useMemo(() => itemsSubtotal + shippingPrice, [itemsSubtotal, shippingPrice]);
 
     if (isLoading && cartItems.length === 0) {
         return (

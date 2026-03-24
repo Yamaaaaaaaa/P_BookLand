@@ -79,6 +79,11 @@ public class ApplicationInitConfig {
                         .description("Admin Login role - Nhân viên hỗ trợ khách hàng")
                         .build());
 
+                roleRepository.save(Role.builder()
+                        .name(PredefinedRole.SHIPPER_ROLE)
+                        .description("Shipper role - Nhân viên giao hàng")
+                        .build());
+
                 var roles = new HashSet<Role>();
                 roles.add(adminRole);
                 roles.add(adminLoginRole);

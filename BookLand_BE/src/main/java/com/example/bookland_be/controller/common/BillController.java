@@ -114,6 +114,36 @@ public class BillController {
         return ApiResponse.<BillDTO>builder().result(billService.updateBillStatus(id, request)).build();
     }
 
+    /**
+     * Xác nhận đã giao hàng - Chỉ dành cho ROLE_SHIPPER (SHIPPING -> SHIPPED)
+     */
+    @PatchMapping("/{id}/confirm-delivered")
+    @PreAuthorize("hasRole('ROLE_SHIPPER')")
+    public ApiResponse<BillDTO> confirmDelivered(@PathVariable Long id) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+        return ApiResponse.<BillDTO>builder().result(billService.confirmDelivered(id, email)).build();
+    }
+
+    /**
+     * Shipper lấy danh sách đơn đang SHIPPING
+     */
+    @GetMapping("/shipping-list")
+    @PreAuthorize("hasRole('ROLE_SHIPPER')")
+    public ApiResponse<Page<BillDTO>> getShippingBills(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "createdAt") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDirection
+    ) {
+        Sort.Direction direction = sortDirection.equalsIgnoreCase("ASC")
+                ? Sort.Direction.ASC
+                : Sort.Direction.DESC;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        Page<BillDTO> bills = billService.getAllBills(null, BillStatus.SHIPPING, null, null, null, null, pageable);
+        return ApiResponse.<Page<BillDTO>>builder().result(bills).build();
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
     public ApiResponse<Void> deleteBill(@PathVariable Long id) {

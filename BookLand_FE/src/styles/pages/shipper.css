@@ -1,0 +1,553 @@
+/* ===========================================
+   SHIPPER PAGES
+   =========================================== */
+
+/* ── Login Page ── */
+.shipper-login-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  padding: 20px;
+}
+
+.shipper-login-card {
+  width: 100%;
+  max-width: 440px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 48px 40px;
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.4);
+  color: #fff;
+}
+
+.shipper-login-header {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.shipper-login-icon {
+  width: 64px;
+  height: 64px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  margin: 0 auto 16px;
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.35);
+}
+
+.shipper-login-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+  margin: 0 0 6px;
+}
+
+.shipper-login-subtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.55);
+  margin: 0;
+}
+
+.shipper-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.shipper-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.shipper-form-label {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.3px;
+}
+
+.shipper-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.shipper-input-icon {
+  position: absolute;
+  left: 14px;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.shipper-input {
+  width: 100%;
+  padding: 13px 14px 13px 42px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  font-size: 15px;
+  color: #fff;
+  transition: all 0.2s;
+  box-sizing: border-box;
+}
+
+.shipper-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.shipper-input:focus {
+  outline: none;
+  border-color: #f97316;
+  background: rgba(249, 115, 22, 0.08);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.15);
+}
+
+.shipper-toggle-password {
+  position: absolute;
+  right: 14px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  padding: 0;
+  font-size: 15px;
+  transition: color 0.2s;
+}
+.shipper-toggle-password:hover {
+  color: #f97316;
+}
+
+.shipper-submit-btn {
+  margin-top: 8px;
+  padding: 14px;
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.25s;
+  box-shadow: 0 4px 14px rgba(249, 115, 22, 0.4);
+  letter-spacing: 0.3px;
+}
+
+.shipper-submit-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(249, 115, 22, 0.5);
+}
+
+.shipper-submit-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.shipper-login-error {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #fca5a5;
+  font-size: 13px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+/* ── Dashboard ── */
+.shipper-dashboard {
+  min-height: 100vh;
+  background: #f5f5f7;
+  font-family: 'Inter', system-ui, sans-serif;
+}
+
+.shipper-navbar {
+  background: linear-gradient(135deg, #1a1a2e, #0f3460);
+  padding: 0 24px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.25);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.shipper-navbar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  font-size: 17px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.shipper-navbar-brand-icon {
+  font-size: 22px;
+}
+
+.shipper-navbar-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.shipper-navbar-user {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.shipper-logout-btn {
+  padding: 7px 14px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.shipper-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.3);
+  border-color: rgba(239, 68, 68, 0.5);
+}
+
+.shipper-main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 28px 20px;
+}
+
+.shipper-page-header {
+  margin-bottom: 24px;
+}
+
+.shipper-page-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 4px;
+}
+
+.shipper-page-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin: 0;
+}
+
+/* Stats Row */
+.shipper-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.shipper-stat-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.shipper-stat-icon {
+  font-size: 28px;
+  flex-shrink: 0;
+}
+
+.shipper-stat-content { flex: 1; }
+.shipper-stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: #111;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+.shipper-stat-label {
+  font-size: 12px;
+  color: #888;
+  font-weight: 500;
+}
+
+/* Orders Section */
+.shipper-orders-section {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.07);
+  overflow: hidden;
+}
+
+.shipper-orders-header {
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.shipper-orders-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shipper-badge {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 50px;
+}
+
+.shipper-refresh-btn {
+  padding: 8px 14px;
+  background: #f5f5f7;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #444;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.shipper-refresh-btn:hover {
+  background: #eaeaec;
+}
+.shipper-refresh-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Order Cards */
+.shipper-order-list {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shipper-order-card {
+  border: 1px solid #e8e8e8;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: box-shadow 0.2s, border-color 0.2s;
+}
+
+.shipper-order-card:hover {
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-color: #d0d0d0;
+}
+
+.shipper-order-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.shipper-order-id {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111;
+  margin: 0 0 6px;
+}
+
+.shipper-order-meta {
+  font-size: 13px;
+  color: #666;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 8px;
+}
+
+.shipper-order-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.shipper-order-books {
+  font-size: 12px;
+  color: #888;
+  line-height: 1.5;
+}
+
+.shipper-order-actions {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.shipper-order-cost {
+  font-size: 16px;
+  font-weight: 800;
+  color: #f97316;
+  white-space: nowrap;
+}
+
+.shipper-confirm-btn {
+  padding: 9px 18px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 3px 8px rgba(34, 197, 94, 0.3);
+}
+.shipper-confirm-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 14px rgba(34, 197, 94, 0.4);
+}
+.shipper-confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Empty / Loading States */
+.shipper-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #999;
+}
+
+.shipper-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.shipper-empty-text {
+  font-size: 15px;
+  font-weight: 500;
+  color: #666;
+  margin: 0 0 4px;
+}
+
+.shipper-empty-sub {
+  font-size: 13px;
+  color: #aaa;
+  margin: 0;
+}
+
+.shipper-loading {
+  text-align: center;
+  padding: 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: #666;
+}
+
+.shipper-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid #f0f0f0;
+  border-top-color: #f97316;
+  border-radius: 50%;
+  animation: shipperSpin 0.7s linear infinite;
+}
+
+@keyframes shipperSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* Status badge inside card */
+.status-shipping {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  background: rgba(249, 115, 22, 0.1);
+  color: #ea580c;
+  border-radius: 50px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+/* Pagination */
+.shipper-pagination {
+  padding: 16px 24px;
+  border-top: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #666;
+}
+
+.shipper-pagination-btns {
+  display: flex;
+  gap: 8px;
+}
+
+.shipper-pagination-btn {
+  padding: 6px 14px;
+  background: #f5f5f7;
+  border: 1px solid #e0e0e0;
+  border-radius: 7px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.shipper-pagination-btn:hover:not(:disabled) {
+  background: #e8e8ec;
+}
+.shipper-pagination-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .shipper-order-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .shipper-order-actions {
+    align-items: flex-start;
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-between;
+  }
+}

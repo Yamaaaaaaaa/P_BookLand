@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import ProtectedRoute from './components/ProtectedRoute';
-import { isCustomerAuthenticated, isAdminAuthenticated } from './utils/auth';
+import { isCustomerAuthenticated, isAdminAuthenticated, isShipperAuthenticated } from './utils/auth';
 
 // Layouts
 import ShopLayout from './layouts/ShopLayout';
@@ -43,6 +43,10 @@ import Gallery from './pages/admin/Gallery';
 import AdminChatListPage from './pages/admin/AdminChatListPage';
 import AdminChatDetailPage from './pages/admin/AdminChatDetailPage';
 import AdminSendEmailPage from './pages/admin/AdminSendEmailPage';
+
+// Shipper Pages
+import ShipperLoginPage from './pages/shipper/auth/ShipperLoginPage';
+import ShipperDashboardPage from './pages/shipper/ShipperDashboardPage';
 
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -121,6 +125,19 @@ function App() {
               </Route>
             </Route>
           </Route>
+        </Route>
+
+        {/* SHIPPER ROUTES - standalone, no ShopLayout */}
+        <Route path="/shop/shipper/login" element={<ShipperLoginPage />} />
+        <Route
+          element={
+            <ProtectedRoute
+              checkAuth={isShipperAuthenticated}
+              redirectPath="/shop/shipper/login"
+            />
+          }
+        >
+          <Route path="/shop/shipper" element={<ShipperDashboardPage />} />
         </Route>
 
         {/* 404 - Redirect to home */}

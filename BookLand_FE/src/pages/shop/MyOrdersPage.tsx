@@ -380,7 +380,7 @@ const MyOrdersPage = () => {
                                             <th>{t('profile.unit_price')}</th>
                                             <th>{t('profile.quantity')}</th>
                                             <th style={{ textAlign: 'right' }}>{t('profile.into_money')}</th>
-                                            {selectedOrder.status === 'COMPLETED' && <th></th>}
+                                            {selectedOrder.status === 'COMPLETED' || selectedOrder.status === 'SHIPPED' && <th></th>}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -397,7 +397,7 @@ const MyOrdersPage = () => {
                                                 <td style={{ textAlign: 'right', fontWeight: 600 }}>
                                                     {formatCurrency(book.subtotal || (book.priceSnapshot * book.quantity))}
                                                 </td>
-                                                {selectedOrder.status === 'COMPLETED' && (
+                                                {selectedOrder.status === 'COMPLETED' || selectedOrder.status === 'SHIPPED' && (
                                                     <td style={{ textAlign: 'right' }}>
                                                         <button
                                                             className="btn-review-action"

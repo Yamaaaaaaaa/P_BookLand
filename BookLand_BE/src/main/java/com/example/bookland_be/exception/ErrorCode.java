@@ -95,6 +95,7 @@ public enum ErrorCode {
     BILL_NOT_COMPLETED(3002, "Bill is not completed", HttpStatus.BAD_REQUEST),
     USER_NOT_OWN_BILL(3003, "You do not own this bill", HttpStatus.FORBIDDEN),
     BOOK_NOT_IN_BILL(3004, "Book is not in this bill", HttpStatus.BAD_REQUEST),
+    INVALID_STATUS_TRANSITION(3005, "Invalid status transition: order must be in SHIPPING status", HttpStatus.BAD_REQUEST),
     ;
 
 

@@ -12,13 +12,14 @@ const axiosClient = axios.create({
 // Request Interceptor
 axiosClient.interceptors.request.use(
     async (config) => {
-        // Determine if we are in admin area or shop area to use appropriate token
+        // Determine if we are in admin area, shipper area, or shop area to use appropriate token
         const isAdminCallback = window.location.pathname.startsWith('/admin');
-        const tokenKey = isAdminCallback ? 'adminToken' : 'customerToken';
+        const isShipperCallback = window.location.pathname.startsWith('/shop/shipper') && !window.location.pathname.startsWith('/shop/shipper/login');
+        const tokenKey = isAdminCallback ? 'adminToken' : isShipperCallback ? 'shipperToken' : 'customerToken';
         let token = localStorage.getItem(tokenKey);
 
-        // Auto Refresh Token for Customer (Shop)
-        if (!isAdminCallback) {
+        // Auto Refresh Token for Customer (Shop) - not admin, not shipper
+        if (!isAdminCallback && !isShipperCallback) {
             const refreshToken = localStorage.getItem('customerRefreshToken');
             const hasRefreshToken = refreshToken && refreshToken !== 'undefined';
             let shouldRefresh = false;
@@ -163,6 +164,12 @@ axiosClient.interceptors.response.use(
                             localStorage.removeItem('adminToken');
                             localStorage.removeItem('adminRefreshToken');
                             window.location.href = '/admin/login';
+                        }
+                    } else if (window.location.pathname.startsWith('/shop/shipper')) {
+                        if (!window.location.pathname.includes('/shop/shipper/login')) {
+                            localStorage.removeItem('shipperToken');
+                            localStorage.removeItem('shipperRefreshToken');
+                            window.location.href = '/shop/shipper/login';
                         }
                     } else {
                         if (!window.location.pathname.includes('/shop/login')) {

@@ -263,6 +263,49 @@ public class BillService {
     }
 
     @Transactional
+    public BillDTO confirmDelivered(Long id, String shipperEmail) {
+        // 1. Load bill nhẹ (chỉ validate status) — không trigger lazy collection
+        Bill bill = billRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
+
+        if (bill.getStatus() != BillStatus.SHIPPING) {
+            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+        }
+
+        Long userId = bill.getUser().getId();
+        Long shipperId = userRepository.findByEmail(shipperEmail)
+                .map(User::getId)
+                .orElse(null);
+
+        // 2. UPDATE trực tiếp bằng JPQL — tránh cascade lock của Hibernate
+        billRepository.updateStatusById(id, BillStatus.SHIPPED, LocalDateTime.now());
+
+        // 3. Re-fetch với JOIN FETCH để build DTO (không gây lazy-load bên trong transaction save)
+        Bill updatedBill = billRepository.findByIdWithBooks(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
+
+        // 4. Notification & Email
+        String title = "Giao hàng thành công";
+        String content = String.format("Đơn hàng #%d của bạn đã được giao thành công!", id);
+        notificationService.createNotification(userId, "BILL_STATUS", title, content, shipperId);
+
+        String emailTo = updatedBill.getUser().getEmail();
+        if (emailTo != null && !emailTo.isEmpty()) {
+            Map<String, Object> templateModel = Map.of(
+                "name", updatedBill.getUser().getUsername(),
+                "message", String.format("Đơn hàng #%d của bạn đã được giao thành công.", id),
+                "details", "Trạng thái hiện tại: SHIPPED - Đã giao",
+                "actionUrl", "http://localhost:5173",
+                "actionText", "Xem đơn hàng"
+            );
+            emailService.sendEmailWithHtmlTemplate(emailTo, title, "email-template", templateModel);
+        }
+
+        return convertToDTO(updatedBill);
+    }
+
+
+    @Transactional
     public void deleteBill(Long id) {
         Bill bill = billRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));

@@ -6,6 +6,8 @@ export const CUSTOMER_REFRESH_TOKEN_KEY = 'customerRefreshToken';
 export const CUSTOMER_USER_ID_KEY = 'customerUserId';
 export const ADMIN_TOKEN_KEY = 'adminToken';
 export const ADMIN_REFRESH_TOKEN_KEY = 'adminRefreshToken';
+export const SHIPPER_TOKEN_KEY = 'shipperToken';
+export const SHIPPER_REFRESH_TOKEN_KEY = 'shipperRefreshToken';
 
 /**
  * Extracts the current user ID from the customer JWT token.
@@ -138,3 +140,28 @@ export const logoutCustomer = (): void => {
 export const logoutAdmin = (): void => {
   removeAdminToken();
 };
+
+// ── Shipper Auth ──
+export const getShipperToken = (): string | null => localStorage.getItem(SHIPPER_TOKEN_KEY);
+export const getShipperRefreshToken = (): string | null => localStorage.getItem(SHIPPER_REFRESH_TOKEN_KEY);
+export const setShipperToken = (token: string): void => localStorage.setItem(SHIPPER_TOKEN_KEY, token);
+export const setShipperRefreshToken = (token: string): void => localStorage.setItem(SHIPPER_REFRESH_TOKEN_KEY, token);
+export const removeShipperToken = (): void => {
+  localStorage.removeItem(SHIPPER_TOKEN_KEY);
+  localStorage.removeItem(SHIPPER_REFRESH_TOKEN_KEY);
+};
+export const isShipperAuthenticated = (): boolean => !!localStorage.getItem(SHIPPER_TOKEN_KEY);
+export const logoutShipper = (): void => removeShipperToken();
+
+export const getShipperEmailFromToken = (): string | null => {
+  const token = localStorage.getItem(SHIPPER_TOKEN_KEY);
+  if (!token) return null;
+  try {
+    const payload = token.split('.')[1];
+    const decoded = JSON.parse(atob(payload));
+    return decoded.sub || null;
+  } catch {
+    return null;
+  }
+};
+

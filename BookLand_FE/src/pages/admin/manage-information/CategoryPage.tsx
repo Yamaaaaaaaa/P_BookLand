@@ -69,7 +69,9 @@ const CategoryPage = () => {
 
     const fieldConfig: FieldConfig[] = [
         { name: 'name', label: t('admin.category.modal.name_label'), type: 'text', required: true, placeholder: t('admin.category.modal.name_placeholder') },
-        { name: 'description', label: t('admin.category.modal.desc_label'), type: 'textarea', placeholder: t('admin.category.modal.desc_placeholder') }
+        { name: 'description', label: t('admin.category.modal.desc_label'), type: 'textarea', placeholder: t('admin.category.modal.desc_placeholder') },
+        { name: 'pin', label: t('admin.category.modal.pin_label', { defaultValue: 'Ghim danh mục' }), type: 'checkbox' },
+        { name: 'imageUrl', label: t('admin.category.modal.image_label', { defaultValue: 'Hình ảnh đại diện' }), type: 'image' }
     ];
 
     const handleSort = (key: keyof Category) => {
@@ -181,6 +183,7 @@ const CategoryPage = () => {
                                     {getSortIcon('id')}
                                 </div>
                             </th>
+                            <th style={{ width: '80px', textAlign: 'center' }}>{t('admin.category.table.image', { defaultValue: 'Ảnh' })}</th>
                             <th onClick={() => handleSort('name')} className="sortable-header">
                                 <div className="th-content">
                                     {t('admin.category.table.name')}
@@ -193,6 +196,7 @@ const CategoryPage = () => {
                                     {getSortIcon('description')}
                                 </div>
                             </th>
+                            <th style={{ width: '60px', textAlign: 'center' }}>{t('admin.category.table.pin', { defaultValue: 'Ghim' })}</th>
                             <th style={{ textAlign: 'right' }}>{t('admin.category.table.actions')}</th>
                         </tr>
                     </thead>
@@ -200,8 +204,16 @@ const CategoryPage = () => {
                         {categories.map(category => (
                             <tr key={category.id}>
                                 <td>#{category.id}</td>
+                                <td style={{ textAlign: 'center' }}>
+                                    {category.imageUrl ? (
+                                        <img src={category.imageUrl} alt={category.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px' }} />
+                                    ) : '-'}
+                                </td>
                                 <td style={{ fontWeight: 500 }}>{category.name}</td>
                                 <td style={{ color: 'var(--shop-text-muted)' }}>{category.description || '-'}</td>
+                                <td style={{ textAlign: 'center', fontSize: '1.2rem' }}>
+                                    {category.pin ? <span style={{ color: 'var(--shop-primary)' }}>📌</span> : '-'}
+                                </td>
                                 <td style={{ textAlign: 'right' }}>
                                     <div className="action-buttons">
                                         <button className="btn-icon" onClick={() => openModal('view', category)}>

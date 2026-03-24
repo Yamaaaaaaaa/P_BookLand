@@ -16,4 +16,8 @@ public class CategoryRequest {
 
     @Size(max = 1000, message = "Mô tả không quá 1000 ký tự")
     private String description;
+
+    private Boolean pin;
+
+    private String imageUrl;
 }

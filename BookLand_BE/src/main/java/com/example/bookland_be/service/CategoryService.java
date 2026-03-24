@@ -55,6 +55,8 @@ public class CategoryService {
         Category category = Category.builder()
                 .name(request.getName())
                 .description(request.getDescription())
+                .pin(request.getPin() != null ? request.getPin() : false)
+                .imageUrl(request.getImageUrl())
                 .build();
 
         Category savedCategory = categoryRepository.save(category);
@@ -78,6 +80,8 @@ public class CategoryService {
 
         category.setName(request.getName());
         category.setDescription(request.getDescription());
+        category.setPin(request.getPin() != null ? request.getPin() : false);
+        category.setImageUrl(request.getImageUrl());
 
         Category updatedCategory = categoryRepository.save(category);
         return convertToDTO(updatedCategory);
@@ -105,6 +109,8 @@ public class CategoryService {
                 .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
+                .pin(category.getPin())
+                .imageUrl(category.getImageUrl())
                 .bookCount(category.getBooks() != null ? category.getBooks().size() : 0)
                 .build();
     }

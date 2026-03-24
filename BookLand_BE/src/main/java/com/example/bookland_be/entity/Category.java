@@ -25,6 +25,12 @@ public class Category {
     @Column(columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "pin")
+    private Boolean pin = false;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
     @ManyToMany(mappedBy = "categories")
     @Builder.Default
     private Set<Book> books = new HashSet<>();

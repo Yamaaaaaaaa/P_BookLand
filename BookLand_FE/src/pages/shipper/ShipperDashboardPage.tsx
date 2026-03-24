@@ -106,7 +106,7 @@ const ShipperDashboardPage = () => {
             <main className="shipper-main">
                 {/* Header */}
                 <div className="shipper-page-header">
-                    <h1 className="shipper-page-title">Danh sách đơn hàng cần giao</h1>
+                    <h1 className="shipper-page-title">Danh sách đơn hàng đang giao</h1>
                     <p className="shipper-page-subtitle">
                         Bấm "Xác nhận đã giao" sau khi giao hàng thành công cho khách
                     </p>

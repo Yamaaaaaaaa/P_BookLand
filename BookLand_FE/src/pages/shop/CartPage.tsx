@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Trash2, Plus, Minus, ShoppingBag, Truck, CreditCard } from 'lucide-react';
+import { Trash2, Plus, Minus, ShoppingBag, Truck, CreditCard, Loader2 } from 'lucide-react';
 import Breadcrumb from '../../components/common/Breadcrumb';
 import '../../styles/pages/cart.css';
 import cartService from '../../api/cartService';
@@ -24,6 +24,7 @@ const CartPage = () => {
 
     const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([]);
     const [selectedShippingId, setSelectedShippingId] = useState<number | null>(null);
+    const [isShippingLoading, setIsShippingLoading] = useState(true);
 
     const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [selectedPaymentId, setSelectedPaymentId] = useState<number | null>(null);
@@ -37,8 +38,9 @@ const CartPage = () => {
         }
 
         setIsLoading(true);
+        setIsShippingLoading(true);
         try {
-            // Fetch cart - dùng endpoint /my (lấy từ JWT token, không cần userId)
+            // Fetch cart
             const cartRes = await cartService.getMyCart();
             if (cartRes.result && cartRes.result.items) {
                 setCartItems(cartRes.result.items);
@@ -46,9 +48,20 @@ const CartPage = () => {
                     setSelectedIds(cartRes.result.items.map((item: CartItem) => item.bookId));
                 }
             }
+        } catch (error) {
+            console.error('Failed to fetch cart data:', error);
+            toast.error(t('product.load_error'));
+        } finally {
+            setIsLoading(false);
+        }
 
-            // Fetch shipping methods
-            const shipRes = await shippingMethodService.getAllShippingMethods();
+        try {
+            // Fetch shipping and payment methods concurrently
+            const [shipRes, payRes] = await Promise.all([
+                shippingMethodService.getAllShippingMethods(),
+                paymentMethodService.getAll()
+            ]);
+
             if (shipRes.result && shipRes.result.content) {
                 setShippingMethods(shipRes.result.content);
                 if (shipRes.result.content.length > 0) {
@@ -56,8 +69,6 @@ const CartPage = () => {
                 }
             }
 
-            // Fetch payment methods
-            const payRes = await paymentMethodService.getAll();
             if (payRes.result && payRes.result.content) {
                 setPaymentMethods(payRes.result.content);
                 if (payRes.result.content.length > 0) {
@@ -65,10 +76,9 @@ const CartPage = () => {
                 }
             }
         } catch (error) {
-            console.error('Failed to fetch data:', error);
-            toast.error(t('product.load_error'));
+            console.error('Failed to fetch shipping/payment methods:', error);
         } finally {
-            setIsLoading(false);
+            setIsShippingLoading(false);
         }
     };
 
@@ -336,25 +346,31 @@ const CartPage = () => {
                                         <span>{t('cart.shipping_method_title')}</span>
                                     </div>
                                     <div className="config-options">
-                                        {shippingMethods.map(method => (
-                                            <label
-                                                key={method.id}
-                                                className={`option-item ${selectedShippingId === method.id ? 'active' : ''}`}
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name="shippingMethod"
-                                                    className="option-radio"
-                                                    checked={selectedShippingId === method.id}
-                                                    onChange={() => setSelectedShippingId(method.id)}
-                                                />
-                                                <div className="option-info">
-                                                    <span className="option-name">{method.name}</span>
-                                                    <span className="option-price">{formatCurrency(method.price)}</span>
-                                                    {method.description && <span className="option-desc">{method.description}</span>}
-                                                </div>
-                                            </label>
-                                        ))}
+                                        {isShippingLoading ? (
+                                            <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+                                                <Loader2 className="animate-spin" size={24} color="#C92127" />
+                                            </div>
+                                        ) : (
+                                            shippingMethods.map(method => (
+                                                <label
+                                                    key={method.id}
+                                                    className={`option-item ${selectedShippingId === method.id ? 'active' : ''}`}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="shippingMethod"
+                                                        className="option-radio"
+                                                        checked={selectedShippingId === method.id}
+                                                        onChange={() => setSelectedShippingId(method.id)}
+                                                    />
+                                                    <div className="option-info">
+                                                        <span className="option-name">{method.name}</span>
+                                                        <span className="option-price">{formatCurrency(method.price)}</span>
+                                                        {method.description && <span className="option-desc">{method.description}</span>}
+                                                    </div>
+                                                </label>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
 
@@ -365,24 +381,30 @@ const CartPage = () => {
                                         <span>{t('cart.payment_method_title')}</span>
                                     </div>
                                     <div className="config-options">
-                                        {paymentMethods.map(method => (
-                                            <label
-                                                key={method.id}
-                                                className={`option-item ${selectedPaymentId === method.id ? 'active' : ''}`}
-                                            >
-                                                <input
-                                                    type="radio"
-                                                    name="paymentMethod"
-                                                    className="option-radio"
-                                                    checked={selectedPaymentId === method.id}
-                                                    onChange={() => setSelectedPaymentId(method.id)}
-                                                />
-                                                <div className="option-info">
-                                                    <span className="option-name">{method.name}</span>
-                                                    {method.description && <span className="option-desc">{method.description}</span>}
-                                                </div>
-                                            </label>
-                                        ))}
+                                        {isShippingLoading ? (
+                                            <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+                                                <Loader2 className="animate-spin" size={24} color="#C92127" />
+                                            </div>
+                                        ) : (
+                                            paymentMethods.map(method => (
+                                                <label
+                                                    key={method.id}
+                                                    className={`option-item ${selectedPaymentId === method.id ? 'active' : ''}`}
+                                                >
+                                                    <input
+                                                        type="radio"
+                                                        name="paymentMethod"
+                                                        className="option-radio"
+                                                        checked={selectedPaymentId === method.id}
+                                                        onChange={() => setSelectedPaymentId(method.id)}
+                                                    />
+                                                    <div className="option-info">
+                                                        <span className="option-name">{method.name}</span>
+                                                        {method.description && <span className="option-desc">{method.description}</span>}
+                                                    </div>
+                                                </label>
+                                            ))
+                                        )}
                                     </div>
                                 </div>
                             </div>

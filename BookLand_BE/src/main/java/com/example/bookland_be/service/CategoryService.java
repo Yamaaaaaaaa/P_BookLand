@@ -26,11 +26,15 @@ public class CategoryService {
 
     @Cacheable(value = "categories")
     @Transactional(readOnly = true)
-    public PageResponse<CategoryDTO> getAllCategories(String keyword, Pageable pageable) {
+    public PageResponse<CategoryDTO> getAllCategories(String keyword, Boolean pinned, Pageable pageable) {
         Specification<Category> spec = Specification.unrestricted();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             spec = spec.and(CategorySpecification.searchByKeyword(keyword));
+        }
+        
+        if (pinned != null) {
+            spec = spec.and(CategorySpecification.isPinned(pinned));
         }
 
         return PageResponse.from(categoryRepository.findAll(spec, pageable)

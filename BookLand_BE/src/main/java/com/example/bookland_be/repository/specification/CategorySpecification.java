@@ -17,4 +17,13 @@ public class CategorySpecification extends BaseSpecification {
             );
         };
     }
+
+    public static Specification<Category> isPinned(Boolean pinned) {
+        return (root, query, cb) -> {
+            if (pinned == null) {
+                return cb.conjunction();
+            }
+            return cb.equal(root.get("pin"), pinned);
+        };
+    }
 }

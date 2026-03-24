@@ -4,6 +4,8 @@ import '../styles/components/hero-section.css';
 import { useEffect, useState } from 'react';
 
 import { eventService } from '../api/eventService';
+import categoryService from '../api/categoryService';
+import type { Category } from '../types/Category';
 import { useTranslation } from 'react-i18next';
 
 const HeroSection = () => {
@@ -12,6 +14,7 @@ const HeroSection = () => {
     const [currentSlide, setCurrentSlide] = useState(0);
     const [isLoading, setIsLoading] = useState(true);
     const [imgLoading, setImgLoading] = useState(true);
+    const [pinnedCategories, setPinnedCategories] = useState<Category[]>([]);
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -35,7 +38,19 @@ const HeroSection = () => {
             }
         };
 
+        const fetchPinnedCategories = async () => {
+            try {
+                const res = await categoryService.getAll({ size: 4, pinned: true });
+                if (res.result && res.result.content) {
+                    setPinnedCategories(res.result.content);
+                }
+            } catch (error) {
+                console.error("Failed to fetch pinned categories", error);
+            }
+        };
+
         fetchEvent();
+        fetchPinnedCategories();
     }, []);
 
     const nextSlide = () => {
@@ -139,18 +154,28 @@ const HeroSection = () => {
                 </div>
 
                 <div className="hero-promo-banners">
-                    <Link to="/shop/books?category=4" className="hero-promo-banner" style={{ padding: 0 }}>
-                        <img src="/sach_giao_khoa.png" alt="Sách giáo khoa" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
-                    </Link>
-                    <Link to="/shop/books?category=1" className="hero-promo-banner" style={{ padding: 0 }}>
-                        <img src="/tieu_thuyet_gia_tuong.png" alt="Tiểu thuyết giả tưởng" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
-                    </Link>
-                    <Link to="/shop/books?category=2" className="hero-promo-banner" style={{ padding: 0 }}>
-                        <img src="/truyen-tranh.png" alt="Truyện tranh" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
-                    </Link>
-                    <Link to="/shop/books?category=3" className="hero-promo-banner" style={{ padding: 0 }}>
-                        <img src="/van_hoc_thieu_nhi.png" alt="Văn học thiếu nhi" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
-                    </Link>
+                    {pinnedCategories.length > 0 ? (
+                        pinnedCategories.map(cat => (
+                            <Link key={cat.id} to={`/shop/books?category=${cat.id}`} className="hero-promo-banner" style={{ padding: 0 }}>
+                                <img src={cat.imageUrl} alt={cat.name} style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                            </Link>
+                        ))
+                    ) : (
+                        <>
+                            <Link to="/shop/books?category=4" className="hero-promo-banner" style={{ padding: 0 }}>
+                                <img src="/sach_giao_khoa.png" alt="Sách giáo khoa" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                            </Link>
+                            <Link to="/shop/books?category=1" className="hero-promo-banner" style={{ padding: 0 }}>
+                                <img src="/tieu_thuyet_gia_tuong.png" alt="Tiểu thuyết giả tưởng" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                            </Link>
+                            <Link to="/shop/books?category=2" className="hero-promo-banner" style={{ padding: 0 }}>
+                                <img src="/truyen-tranh.png" alt="Truyện tranh" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                            </Link>
+                            <Link to="/shop/books?category=3" className="hero-promo-banner" style={{ padding: 0 }}>
+                                <img src="/van_hoc_thieu_nhi.png" alt="Văn học thiếu nhi" style={{ width: '100%', height: 'auto', borderRadius: '8px', display: 'block' }} />
+                            </Link>
+                        </>
+                    )}
                 </div>
 
                 {/* Bottom Row: Icon Menu */}

@@ -67,6 +67,7 @@ const MyOrdersPage = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [selectedOrder, setSelectedOrder] = useState<Bill | null>(null);
     const [isOrderDetailOpen, setIsOrderDetailOpen] = useState(false);
+    const [isOrderDetailLoading, setIsOrderDetailLoading] = useState(false);
     const [billReviews, setBillReviews] = useState<Record<number, BookComment>>({});
 
     // Review Modal State
@@ -112,6 +113,11 @@ const MyOrdersPage = () => {
     };
 
     const handleViewOrderDetails = async (orderId: number) => {
+        const existingOrder = orders.find(o => o.id === orderId);
+        setSelectedOrder(existingOrder || { id: orderId } as Bill);
+        setIsOrderDetailLoading(true);
+        setIsOrderDetailOpen(true);
+
         try {
             const [billResponse, reviewsResponse] = await Promise.all([
                 billService.getBillById(orderId),
@@ -120,7 +126,6 @@ const MyOrdersPage = () => {
 
             if (billResponse.result) {
                 setSelectedOrder(billResponse.result);
-                setIsOrderDetailOpen(true);
             }
 
             if (reviewsResponse.result) {
@@ -135,6 +140,9 @@ const MyOrdersPage = () => {
         } catch (error) {
             console.error('Failed to fetch bill details:', error);
             toast.error(t('shop.load_error') || 'Không thể lấy chi tiết đơn hàng');
+            setIsOrderDetailOpen(false);
+        } finally {
+            setIsOrderDetailLoading(false);
         }
     };
 
@@ -372,7 +380,13 @@ const MyOrdersPage = () => {
                             </button>
                         </div>
                         <div className="modal-body">
-                            <div className="order-detail-info">
+                            {isOrderDetailLoading ? (
+                                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '60px 0' }}>
+                                    <Loader2 className="animate-spin" size={40} color="#C92127" />
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="order-detail-info">
                                 <div className="info-column">
                                     <h4>{t('profile.customer_info')}</h4>
                                     <div className="info-item">
@@ -450,6 +464,8 @@ const MyOrdersPage = () => {
                                     </tbody>
                                 </table>
                             </div>
+                                </>
+                            )}
                         </div>
                     </div>
                 </div>

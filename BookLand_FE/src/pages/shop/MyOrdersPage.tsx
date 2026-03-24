@@ -24,6 +24,40 @@ import type { BookComment } from '../../types/BookComment';
 import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 
+// ── Status badge helper ──────────────────────────────────────────────────────
+const STATUS_CONFIG: Record<string, { bg: string; color: string; border: string; label: string }> = {
+    PENDING: { bg: '#FFF8E1', color: '#F57C00', border: '#FFE082', label: 'Chờ xác nhận' },
+    APPROVED: { bg: '#E3F2FD', color: '#1565C0', border: '#90CAF9', label: 'Đã duyệt' },
+    SHIPPING: { bg: '#FFF3E0', color: '#E65100', border: '#FFCC80', label: 'Đang giao' },
+    SHIPPED: { bg: '#E8F5E9', color: '#2E7D32', border: '#A5D6A7', label: 'Đã giao' },
+    COMPLETED: { bg: '#E8F5E9', color: '#1B5E20', border: '#66BB6A', label: 'Hoàn thành' },
+    CANCELED: { bg: '#FFEBEE', color: '#B71C1C', border: '#EF9A9A', label: 'Đã hủy' },
+};
+
+const getStatusBadge = (status: string) => {
+    const cfg = STATUS_CONFIG[status] ?? { bg: '#F5F5F5', color: '#555', border: '#DDD', label: status };
+    return (
+        <span style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100px',
+            fontSize: '11px',
+            fontWeight: 700,
+            padding: '4px 8px',
+            borderRadius: '50px',
+            backgroundColor: cfg.bg,
+            color: cfg.color,
+            border: `1px solid ${cfg.border}`,
+            whiteSpace: 'nowrap',
+            letterSpacing: '0.2px',
+        }}>
+            {cfg.label}
+        </span>
+    );
+};
+// ────────────────────────────────────────────────────────────────────────────
+
 const MyOrdersPage = () => {
     const { t } = useTranslation();
     const navigate = useNavigate();
@@ -284,15 +318,7 @@ const MyOrdersPage = () => {
                                                             )}
                                                         </td>
                                                         <td style={{ padding: '12px' }}>
-                                                            <span className={`status-badge ${order.status.toLowerCase()}`} style={{
-                                                                fontSize: '11px',
-                                                                padding: '2px 8px',
-                                                                borderRadius: '10px',
-                                                                backgroundColor: order.status === 'COMPLETED' ? '#e6f4ea' : '#fff8e1',
-                                                                color: order.status === 'COMPLETED' ? '#1e7e34' : '#f57c00'
-                                                            }}>
-                                                                {order.status}
-                                                            </span>
+                                                            {getStatusBadge(order.status)}
                                                         </td>
                                                         <td style={{ padding: '12px', textAlign: 'right', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
                                                             {order.paymentMethodName === 'VNPay' && order.paymentStatus === 'PENDING' && (
@@ -362,7 +388,9 @@ const MyOrdersPage = () => {
                                     <h4>{t('profile.payment_shipping_info')}</h4>
                                     <div className="info-item">
                                         <span className="info-label">{t('profile.order_status')}:</span>
-                                        <span className="info-value highlight-blue">{selectedOrder.status}</span>
+                                        <span className="info-value" style={{ paddingTop: '2px', display: 'flex', alignItems: 'center' }}>
+                                            {getStatusBadge(selectedOrder.status)}
+                                        </span>
                                     </div>
                                     <div className="info-item">
                                         <span className="info-label">{t('profile.total_amount')}:</span>

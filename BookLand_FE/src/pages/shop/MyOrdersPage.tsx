@@ -397,6 +397,7 @@ const MyOrdersPage = () => {
                                                 <td style={{ textAlign: 'right', fontWeight: 600 }}>
                                                     {formatCurrency(book.subtotal || (book.priceSnapshot * book.quantity))}
                                                 </td>
+
                                                 {selectedOrder.status === 'COMPLETED' || selectedOrder.status === 'SHIPPED' && (
                                                     <td style={{ textAlign: 'right' }}>
                                                         <button

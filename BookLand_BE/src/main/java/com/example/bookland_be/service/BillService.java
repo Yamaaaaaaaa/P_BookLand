@@ -191,9 +191,12 @@ public class BillService {
 
             billBookRepository.save(billBook);
 
-            // Giảm tồn kho
-            book.setStock(book.getStock() - qty);
-            bookRepository.save(book);
+            // Giảm tồn kho an toàn bằng Native Query (Atomic Update)
+            int updatedRows = bookRepository.deductStock(book.getId(), qty);
+            if (updatedRows == 0) {
+                // Mặc dù đã check sớm ở trên, nhưng có thể ai đó vừa mua xong ở phân số giây trước
+                throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
+            }
         }
 
         // 6. Lưu Log

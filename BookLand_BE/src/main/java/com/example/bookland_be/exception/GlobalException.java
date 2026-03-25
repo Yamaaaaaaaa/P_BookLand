@@ -10,7 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import jakarta.validation.metadata.ConstraintDescriptor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +26,17 @@ public class GlobalException {
         response.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getErrorCode());
         response.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(value = ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<ApiResponse> handlingOptimisticLockException(ObjectOptimisticLockingFailureException exception) {
+        ErrorCode errorCode = ErrorCode.CONCURRENT_UPDATE_CONFLICT;
+        ApiResponse apiResponse = new ApiResponse();
+        
+        apiResponse.setCode(errorCode.getErrorCode());
+        apiResponse.setMessage(errorCode.getMessage());
+        
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(apiResponse);
     }
 
     @ExceptionHandler(value = AppException.class)

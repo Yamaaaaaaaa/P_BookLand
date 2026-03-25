@@ -14,6 +14,7 @@ public enum ErrorCode {
     EMAIL_EXISTED(1009, "Email existed, please choose another one", HttpStatus.BAD_REQUEST),
     USER_EXISTED(1010, "Username existed, please choose another one", HttpStatus.BAD_REQUEST),
     USERNAME_IS_MISSING(1011, "Please enter username", HttpStatus.BAD_REQUEST),
+    CONCURRENT_UPDATE_CONFLICT(1012, "Data is being updated by another process, please try again", HttpStatus.CONFLICT),
     
     // Book errors
     BOOK_NOT_FOUND(2001, "Book not found", HttpStatus.NOT_FOUND),

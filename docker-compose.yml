@@ -10,10 +10,8 @@ services:
       MYSQL_DATABASE: bookland_db
       MYSQL_ROOT_PASSWORD: root
     ports:
-      - "3306:3306"
+      - "3307:3306"
     volumes:
-      # Ánh xạ SQL script vào để tự động chạy khi khởi tạo DB lần đầu
-      - ./BookLand_DB/db_mysql:/docker-entrypoint-initdb.d
       - mysql_data:/var/lib/mysql
 
   # 2. Redis
@@ -35,18 +33,14 @@ services:
       - "8080:8080"
     depends_on:
       - bookland-redis
-      # Tạm tắt depends_on bookland-db nếu bạn dùng DB trên AWS RDS như cấu hình .env
-      # Nếu muốn dùng local MySQL thì đổi thông tin DB_URL bên dưới
-      # - bookland-db
+      - bookland-db
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      # Đổi DB_URL thành bookland-db nếu muốn dùng DB từ MySQL container ở trên,
-      # hoặc giữ nguyên AWS RDS URL của bạn nếu không muốn dùng db local
       - REDIS_HOST=bookland-redis
       - REDIS_PORT=6379
-      # - DB_URL=${DB_URL}
-      # - DB_USERNAME=${DB_USERNAME}
-      # - DB_PASSWORD=${DB_PASSWORD}
+      - DB_URL=jdbc:mysql://bookland-db:3306/bookland_db?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh
+      - DB_USERNAME=root
+      - DB_PASSWORD=root
     env_file:
       - ./BookLand_BE/.env
 

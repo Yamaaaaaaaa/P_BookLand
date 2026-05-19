@@ -40,6 +40,12 @@ git clone
 docker-compose build
 
 docker-compose up -d
+
+# Khởi động lại toàn bộ hệ thống và rebuild backend:
+docker-compose up -d --build
+
+# Xóa sạch các container và database cũ
+docker-compose down -v
 ```
 
 ## Run without Docker: 

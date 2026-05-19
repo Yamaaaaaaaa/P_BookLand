@@ -49,12 +49,12 @@ INSERT INTO serie (name, description) VALUES
 -- ======================================================
 -- BƯỚC 4: INSERT category (Thể loại)
 -- ======================================================
-INSERT INTO category (name, description) VALUES
-('Tiểu thuyết giả tưởng', 'Sách thuộc thể loại giả tưởng, phép thuật'),
-('Truyện tranh', 'Manga, Comic'),
-('Văn học thiếu nhi', 'Sách dành cho thiếu nhi'),
-('Sách giáo khoa', 'Sách giáo khoa phổ thông'),
-('Văn học Việt Nam', 'Tác phẩm văn học của tác giả Việt Nam');
+INSERT INTO category (name, image_url, description, pin) VALUES
+('Tiểu thuyết giả tưởng', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/tieu_thuyet_gia_tuong.png', 'Sách thuộc thể loại giả tưởng, phép thuật', TRUE),
+('Truyện tranh', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/truyen-tranh.png', 'Manga, Comic', TRUE),
+('Văn học thiếu nhi', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/van_hoc_thieu_nhi.png', 'Sách dành cho thiếu nhi', TRUE),
+('Sách giáo khoa', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/sach_giao_khoa.png', 'Sách giáo khoa phổ thông', TRUE),
+('Văn học Việt Nam', NULL , 'Tác phẩm văn học của tác giả Việt Nam', TRUE);
 
 -- ======================================================
 -- BƯỚC 5: INSERT users (2 tài khoản)
@@ -81,59 +81,59 @@ INSERT INTO users (username, first_name, last_name, dob, email, password, phone,
 -- BƯỚC 8: INSERT book - HARRY POTTER (7 tập)
 -- ======================================================
 INSERT INTO book (name, description, original_cost, sale, stock, status, published_date, book_image_url, pin, author_id, publisher_id, series_id, created_at, updated_at, created_by) VALUES
-('Harry Potter và Hòn đá Phù thủy', 'Tập 1: Harry Potter khám phá thế giới phù thuật', 120000, 10, 50, 'ENABLE', '1997-06-26', 'hp1.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
-('Harry Potter và Phòng chứa Bí mật', 'Tập 2: Bí mật trong trường Hogwarts', 130000, 10, 45, 'ENABLE', '1998-07-02', 'hp2.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
-('Harry Potter và Tên tù nhân ngục Azkaban', 'Tập 3: Sirius Black trốn thoát', 135000, 10, 40, 'ENABLE', '1999-07-08', 'hp3.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
-('Harry Potter và Chiếc cốc lửa', 'Tập 4: Giải đấu Tam Pháp thuật', 150000, 10, 35, 'ENABLE', '2000-07-08', 'hp4.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
-('Harry Potter và Hội Phượng Hoàng', 'Tập 5: Sự trở lại của Voldemort', 160000, 10, 30, 'ENABLE', '2003-06-21', 'hp5.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
-('Harry Potter và Hoàng tử lai', 'Tập 6: Bí mật về Voldemort', 155000, 10, 25, 'ENABLE', '2005-07-16', 'hp6.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
-('Harry Potter và Bảo bối Tử thần', 'Tập 7: Trận chiến cuối cùng', 170000, 10, 20, 'ENABLE', '2007-07-21', 'hp7.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1);
+('Harry Potter và Hòn đá Phù thủy', 'Tập 1: Harry Potter khám phá thế giới phù thuật', 120000, 10, 50, 'ENABLE', '1997-06-26', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/4591ca46-374f-4896-b824-6d4a6c05b8ff-nxbtre_full_21042022_030444.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
+('Harry Potter và Phòng chứa Bí mật', 'Tập 2: Bí mật trong trường Hogwarts', 130000, 10, 45, 'ENABLE', '1998-07-02', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/95c45d12-4825-4008-8460-d2f344a12d73-nxbtre_full_21472017_034753.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
+('Harry Potter và Tên tù nhân ngục Azkaban', 'Tập 3: Sirius Black trốn thoát', 135000, 10, 40, 'ENABLE', '1999-07-08', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/0ac2c531-8d88-49e5-abad-5c275efe33b6-nxbtre_full_24342024_033441.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
+('Harry Potter và Chiếc cốc lửa', 'Tập 4: Giải đấu Tam Pháp thuật', 150000, 10, 35, 'ENABLE', '2000-07-08', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/fb84ad97-6106-4f06-9e74-4de8fe75edb8-nxbtre_full_20342017_033410.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
+('Harry Potter và Hội Phượng Hoàng', 'Tập 5: Sự trở lại của Voldemort', 160000, 10, 30, 'ENABLE', '2003-06-21', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/a333cea6-e2ed-4966-ba16-89cac8497952-nxbtre_full_28042023_110430.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
+('Harry Potter và Hoàng tử lai', 'Tập 6: Bí mật về Voldemort', 155000, 10, 25, 'ENABLE', '2005-07-16', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/31b0f59e6131b88cf5f7d52870cc42a3.jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1),
+('Harry Potter và Bảo bối Tử thần', 'Tập 7: Trận chiến cuối cùng', 170000, 10, 20, 'ENABLE', '2007-07-21', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/7390ee2e-3bee-4d19-9c51-f2fea42d5cf8-images%20(2).jpg', TRUE, 1, 1, 1, NOW(), NOW(), 1);
 
 -- ======================================================
 -- BƯỚC 9: INSERT book - DORAEMON (45 tập truyện dài)
 -- ======================================================
 INSERT INTO book (name, description, original_cost, sale, stock, status, published_date, book_image_url, pin, author_id, publisher_id, series_id, created_at, updated_at, created_by) VALUES
-('Doraemon - Truyện dài - Tập 1: Khủng long của Nobita', 'Nobita tìm thấy trứng khủng long', 25000, 5, 100, 'ENABLE', '1980-01-01', 'dora_td1.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 2: Lịch sử khai phá vũ trụ', 'Cuộc phiêu lưu ngoài vũ trụ', 25000, 5, 95, 'ENABLE', '1981-01-01', 'dora_td2.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 3: Lâu đài dưới đáy biển', 'Khám phá đại dương', 25000, 5, 90, 'ENABLE', '1983-01-01', 'dora_td3.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 1: Khủng long của Nobita', 'Nobita tìm thấy trứng khủng long', 25000, 5, 100, 'ENABLE', '1980-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/images%20(8).jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 2: Lịch sử khai phá vũ trụ', 'Cuộc phiêu lưu ngoài vũ trụ', 25000, 5, 95, 'ENABLE', '1981-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/31b0f59e6131b88cf5f7d52870cc42a3.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 3: Lâu đài dưới đáy biển', 'Khám phá đại dương', 25000, 5, 90, 'ENABLE', '1983-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/images%20(10).jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 4: Xứ sở ma thuật', 'Thế giới phép thuật kỳ diệu', 25000, 5, 88, 'ENABLE', '1984-01-01', 'dora_td4.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 5: Chuyến phiêu lưu ở miền Tây hoang dã', 'Cuộc phiêu lưu miền Viễn Tây', 25000, 5, 85, 'ENABLE', '1982-01-01', 'dora_td5.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 6: Cuộc đại thủy chiến ở xứ sở người cá', 'Thế giới dưới nước', 25000, 5, 82, 'ENABLE', '1983-03-01', 'dora_td6.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 7: Binh đoàn người sắt', 'Robot xâm lược Trái Đất', 25000, 5, 80, 'ENABLE', '1986-01-01', 'dora_td7.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 8: Những hiệp sĩ không gian', 'Chiến đấu trong vũ trụ', 25000, 5, 78, 'ENABLE', '1985-01-01', 'dora_td8.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 6: Cuộc đại thủy chiến ở xứ sở người cá', 'Thế giới dưới nước', 25000, 5, 82, 'ENABLE', '1983-03-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/doraemon_-_nobita_va_cuoc_chien_dai_thuy_o_xu_so_nguoi_ca_-_tb_2020_dd53b454cee444e6a6a4b03c35e4c3f7_1024x1024.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 7: Binh đoàn người sắt', 'Robot xâm lược Trái Đất', 25000, 5, 80, 'ENABLE', '1986-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/images%20(4).jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 8: Những hiệp sĩ không gian', 'Chiến đấu trong vũ trụ', 25000, 5, 78, 'ENABLE', '1985-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/images%20(9).jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 9: Vua quỷ ở thành phố ngầm', 'Thế giới ngầm bí ẩn', 25000, 5, 76, 'ENABLE', '1983-08-01', 'dora_td9.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 10: Cuộc chiến ở xứ sở người bé nhỏ', 'Nobita bị teo nhỏ', 25000, 5, 74, 'ENABLE', '1985-03-01', 'dora_td10.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 11: Cuộc phiêu lưu vào rừng xanh', 'Phiêu lưu trong rừng nhiệt đới', 25000, 5, 72, 'ENABLE', '1992-01-01', 'dora_td11.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 12: Vương quốc trên mây', 'Thế giới trên mây', 25000, 5, 70, 'ENABLE', '1992-03-01', 'dora_td12.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 13: Mê cung thiếc', 'Cuộc phiêu lưu trong mê cung', 25000, 5, 68, 'ENABLE', '1993-01-01', 'dora_td13.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 13: Mê cung thiếc', 'Cuộc phiêu lưu trong mê cung', 25000, 5, 68, 'ENABLE', '1993-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/21f9c55bb574784671984443bb3d2bc5.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 14: Những vị thần bí ẩn', 'Hành tinh thần bí', 25000, 5, 66, 'ENABLE', '1997-01-01', 'dora_td14.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 15: Cuộc phiêu lưu ở Xứ sở Nghìn lẻ một đêm', 'Thế giới Nghìn lẻ một đêm', 25000, 5, 64, 'ENABLE', '1991-01-01', 'dora_td15.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 16: Chuyến tàu tốc hành ngân hà', 'Du hành vũ trụ bằng tàu hỏa', 25000, 5, 62, 'ENABLE', '1996-01-01', 'dora_td16.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 17: Truyền thuyết về vua mặt trời', 'Khám phá nền văn minh cổ đại', 25000, 5, 60, 'ENABLE', '2000-01-01', 'dora_td17.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 15: Cuộc phiêu lưu ở Xứ sở Nghìn lẻ một đêm', 'Thế giới Nghìn lẻ một đêm', 25000, 5, 64, 'ENABLE', '1991-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/-c4-90-c3-aam-truy-e1-bb-87n-d-c3-a0i_d5199fa0c4fe492ab3ccebada0685094_49f42c39a8be4340ba0ce26643d07715_1024x1024.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 16: Chuyến tàu tốc hành ngân hà', 'Du hành vũ trụ bằng tàu hỏa', 25000, 5, 62, 'ENABLE', '1996-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/doraemon-truyen-dai-tap-16_8f959adc4ba148f3a657fa1b2cd108d9.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 17: Truyền thuyết về vua mặt trời', 'Khám phá nền văn minh cổ đại', 25000, 5, 60, 'ENABLE', '2000-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/Nobita_va_truyen_thuyet_vua_mat_troi.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 18: Lịch sử khai phá miền Tây', 'Lập nghiệp ở miền Tây', 25000, 5, 58, 'ENABLE', '2001-01-01', 'dora_td18.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 19: Cuộc chiến ngoài hành tinh', 'Chiến đấu với người ngoài hành tinh', 25000, 5, 56, 'ENABLE', '1985-08-01', 'dora_td19.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 20: Viện bảo tàng bảo bối bí mật', 'Kho báu bí ẩn của Doraemon', 25000, 5, 54, 'ENABLE', '2013-01-01', 'dora_td20.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 21: Hòn đảo kỳ bí', 'Phiêu lưu trên đảo hoang', 25000, 5, 52, 'ENABLE', '1998-01-01', 'dora_td21.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 22: Nobita và những bạn khủng long mới', 'Gặp lại những chú khủng long', 25000, 5, 50, 'ENABLE', '2006-01-01', 'dora_td22.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 23: Cuộc phiêu lưu trên đảo giấu vàng', 'Tìm kho báu trên đảo', 25000, 5, 48, 'ENABLE', '2018-01-01', 'dora_td23.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 23: Cuộc phiêu lưu trên đảo giấu vàng', 'Tìm kho báu trên đảo', 25000, 5, 48, 'ENABLE', '2018-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/14778-doraemon-cuoc-phieu-luu-den-dao-giau-vang-1.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 24: Chú chó của Nobita và cuộc phiêu lưu châu Phi', 'Phiêu lưu ở châu Phi', 25000, 5, 46, 'ENABLE', '1998-03-01', 'dora_td24.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 25: Nobita ở vương quốc Rô-bốt', 'Thế giới robot', 25000, 5, 44, 'ENABLE', '2002-01-01', 'dora_td25.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 25: Nobita ở vương quốc Rô-bốt', 'Thế giới robot', 25000, 5, 44, 'ENABLE', '2002-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/images%20(5).jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 26: Nobita và hành tinh màu tím', 'Hành tinh bí ẩn', 25000, 5, 42, 'ENABLE', '1990-01-01', 'dora_td26.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 27: Nobita và binh đoàn người sắt mới', 'Phần tiếp theo binh đoàn người sắt', 25000, 5, 40, 'ENABLE', '2011-01-01', 'dora_td27.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 28: Người cá ngoài đại dương', 'Đại dương xanh thẳm', 25000, 5, 38, 'ENABLE', '2010-01-01', 'dora_td28.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 29: Nobita và chuyến thám hiểm Nam Cực', 'Khám phá Nam Cực', 25000, 5, 36, 'ENABLE', '2017-01-01', 'dora_td29.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 30: Người sinh sống trên mặt trăng', 'Cuộc sống trên mặt trăng', 25000, 5, 34, 'ENABLE', '2019-01-01', 'dora_td30.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 31: Nobita và chuyến tàu thời gian', 'Du hành xuyên thời gian', 25000, 5, 32, 'ENABLE', '1987-01-01', 'dora_td31.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 32: Nobita và những dũng sĩ có cánh', 'Thế giới có cánh', 25000, 5, 30, 'ENABLE', '2001-03-01', 'dora_td32.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 33: Nobita và hành tinh động vật', 'Hành tinh của động vật', 25000, 5, 28, 'ENABLE', '1990-03-01', 'dora_td33.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 32: Nobita và những dũng sĩ có cánh', 'Thế giới có cánh', 25000, 5, 30, 'ENABLE', '2001-03-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/images%20(7).jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 33: Nobita và hành tinh động vật', 'Hành tinh của động vật', 25000, 5, 28, 'ENABLE', '1990-03-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/doraemon-tap-10---nobita-va-hanh-tinh-muong-thu---tb-2023.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 34: Nobita và vùng đất lý tưởng trên bầu trời', 'Xây dựng thiên đường', 25000, 5, 26, 'ENABLE', '2016-01-01', 'dora_td34.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 35: Nobita và người khổng lồ xanh', 'Cuộc phiêu lưu với người khổng lồ', 25000, 5, 24, 'ENABLE', '2008-01-01', 'dora_td35.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 36: Nobita và chuyến du hành biển phương Nam', 'Thám hiểm biển phương Nam', 25000, 5, 22, 'ENABLE', '1998-08-01', 'dora_td36.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 35: Nobita và người khổng lồ xanh', 'Cuộc phiêu lưu với người khổng lồ', 25000, 5, 24, 'ENABLE', '2008-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/8935244878202.webp', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 36: Nobita và chuyến du hành biển phương Nam', 'Thám hiểm biển phương Nam', 25000, 5, 22, 'ENABLE', '1998-08-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/Truy-n-doremon-dai-t-p-du-hanh-bi-n-ph-ng-nam-1-2048.webp', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 37: Nobita và những hiệp sĩ rô-bốt', 'Hiệp sĩ thời đại mới', 25000, 5, 20, 'ENABLE', '2014-01-01', 'dora_td37.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 38: Nobita và Nước Nhật thời nguyên thủy', 'Du hành về thời tiền sử', 25000, 5, 18, 'ENABLE', '1989-01-01', 'dora_td38.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 39: Nobita và Chú khủng long mới', 'Chú khủng long được sinh ra', 25000, 5, 16, 'ENABLE', '2020-01-01', 'dora_td39.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 38: Nobita và Nước Nhật thời nguyên thủy', 'Du hành về thời tiền sử', 25000, 5, 18, 'ENABLE', '1989-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/dai_9_0c60f94482714499bb6f8432f9ad6af0_master.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 39: Nobita và Chú khủng long mới', 'Chú khủng long được sinh ra', 25000, 5, 16, 'ENABLE', '2020-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/doraemon-truyen-dai-1-chu-khung-long-cua-nobita_27a58b414f0644ea9f510ab240d9b58d.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 40: Nobita và những thợ săn vàng', 'Săn tìm kho báu', 25000, 5, 14, 'ENABLE', '1994-01-01', 'dora_td40.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
-('Doraemon - Truyện dài - Tập 41: Nobita và vương quốc trên mây', 'Tái hiện vương quốc trên mây', 25000, 5, 12, 'ENABLE', '2023-01-01', 'dora_td41.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
+('Doraemon - Truyện dài - Tập 41: Nobita và vương quốc trên mây', 'Tái hiện vương quốc trên mây', 25000, 5, 12, 'ENABLE', '2023-01-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/8cbf9ec4321c4.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 42: Nobita và bản giao hưởng Địa Cầu', 'Cứu lấy Trái Đất', 25000, 5, 10, 'ENABLE', '2024-01-01', 'dora_td42.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 43: Nobita ở đảo giấu vàng', 'Phiên bản mới đảo giấu vàng', 25000, 5, 8, 'ENABLE', '2018-08-01', 'dora_td43.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
 ('Doraemon - Truyện dài - Tập 44: Nobita và Mặt Trăng phiêu lưu ký', 'Phiêu lưu trên mặt trăng', 25000, 5, 6, 'ENABLE', '2019-08-01', 'dora_td44.jpg', FALSE, 2, 1, 2, NOW(), NOW(), 1),
@@ -145,17 +145,17 @@ INSERT INTO book (name, description, original_cost, sale, stock, status, publish
 
 -- Lớp 1
 INSERT INTO book (name, description, original_cost, sale, stock, status, published_date, book_image_url, pin, author_id, publisher_id, series_id, created_at, updated_at, created_by) VALUES
-('Toán 1', 'Sách giáo khoa Toán lớp 1', 15000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_toan1.jpg', FALSE, 4, 3, 3, NOW(), NOW(), 1),
-('Tiếng Việt 1', 'Sách giáo khoa Tiếng Việt lớp 1', 20000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_tv1.jpg', FALSE, 4, 3, 3, NOW(), NOW(), 1);
+('Toán 1', 'Sách giáo khoa Toán lớp 1', 15000, 0, 200, 'ENABLE', '2020-06-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/AHc89lMuEtkPbVIlJQNWZIYItWNZQ3s5.jpg', FALSE, 4, 3, 3, NOW(), NOW(), 1),
+('Tiếng Việt 1', 'Sách giáo khoa Tiếng Việt lớp 1', 20000, 0, 200, 'ENABLE', '2020-06-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/images%20(9).jpg', FALSE, 4, 3, 3, NOW(), NOW(), 1);
 
 -- Lớp 2
 INSERT INTO book (name, description, original_cost, sale, stock, status, published_date, book_image_url, pin, author_id, publisher_id, series_id, created_at, updated_at, created_by) VALUES
-('Toán 2', 'Sách giáo khoa Toán lớp 2', 15000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_toan2.jpg', FALSE, 4, 3, 4, NOW(), NOW(), 1),
-('Tiếng Việt 2', 'Sách giáo khoa Tiếng Việt lớp 2', 20000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_tv2.jpg', FALSE, 4, 3, 4, NOW(), NOW(), 1);
+('Toán 2', 'Sách giáo khoa Toán lớp 2', 15000, 0, 200, 'ENABLE', '2020-06-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/images%20(10).jpg', FALSE, 4, 3, 4, NOW(), NOW(), 1),
+('Tiếng Việt 2', 'Sách giáo khoa Tiếng Việt lớp 2', 20000, 0, 200, 'ENABLE', '2020-06-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/download%20(1).jpg', FALSE, 4, 3, 4, NOW(), NOW(), 1);
 
 -- Lớp 3
 INSERT INTO book (name, description, original_cost, sale, stock, status, published_date, book_image_url, pin, author_id, publisher_id, series_id, created_at, updated_at, created_by) VALUES
-('Toán 3', 'Sách giáo khoa Toán lớp 3', 16000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_toan3.jpg', FALSE, 4, 3, 5, NOW(), NOW(), 1),
+('Toán 3', 'Sách giáo khoa Toán lớp 3', 16000, 0, 200, 'ENABLE', '2020-06-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/toan-3.jpg', FALSE, 4, 3, 5, NOW(), NOW(), 1),
 ('Tiếng Việt 3', 'Sách giáo khoa Tiếng Việt lớp 3', 21000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_tv3.jpg', FALSE, 4, 3, 5, NOW(), NOW(), 1),
 ('Lịch Sử và Địa lý 3', 'Sách giáo khoa Lịch Sử và Địa lý lớp 3', 18000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_ls3.jpg', FALSE, 4, 3, 5, NOW(), NOW(), 1);
 
@@ -167,7 +167,7 @@ INSERT INTO book (name, description, original_cost, sale, stock, status, publish
 
 -- Lớp 5
 INSERT INTO book (name, description, original_cost, sale, stock, status, published_date, book_image_url, pin, author_id, publisher_id, series_id, created_at, updated_at, created_by) VALUES
-('Toán 5', 'Sách giáo khoa Toán lớp 5', 18000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_toan5.jpg', FALSE, 4, 3, 7, NOW(), NOW(), 1),
+('Toán 5', 'Sách giáo khoa Toán lớp 5', 18000, 0, 200, 'ENABLE', '2020-06-01', 'https://scvvtnvriucbhkrstung.supabase.co/storage/v1/object/public/book-images/bc1bf9ca-2c59-43f3-95f0-9a7ba916d636-download%20(5).jpg', FALSE, 4, 3, 7, NOW(), NOW(), 1),
 ('Tiếng Việt 5', 'Sách giáo khoa Tiếng Việt lớp 5', 23000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_tv5.jpg', FALSE, 4, 3, 7, NOW(), NOW(), 1),
 ('Lịch Sử và Địa lý 5', 'Sách giáo khoa Lịch Sử và Địa lý lớp 5', 20000, 0, 200, 'ENABLE', '2020-06-01', 'sgk_ls5.jpg', FALSE, 4, 3, 7, NOW(), NOW(), 1);
 

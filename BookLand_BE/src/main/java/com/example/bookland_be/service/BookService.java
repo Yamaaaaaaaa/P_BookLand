@@ -3,6 +3,7 @@ package com.example.bookland_be.service;
 import com.example.bookland_be.dto.BookDTO;
 import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.request.BookRequest;
+import com.example.bookland_be.elasticsearch.service.BookSearchService;
 import com.example.bookland_be.entity.*;
 import com.example.bookland_be.entity.Book.BookStatus;
 import com.example.bookland_be.exception.AppException;
@@ -31,6 +32,7 @@ public class BookService {
     private final PublisherRepository publisherRepository;
     private final SerieRepository serieRepository;
     private final CategoryRepository categoryRepository;
+    private final BookSearchService bookSearchService;
 
     @Cacheable(value = "all_books")
     @Transactional(readOnly = true)
@@ -133,6 +135,7 @@ public class BookService {
                 .build();
 
         Book savedBook = bookRepository.save(book);
+        bookSearchService.indexBook(savedBook);
         return convertToDTO(savedBook);
     }
 
@@ -181,6 +184,7 @@ public class BookService {
         book.getCategories().addAll(categories);
 
         Book updatedBook = bookRepository.save(book);
+        bookSearchService.indexBook(updatedBook);
         return convertToDTO(updatedBook);
     }
 
@@ -198,6 +202,7 @@ public class BookService {
         }
 
         bookRepository.delete(book);
+        bookSearchService.deleteBook(id);
     }
 
     @Caching(evict = {
@@ -211,6 +216,7 @@ public class BookService {
 
         book.setStock(quantity);
         Book updatedBook = bookRepository.save(book);
+        bookSearchService.indexBook(updatedBook);
         return convertToDTO(updatedBook);
     }
 

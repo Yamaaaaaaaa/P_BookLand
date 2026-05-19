@@ -49,9 +49,12 @@ dependencies {
 
 
     /* ================= CACHE ================= */
-
-    // Redis
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+ 
+     // Redis
+     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+ 
+     /* ================= ELASTICSEARCH ================= */
+    implementation 'org.springframework.boot:spring-boot-starter-data-elasticsearch'
 
 
     /* ================= SECURITY ================= */

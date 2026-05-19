@@ -22,6 +22,20 @@ services:
     ports:
       - "6379:6379"
 
+  # 2.5. Elasticsearch
+  bookland-elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.1
+    container_name: bookland-elasticsearch
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+    ports:
+      - "9200:9200"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+
   # 3. Backend Spring Boot
   bookland-be:
     build: 
@@ -34,10 +48,12 @@ services:
     depends_on:
       - bookland-redis
       - bookland-db
+      - bookland-elasticsearch
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - REDIS_HOST=bookland-redis
       - REDIS_PORT=6379
+      - ELASTICSEARCH_URIS=http://bookland-elasticsearch:9200
       - DB_URL=jdbc:mysql://bookland-db:3306/bookland_db?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Ho_Chi_Minh
       - DB_USERNAME=root
       - DB_PASSWORD=root
@@ -55,6 +71,16 @@ services:
       - "5173:80" # Map 5173 ở host vào cổng 80 của Nginx
     depends_on:
       - bookland-be
-
+  bookland-kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.1
+    container_name: bookland-kibana
+    restart: always
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://bookland-elasticsearch:9200
+    depends_on:
+      - bookland-elasticsearch
 volumes:
   mysql_data:
+  es_data:

@@ -21,8 +21,9 @@ public class GlobalException {
     private static final String MIN_ATTRIBUTE = "min";
     @ExceptionHandler
     ResponseEntity<ApiResponse<String>> handleRuntimeException(RuntimeException exception){
+        log.error("RuntimeException occurred: ", exception);
         ApiResponse response = new ApiResponse();
-
+ 
         response.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getErrorCode());
         response.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
         return ResponseEntity.badRequest().body(response);

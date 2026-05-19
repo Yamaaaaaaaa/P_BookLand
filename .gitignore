@@ -63,4 +63,4 @@ out/
 /.nb-gradle/
 
 ### VS Code ###
-.vscode/
+# .vscode/ đã được cấu hình ở trên (dòng 16-17): ignore tất cả trừ extensions.json

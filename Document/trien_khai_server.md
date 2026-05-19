@@ -68,9 +68,16 @@ Nếu máy chủ của bạn chưa cài đặt Docker, hãy chạy các lệnh s
    cd ptit-bookland
    ```
 
-3. **Kiểm tra File Môi Trường Production (`.env.production`):**
-   Nhánh `dev_backend` đã tích hợp sẵn tệp cấu hình tối ưu cho Production tại đường dẫn `BookLand_BE/.env.production` và được nạp tự động qua Docker Compose.
-   Nếu bạn muốn thay đổi mật khẩu mặc định của DB hoặc điều chỉnh các tài khoản SMTP, khóa bí mật khác, bạn có thể chỉnh sửa trực tiếp ở local trước khi commit/push, hoặc chỉnh sửa trên server bằng lệnh:
+3. **Copy File Môi Trường Production (`.env.production`) Lên Server:**
+   Để đảm bảo bảo mật và tránh lộ mật mã/khóa bí mật, file `.env.production` nên được lưu trữ và quản lý cục bộ ở máy cá nhân chứ không đẩy lên GitHub công khai.
+   
+   Hãy mở một **Terminal mới trên máy cá nhân (Local)** tại thư mục gốc của dự án `PTIT_BookLand` và chạy lệnh `scp` dưới đây để truyền file sang server:
+   ```bash
+   scp BookLand_BE/.env.production root@114.29.239.206:/root/app/ptit-bookland/BookLand_BE/
+   ```
+   *(Nhập mật khẩu VPS để hoàn tất truyền tệp).*
+   
+   Nếu sau này bạn muốn chỉnh sửa nhanh bất cứ thông số cấu hình nào trực tiếp trên server, bạn có thể chạy lệnh:
    ```bash
    nano BookLand_BE/.env.production
    ```
@@ -149,7 +156,12 @@ ufw enable
 
 ## 🌐 Mở Rộng: Cấu Hình Tên Miền (Domain) & HTTPS (SSL) bằng Nginx Reverse Proxy
 
-Để API của bạn chạy chuyên nghiệp dưới dạng địa chỉ `https://api.bookland.com` thay vì sử dụng IP và cổng `http://114.29.239.206:8080`, hãy làm theo hướng dẫn sau:
+Để API của bạn chạy chuyên nghiệp dưới dạng địa chỉ `https://api.p-bookland.io.vn` thay vì sử dụng IP và cổng `http://114.29.239.206:8080`, hãy làm theo hướng dẫn sau:
+
+> [!NOTE]
+> **Nginx & Certbot là gì? Chúng dùng để làm gì?**
+> * **Nginx (Web Server / Reverse Proxy):** Là một máy chủ web hiệu năng cao đóng vai trò như một **"Lễ tân bảo mật"** ở cửa ngõ VPS. Nginx lắng nghe các kết nối từ Internet gửi tới cổng `80` (HTTP) và `443` (HTTPS). Khi nhận được yêu cầu, Nginx sẽ tiếp nhận, xử lý mã hóa bảo mật và âm thầm chuyển tiếp (proxy) yêu cầu đó vào cổng nội bộ `8080` cho ứng dụng Spring Boot chạy bên trong. Điều này giúp bảo vệ mã nguồn, ẩn cổng chạy thực tế của Spring Boot và tăng tối đa hiệu năng.
+> * **Certbot (Let's Encrypt):** Là công cụ tự động đăng ký, cài đặt cấu hình và tự động gia hạn chứng chỉ bảo mật **SSL/TLS miễn phí** từ tổ chức Let's Encrypt. Certbot giúp biến API của bạn từ dạng không an toàn (`http://`) thành dạng bảo mật mã hóa đầu cuối (`https://`).
 
 1. Cài đặt Nginx và Certbot Let's Encrypt trên server:
    ```bash
@@ -161,17 +173,17 @@ ufw enable
    nano /etc/nginx/sites-available/bookland-be
    ```
 
-3. Dán đoạn cấu hình sau vào (thay đổi `api.bookland.com` thành domain của bạn):
+3. Dán đoạn cấu hình sau vào:
    ```nginx
    server {
        listen 80;
-       server_name api.bookland.com;
+       server_name api.p-bookland.io.vn;
 
        location / {
            proxy_pass http://127.0.0.1:8080;
            proxy_set_header Host $host;
            proxy_set_header X-Real-IP $remote_addr;
-           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded-for;
+           proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
            proxy_set_header X-Forwarded-Proto $scheme;
            
            # Hỗ trợ WebSockets (Cho real-time chat)
@@ -181,6 +193,11 @@ ufw enable
        }
    }
    ```
+   ```javascript
+      // Bước 1 (Lưu file): Ấn tổ hợp phím Ctrl + O (chữ O, không phải số 0).
+      // Bước 2 (Xác nhận tên file): Hệ thống sẽ hiện dòng hỏi xác nhận tên file ở cuối màn hình, bạn chỉ cần nhấn phím Enter.
+      // Bước 3 (Thoát ra): Ấn tổ hợp phím Ctrl + X để quay lại dòng lệnh chính của Linux.
+   ```
 
 4. Kích hoạt cấu hình và restart Nginx:
    ```bash
@@ -189,18 +206,37 @@ ufw enable
    systemctl restart nginx
    ```
 
+> [!IMPORTANT]
+> **Mở cổng Firewall trước khi cấp chứng chỉ SSL:**
+> Let's Encrypt bắt buộc phải kết nối tới máy chủ của bạn qua cổng `80` (HTTP) để xác thực quyền sở hữu tên miền. Do đó, bạn **bắt buộc** phải mở cổng 80 và 443 trên tường lửa trước khi chạy lệnh Certbot:
+> ```bash
+> ufw allow 80/tcp
+> ufw allow 443/tcp
+> ufw reload
+> ```
+
 5. Cài đặt chứng chỉ SSL miễn phí tự động gia hạn:
    ```bash
-   certbot --nginx -d api.bookland.com
+   certbot --nginx -d api.p-bookland.io.vn
    ```
-   *(Lúc này Certbot sẽ tự động cấu hình HTTPS SSL cho bạn).*
+   *(Lúc này Certbot sẽ tự động xác thực và cấu hình HTTPS SSL toàn diện cho bạn).*
    
-6. Mở cổng `80` (HTTP) và `443` (HTTPS) trên tường lửa, sau đó đóng cổng `8080` trực tiếp từ bên ngoài để tăng cường bảo mật cao nhất:
+6. Tăng cường bảo mật tối đa (Đóng cổng backend 8080 từ internet):
+   Sau khi hoàn tất cài đặt SSL, để đảm bảo không ai có thể truy cập trực tiếp cổng Backend `8080` chưa được mã hóa mà bắt buộc phải đi qua Reverse Proxy HTTPS bảo mật, hãy thực hiện đóng cổng 8080 trực tiếp từ bên ngoài:
    ```bash
-   ufw allow 80/tcp
-   ufw allow 443/tcp
    ufw delete allow 8080/tcp
+   ufw reload
    ```
+
+> [!WARNING]
+> ### ⚠️ Xử lý lỗi vòng lặp chuyển hướng `ERR_TOO_MANY_REDIRECTS` (Nếu dùng Cloudflare)
+> Nếu bạn tích hợp tên miền qua Cloudflare và gặp lỗi **`ERR_TOO_MANY_REDIRECTS`** khi truy cập `https://api.p-bookland.io.vn`, đây là hiện tượng xung đột chế độ mã hóa giữa Cloudflare và Nginx SSL.
+> 
+> **Cách xử lý cực kỳ đơn giản:**
+> 1. Truy cập vào trang quản trị **Cloudflare**.
+> 2. Chọn tên miền của bạn và click vào mục **SSL/TLS** ở thanh menu bên trái.
+> 3. Chuyển chế độ mã hóa từ **Flexible** (Linh hoạt) thành **Full** hoặc **Full (strict)** *(Khuyên dùng chế độ **Full (strict)** để mã hóa hoàn toàn từ trình duyệt đến VPS và đạt bảo mật cao nhất)*.
+> 4. Reload (F5) lại trình duyệt, trang API sẽ hoạt động mượt mà ngay lập tức!
 
 ---
 *Chúc bạn triển khai thành công dự án BookLand! Nếu có bất kỳ vấn đề gì phát sinh trong quá trình cấu hình trên server, hãy hỏi tôi ngay lập tức.*

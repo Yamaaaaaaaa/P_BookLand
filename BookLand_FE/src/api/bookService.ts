@@ -1,6 +1,6 @@
 import axiosClient from './axiosClient';
 import type { ApiResponse, Page } from '../types/api';
-import type { Book, BookRequest } from '../types/Book';
+import type { Book, BookDocument, BookRequest } from '../types/Book';
 
 interface BookQueryParams {
     keyword?: string;
@@ -18,9 +18,20 @@ interface BookQueryParams {
     sortDirection?: string;
 }
 
+interface SearchQueryParams {
+    keyword?: string;
+    page?: number;
+    size?: number;
+    sortBy?: string;
+    sortDirection?: string;
+}
+
 const bookService = {
     getAllBooks: (params?: BookQueryParams) => {
         return axiosClient.get<any, ApiResponse<Page<Book>>>('/api/books', { params });
+    },
+    searchBooks: (params?: SearchQueryParams) => {
+        return axiosClient.get<any, ApiResponse<Page<BookDocument>>>('/api/books/search', { params });
     },
     getBookById: (id: number) => {
         return axiosClient.get<any, ApiResponse<Book>>(`/api/books/${id}`);

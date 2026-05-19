@@ -33,6 +33,44 @@ export interface Book {
     updatedAt?: string;
 }
 
+// Response từ Elasticsearch /api/books/search — các trường denormalized từ ES index
+export interface BookDocument {
+    id: string;            // String trong ES (khác với number trong MySQL)
+    name: string;
+    description?: string;
+    originalCost: number;
+    sale: number;
+    finalPrice: number;
+    stock: number;
+    status: BookStatus;
+    bookImageUrl?: string;
+    authorName: string;
+    publisherName: string;
+    categories: string[];  // Tên thể loại (khác với categoryIds dạng number[])
+}
+
+// Hàm normalize BookDocument → Book để tái sử dụng BookGrid và BookCard hiện có
+export function normalizeBookDocument(doc: BookDocument): Book {
+    return {
+        id: Number(doc.id),
+        name: doc.name,
+        description: doc.description,
+        originalCost: doc.originalCost,
+        sale: doc.sale,
+        finalPrice: doc.finalPrice,
+        stock: doc.stock,
+        status: doc.status,
+        bookImageUrl: doc.bookImageUrl,
+        pin: false,
+        authorId: 0,
+        authorName: doc.authorName,
+        publisherId: 0,
+        publisherName: doc.publisherName,
+        categoryIds: [],
+    };
+}
+
+
 export interface BookRequest {
     name: string;
     description?: string;

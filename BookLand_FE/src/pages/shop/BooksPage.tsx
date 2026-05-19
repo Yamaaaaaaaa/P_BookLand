@@ -5,6 +5,7 @@ import Breadcrumb from '../../components/common/Breadcrumb';
 import BookGrid from '../../components/BooksGrid';
 import bookService from '../../api/bookService';
 import type { Book } from '../../types/Book';
+import { normalizeBookDocument } from '../../types/Book';
 import type { Page } from '../../types/api';
 import '../../styles/pages/books.css';
 import '../../styles/components/book-card.css';
@@ -51,56 +52,79 @@ const BooksPage = () => {
     const fetchBooks = useCallback(async () => {
         setIsLoading(true);
         try {
-            const params: any = {
-                page: currentPage,
-                size: pageSize,
-                keyword: keyword || undefined,
-            };
+            if (keyword) {
+                // ─── Có keyword: dùng Elasticsearch search API ───────────────
+                const esParams: any = {
+                    keyword,
+                    page: currentPage,
+                    size: pageSize,
+                };
 
-            // Category
-            if (selectedCategoryIds.length > 0) {
-                params.categoryIds = selectedCategoryIds;
-            }
-
-            // Price Range
-            if (selectedPriceRange) {
-                if (selectedPriceRange === '700000-up') {
-                    params.minPrice = 700000;
-                } else {
-                    const [min, max] = selectedPriceRange.split('-').map(Number);
-                    params.minPrice = min;
-                    params.maxPrice = max;
+                // Sorting được ES hỗ trợ cho các trường số
+                switch (selectedSort) {
+                    case 'price-low':
+                        esParams.sortBy = 'finalPrice';
+                        esParams.sortDirection = 'ASC';
+                        break;
+                    case 'price-high':
+                        esParams.sortBy = 'finalPrice';
+                        esParams.sortDirection = 'DESC';
+                        break;
+                    default:
+                        // Không truyền sortBy → ES tự sắp xếp theo relevance score
+                        break;
                 }
-            }
 
-            // Other Filters
-            if (selectedAuthorIds.length > 0) params.authorIds = selectedAuthorIds;
-            if (selectedPublisherIds.length > 0) params.publisherIds = selectedPublisherIds;
-            if (selectedSeriesIds.length > 0) params.seriesIds = selectedSeriesIds;
+                const response = await bookService.searchBooks(esParams);
+                if (response.result) {
+                    // Normalize BookDocument → Book để BookGrid hiển thị được
+                    const normalized = response.result.content.map(normalizeBookDocument);
+                    setBooks(normalized);
+                    setPageData(response.result as unknown as Page<Book>);
+                }
+            } else {
+                // ─── Không có keyword: dùng MySQL API với filter sidebar ─────
+                const params: any = {
+                    page: currentPage,
+                    size: pageSize,
+                };
 
-            // Sorting
-            switch (selectedSort) {
-                case 'price-low':
-                    params.sortBy = 'originalCost';
-                    params.sortDirection = 'ASC';
-                    break;
-                case 'price-high':
-                    params.sortBy = 'originalCost';
-                    params.sortDirection = 'DESC';
-                    break;
-                case 'newest':
-                    params.sortBy = 'createdAt';
-                    params.sortDirection = 'DESC';
-                    break;
-                default:
-                    // Default could be by sales or pin
-                    break;
-            }
+                if (selectedCategoryIds.length > 0) params.categoryIds = selectedCategoryIds;
 
-            const response = await bookService.getAllBooks(params);
-            if (response.result) {
-                setBooks(response.result.content);
-                setPageData(response.result);
+                if (selectedPriceRange) {
+                    if (selectedPriceRange === '700000-up') {
+                        params.minPrice = 700000;
+                    } else {
+                        const [min, max] = selectedPriceRange.split('-').map(Number);
+                        params.minPrice = min;
+                        params.maxPrice = max;
+                    }
+                }
+
+                if (selectedAuthorIds.length > 0) params.authorIds = selectedAuthorIds;
+                if (selectedPublisherIds.length > 0) params.publisherIds = selectedPublisherIds;
+                if (selectedSeriesIds.length > 0) params.seriesIds = selectedSeriesIds;
+
+                switch (selectedSort) {
+                    case 'price-low':
+                        params.sortBy = 'originalCost';
+                        params.sortDirection = 'ASC';
+                        break;
+                    case 'price-high':
+                        params.sortBy = 'originalCost';
+                        params.sortDirection = 'DESC';
+                        break;
+                    case 'newest':
+                        params.sortBy = 'createdAt';
+                        params.sortDirection = 'DESC';
+                        break;
+                }
+
+                const response = await bookService.getAllBooks(params);
+                if (response.result) {
+                    setBooks(response.result.content);
+                    setPageData(response.result);
+                }
             }
         } catch (error) {
             console.error('Failed to fetch books:', error);

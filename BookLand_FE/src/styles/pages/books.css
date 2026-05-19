@@ -675,3 +675,19 @@
 .search-keyword-banner strong {
   color: #C92127;
 }
+
+.search-engine-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  margin-left: 10px;
+  padding: 2px 8px;
+  background: linear-gradient(135deg, #005571, #00a9c0);
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: 20px;
+  letter-spacing: 0.3px;
+  vertical-align: middle;
+}
+

@@ -37,6 +37,7 @@ public class BookCommentController {
     }
 
     @GetMapping
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Get all comments with filters")
     public ApiResponse<Page<BookCommentResponse>> getAllComments(
             @RequestParam(required = false) Long bookId,
@@ -56,6 +57,7 @@ public class BookCommentController {
     }
 
     @GetMapping("/book/{bookId}")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Get comments by Book ID (Summary with Average)")
     public ApiResponse<BookCommentSummaryResponse> getCommentsByBook(
             @PathVariable Long bookId,
@@ -81,6 +83,7 @@ public class BookCommentController {
     }
 
     @GetMapping("/bill/{billId}")
+    @PreAuthorize("permitAll()")
     @Operation(summary = "Get comments by Bill ID")
     public ApiResponse<List<BookCommentResponse>> getCommentsByBill(@PathVariable Long billId) {
         return ApiResponse.<List<BookCommentResponse>>builder()

@@ -64,10 +64,11 @@ public class GlobalException {
 
     @ExceptionHandler(value = IllegalArgumentException.class)
     ResponseEntity<ApiResponse<String>> handleIllegalArgumentException(IllegalArgumentException exception){
+        log.error("IllegalArgumentException: ", exception);
         ApiResponse response = new ApiResponse();
 
-        response.setCode(ErrorCode.USER_EXISTED.getErrorCode());
-        response.setMessage(ErrorCode.USER_EXISTED.getMessage());
+        response.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getErrorCode());
+        response.setMessage(exception.getMessage() != null ? exception.getMessage() : "Illegal Argument");
         return ResponseEntity.badRequest().body(response);
     }
 

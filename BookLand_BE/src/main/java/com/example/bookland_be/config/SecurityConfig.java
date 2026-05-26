@@ -34,7 +34,12 @@ public class SecurityConfig {
             "/auth/google",   // Google OAuth2 login
             "/auth/test-email",
             "/vnpay/**",
-            "/home"};
+            "/home",
+            // ── Chatbot API — public (cả guest lẫn user đã đăng nhập) ───────
+            "/chatbot/sessions",          // Tạo/resume session
+            "/chatbot/sessions/**",       // Gửi message, lấy lịch sử, đóng session
+            "/chatbot/escalations",       // Khách tạo escalation (POST)
+    };
 
     // Public GET endpoints - ai cũng có thể đọc, không cần đăng nhập
     private final String[] PUBLIC_GET_ENDPOINTS = {
@@ -49,6 +54,8 @@ public class SecurityConfig {
             "/api/publishers",        // getAllPublishers
             "/api/publishers/**",
             "/api/events/highest-priority",
+            "/book-comments",         // getAllComments
+            "/book-comments/**",      // getCommentsByBook
     };
 
     private static final String[] API_DOC_ENDPOINTS = {

@@ -105,7 +105,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "events", key = "'highest-priority'")
+    @Cacheable(value = "events", key = "'highest-priority'", unless = "#result == null")
     public EventDTO getHighestPriorityEvent() {
         LocalDateTime now = LocalDateTime.now();
         Event event = eventRepository.findFirstByStatusAndStartTimeLessThanEqualAndEndTimeGreaterThanEqualOrderByPriorityDesc(

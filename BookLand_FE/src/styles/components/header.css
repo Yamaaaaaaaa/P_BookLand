@@ -1362,3 +1362,56 @@
   100% { transform: rotate(360deg); }
 }
 
+/* Category Search Result Tags */
+.search-modal__category-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.search-modal__category-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background-color: #FFF5F5;
+  color: #C92127;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  border: 1px solid #FECACA;
+  text-decoration: none;
+}
+
+.search-modal__category-tag:hover {
+  background-color: #C92127;
+  color: white;
+  border-color: #C92127;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(201, 33, 39, 0.25);
+}
+
+.search-modal__category-tag-img {
+  width: 20px;
+  height: 20px;
+  object-fit: cover;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.search-modal__category-tag-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 150px;
+}
+
+.search-modal__category-tag-count {
+  font-size: 10px;
+  font-weight: 500;
+  opacity: 0.75;
+  white-space: nowrap;
+}
+

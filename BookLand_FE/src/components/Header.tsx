@@ -13,6 +13,8 @@ import userService from '../api/userService';
 import type { User as UserData } from '../types/User';
 import bookService from '../api/bookService';
 import type { BookDocument } from '../types/Book';
+import categoryService from '../api/categoryService';
+import type { Category } from '../types/Category';
 
 
 interface HeaderProps {
@@ -30,6 +32,7 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
     const [searchResults, setSearchResults] = useState<BookDocument[]>([]);
+    const [categoryResults, setCategoryResults] = useState<Category[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [searchHistory, setSearchHistory] = useState<string[]>(() => {
         const saved = localStorage.getItem('search_history');
@@ -55,10 +58,11 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
         setIsLangMenuOpen(false);
     };
 
-    // Debounced live search suggestion query
+    // Debounced live search suggestion query (books + categories)
     useEffect(() => {
         if (!searchQuery.trim()) {
             setSearchResults([]);
+            setCategoryResults([]);
             setIsSearching(false);
             return;
         }
@@ -66,19 +70,28 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
         setIsSearching(true);
         const timer = setTimeout(async () => {
             try {
-                const response = await bookService.searchBooks({
-                    keyword: searchQuery.trim(),
-                    page: 0,
-                    size: 5
-                });
-                if (response && response.result && response.result.content) {
-                    setSearchResults(response.result.content);
-                } else {
-                    setSearchResults([]);
-                }
+                const [bookResponse, categoryResponse] = await Promise.all([
+                    bookService.searchBooks({
+                        keyword: searchQuery.trim(),
+                        page: 0,
+                        size: 5
+                    }),
+                    categoryService.getAll({
+                        keyword: searchQuery.trim(),
+                        page: 0,
+                        size: 5
+                    })
+                ]);
+                setSearchResults(
+                    bookResponse?.result?.content ?? []
+                );
+                setCategoryResults(
+                    categoryResponse?.result?.content ?? []
+                );
             } catch (error) {
                 console.error('Debounced search failed:', error);
                 setSearchResults([]);
+                setCategoryResults([]);
             } finally {
                 setIsSearching(false);
             }
@@ -454,57 +467,102 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                                                     <div className="search-modal__spinner"></div>
                                                     <span>Đang tìm kiếm...</span>
                                                 </div>
-                                            ) : searchResults.length > 0 ? (
-                                                <div className="search-modal__section">
-                                                    <div className="search-modal__section-header">
-                                                        <h4 className="search-modal__section-title">
-                                                            Kết quả tìm kiếm
-                                                        </h4>
-                                                    </div>
-                                                    <div className="search-modal__results-list">
-                                                        {searchResults.map((book) => (
-                                                            <div
-                                                                key={book.id}
-                                                                className="search-modal__result-item"
-                                                                onClick={() => handleResultClick(book.id)}
-                                                            >
-                                                                <div className="search-modal__result-img-wrapper">
-                                                                    <img 
-                                                                        src={book.bookImageUrl || '/placeholder.png'} 
-                                                                        alt={book.name} 
-                                                                        className="search-modal__result-img"
-                                                                        onError={(e) => {
-                                                                            (e.target as HTMLImageElement).src = '/placeholder.png';
+                                            ) : (
+                                                <>
+                                                    {/* Category Results */}
+                                                    {categoryResults.length > 0 && (
+                                                        <div className="search-modal__section">
+                                                            <div className="search-modal__section-header">
+                                                                <h4 className="search-modal__section-title">
+                                                                    🏷️ Thể loại
+                                                                </h4>
+                                                            </div>
+                                                            <div className="search-modal__category-tags">
+                                                                {categoryResults.map((cat) => (
+                                                                    <div
+                                                                        key={cat.id}
+                                                                        className="search-modal__category-tag"
+                                                                        onClick={() => {
+                                                                            if (searchQuery.trim()) saveToHistory(searchQuery.trim());
+                                                                            setIsSearchModalOpen(false);
+                                                                            navigate(`/shop/books?category=${cat.id}`);
                                                                         }}
-                                                                    />
-                                                                </div>
-                                                                <div className="search-modal__result-info">
-                                                                    <h5 className="search-modal__result-name">{book.name}</h5>
-                                                                    <p className="search-modal__result-author">{book.authorName || 'Chưa cập nhật tác giả'}</p>
-                                                                    <div className="search-modal__result-pricing">
-                                                                        <span className="search-modal__result-final-price">
-                                                                            {book.finalPrice.toLocaleString('vi-VN')}đ
-                                                                        </span>
-                                                                        {book.sale > 0 && (
-                                                                            <>
-                                                                                <span className="search-modal__result-original-price">
-                                                                                    {book.originalCost.toLocaleString('vi-VN')}đ
-                                                                                </span>
-                                                                                <span className="search-modal__result-discount">
-                                                                                    -{book.sale}%
-                                                                                </span>
-                                                                            </>
+                                                                    >
+                                                                        {cat.imageUrl && (
+                                                                            <img
+                                                                                src={cat.imageUrl}
+                                                                                alt={cat.name}
+                                                                                className="search-modal__category-tag-img"
+                                                                                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                                                                            />
+                                                                        )}
+                                                                        <span className="search-modal__category-tag-name">{cat.name}</span>
+                                                                        {cat.bookCount !== undefined && (
+                                                                            <span className="search-modal__category-tag-count">{cat.bookCount} sách</span>
                                                                         )}
                                                                     </div>
-                                                                </div>
+                                                                ))}
                                                             </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="search-modal__empty">
-                                                    Không tìm thấy kết quả phù hợp cho "{searchQuery}"
-                                                </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Book Results */}
+                                                    {searchResults.length > 0 && (
+                                                        <div className="search-modal__section">
+                                                            <div className="search-modal__section-header">
+                                                                <h4 className="search-modal__section-title">
+                                                                    📚 Sách
+                                                                </h4>
+                                                            </div>
+                                                            <div className="search-modal__results-list">
+                                                                {searchResults.map((book) => (
+                                                                    <div
+                                                                        key={book.id}
+                                                                        className="search-modal__result-item"
+                                                                        onClick={() => handleResultClick(book.id)}
+                                                                    >
+                                                                        <div className="search-modal__result-img-wrapper">
+                                                                            <img 
+                                                                                src={book.bookImageUrl || '/placeholder.png'} 
+                                                                                alt={book.name} 
+                                                                                className="search-modal__result-img"
+                                                                                onError={(e) => {
+                                                                                    (e.target as HTMLImageElement).src = '/placeholder.png';
+                                                                                }}
+                                                                            />
+                                                                        </div>
+                                                                        <div className="search-modal__result-info">
+                                                                            <h5 className="search-modal__result-name">{book.name}</h5>
+                                                                            <p className="search-modal__result-author">{book.authorName || 'Chưa cập nhật tác giả'}</p>
+                                                                            <div className="search-modal__result-pricing">
+                                                                                <span className="search-modal__result-final-price">
+                                                                                    {book.finalPrice.toLocaleString('vi-VN')}đ
+                                                                                </span>
+                                                                                {book.sale > 0 && (
+                                                                                    <>
+                                                                                        <span className="search-modal__result-original-price">
+                                                                                            {book.originalCost.toLocaleString('vi-VN')}đ
+                                                                                        </span>
+                                                                                        <span className="search-modal__result-discount">
+                                                                                            -{book.sale}%
+                                                                                        </span>
+                                                                                    </>
+                                                                                )}
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* No Results */}
+                                                    {searchResults.length === 0 && categoryResults.length === 0 && (
+                                                        <div className="search-modal__empty">
+                                                            Không tìm thấy kết quả phù hợp cho "{searchQuery}"
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
                                         </>
                                     )}

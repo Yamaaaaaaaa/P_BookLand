@@ -138,8 +138,28 @@ const HeroSection = () => {
                                 </div>
                             </>
                         ) : (
-                            <Link to="/shop/category/featured" className="hero-slider-item" style={{ backgroundColor: '#C92127', display: 'flex' }}>
-                                <div className="hero-slider-placeholder">Main Slider Banner</div>
+                            <Link 
+                                to="/shop/category/featured" 
+                                className="hero-slider-item" 
+                                style={{ 
+                                    backgroundColor: '#C92127', 
+                                    display: 'flex', 
+                                    flexDirection: 'column',
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    textDecoration: 'none',
+                                    color: '#ffffff',
+                                    padding: '24px',
+                                    boxSizing: 'border-box'
+                                }}
+                            >
+                                <div className="hero-slider-empty-content" style={{ textAlign: 'center' }}>
+                                    <div className="hero-slider-empty-icon" style={{ fontSize: '64px', marginBottom: '12px', animation: 'eventIconPulse 2s infinite' }}>🎁</div>
+                                    <h3 className="hero-slider-empty-title" style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px 0', color: '#ffffff' }}>Thông báo sự kiện</h3>
+                                    <p className="hero-slider-empty-desc" style={{ fontSize: '15px', margin: 0, opacity: 0.95, color: '#ffffff', fontWeight: 500 }}>
+                                        Hiện không có sự kiện nào, hãy đón chờ nhé!
+                                    </p>
+                                </div>
                             </Link>
                         )}
                     </div>

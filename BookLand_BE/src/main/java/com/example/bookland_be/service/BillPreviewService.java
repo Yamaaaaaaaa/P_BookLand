@@ -51,6 +51,7 @@ public class BillPreviewService {
         // 2. Lấy Event và Check Rule
         Optional<Event> activeEventOpt = eventApplicationService.getHighestPriorityActiveEvent();
         Event appliedEvent = null;
+        boolean isFreeShipping = false;
         
         if (activeEventOpt.isPresent()) {
             Event event = activeEventOpt.get();
@@ -58,6 +59,9 @@ public class BillPreviewService {
             boolean isEligible = eventApplicationService.checkEventRule(event, null, tempTotalCost, totalQuantity);
             if (isEligible) {
                 appliedEvent = event;
+                if (eventApplicationService.hasFreeShipping(event)) {
+                    isFreeShipping = true;
+                }
             }
         }
 
@@ -95,9 +99,9 @@ public class BillPreviewService {
             discountedTotal += finalPrice * br.getQuantity();
         }
 
-        double shippingCost = shippingMethod.getPrice();
+        double shippingCost = isFreeShipping ? 0.0 : shippingMethod.getPrice();
         double grandTotal = discountedTotal + shippingCost;
-        double totalSaved = originalTotal - discountedTotal;
+        double totalSaved = (originalTotal - discountedTotal) + (isFreeShipping ? shippingMethod.getPrice() : 0.0);
 
         return BillPreviewDTO.builder()
                 .books(bookPreviews)

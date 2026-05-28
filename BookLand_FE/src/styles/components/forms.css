@@ -133,3 +133,23 @@
   font-style: italic;
   padding: 1rem 0;
 }
+
+/* Validation error states */
+.input-error {
+  border-color: #ef4444 !important;
+  background-color: #fff5f5;
+}
+
+.input-error:focus {
+  outline: none;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15);
+}
+
+.field-error-msg {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: #ef4444;
+}

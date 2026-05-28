@@ -134,6 +134,7 @@ public class BillService {
         Event appliedEvent = null;
         Map<Long, Double> eventDiscountedPrices = new HashMap<>();
         int totalDiscountValue = 0;
+        boolean isFreeShipping = false;
 
         if (activeEventOpt.isPresent()) {
             Event event = activeEventOpt.get();
@@ -142,6 +143,11 @@ public class BillService {
             boolean isEligible = eventApplicationService.checkEventRule(event, user, tempTotalCost, totalQuantity);
             
             if (isEligible) {
+                if (eventApplicationService.hasFreeShipping(event)) {
+                    isFreeShipping = true;
+                    appliedEvent = event;
+                }
+                
                 // Áp dụng giảm giá
                 for (Book book : books) {
                     if (eventApplicationService.isBookInEventTarget(event, book)) {
@@ -164,7 +170,12 @@ public class BillService {
             finalBooksCost += price * quantities.get(book.getId());
         }
 
-        double totalCost = finalBooksCost + shippingMethod.getPrice();
+        if (isFreeShipping) {
+            totalDiscountValue += shippingMethod.getPrice();
+        }
+
+        double shippingCost = isFreeShipping ? 0.0 : shippingMethod.getPrice();
+        double totalCost = finalBooksCost + shippingCost;
 
         // 4. Lưu Bill
         Bill bill = Bill.builder()
@@ -368,6 +379,12 @@ public class BillService {
                 .map(this::convertBillBookToDTO)
                 .collect(Collectors.toList());
 
+        boolean hasFreeShipping = bill.getEventLogs() != null && bill.getEventLogs().stream()
+                .map(EventLog::getEvent)
+                .filter(Objects::nonNull)
+                .anyMatch(eventApplicationService::hasFreeShipping);
+        double shippingCost = hasFreeShipping ? 0.0 : bill.getShippingMethod().getPrice();
+
         return BillDTO.builder()
                 .id(bill.getId())
                 .userId(bill.getUser().getId())
@@ -376,7 +393,7 @@ public class BillService {
                 .paymentMethodName(bill.getPaymentMethod().getName())
                 .shippingMethodId(bill.getShippingMethod().getId())
                 .shippingMethodName(bill.getShippingMethod().getName())
-                .shippingCost(bill.getShippingMethod().getPrice())
+                .shippingCost(shippingCost)
                 .totalCost(bill.getTotalCost())
                 .approvedById(bill.getApprovedBy() != null ? bill.getApprovedBy().getId() : null)
                 .approvedByName(bill.getApprovedBy() != null ? bill.getApprovedBy().getUsername() : null)

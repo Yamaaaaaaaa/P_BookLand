@@ -248,19 +248,7 @@ public class EventService {
                     }
                     break;
 
-                case USER:
-                    if (!userRepository.existsById(target.getTargetId())) {
-                        throw new AppException(ErrorCode.EVENT_TARGET_USER_NOT_FOUND);
-                    }
-                    break;
-
                 case ALL:
-                case ALL_ORDERS:
-                case FIRST_ORDER:
-                case NEW_USER:
-                case VIP_USER:
-                case USER_GROUP:
-                case LOCATION:
                     // Không cần validate cho các loại này
                     break;
             }

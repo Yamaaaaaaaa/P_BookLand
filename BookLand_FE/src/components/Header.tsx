@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, Bell, User, Menu, X, ChevronDown, LayoutGrid } from 'lucide-react';
+import { Search, ShoppingCart, Bell, User, Menu, X, ChevronDown, LayoutGrid, Clock } from 'lucide-react';
 import '../styles/components/header.css';
 import { categories, userMenuItems, mockUser } from '../../mockNewUI/headerMockData';
 import notificationService from '../api/notificationService';
@@ -11,6 +11,9 @@ import { useWebSocket } from '../context/WebSocketContext';
 import { useTranslation } from 'react-i18next';
 import userService from '../api/userService';
 import type { User as UserData } from '../types/User';
+import bookService from '../api/bookService';
+import type { BookDocument } from '../types/Book';
+
 
 interface HeaderProps {
     onLogout: () => void;
@@ -25,6 +28,14 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
     const [isLangMenuOpen, setIsLangMenuOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
+    const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
+    const [searchResults, setSearchResults] = useState<BookDocument[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [searchHistory, setSearchHistory] = useState<string[]>(() => {
+        const saved = localStorage.getItem('search_history');
+        return saved ? JSON.parse(saved) : [];
+    });
+    const searchWrapperRef = useRef<HTMLDivElement>(null);
     const [unreadCount, setUnreadCount] = useState(0);
     const [notificationsList, setNotificationsList] = useState<Notification[]>([]);
     const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
@@ -42,6 +53,80 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
     const changeLanguage = (lng: string) => {
         i18n.changeLanguage(lng);
         setIsLangMenuOpen(false);
+    };
+
+    // Debounced live search suggestion query
+    useEffect(() => {
+        if (!searchQuery.trim()) {
+            setSearchResults([]);
+            setIsSearching(false);
+            return;
+        }
+
+        setIsSearching(true);
+        const timer = setTimeout(async () => {
+            try {
+                const response = await bookService.searchBooks({
+                    keyword: searchQuery.trim(),
+                    page: 0,
+                    size: 5
+                });
+                if (response && response.result && response.result.content) {
+                    setSearchResults(response.result.content);
+                } else {
+                    setSearchResults([]);
+                }
+            } catch (error) {
+                console.error('Debounced search failed:', error);
+                setSearchResults([]);
+            } finally {
+                setIsSearching(false);
+            }
+        }, 400);
+
+        return () => clearTimeout(timer);
+    }, [searchQuery]);
+
+    // Search History Handlers
+    const saveToHistory = (keyword: string) => {
+        const trimmed = keyword.trim();
+        if (!trimmed) return;
+        setSearchHistory(prev => {
+            const filtered = prev.filter(item => item.toLowerCase() !== trimmed.toLowerCase());
+            const updated = [trimmed, ...filtered].slice(0, 10);
+            localStorage.setItem('search_history', JSON.stringify(updated));
+            return updated;
+        });
+    };
+
+    const handleRemoveHistoryItem = (e: React.MouseEvent, keyword: string) => {
+        e.stopPropagation();
+        setSearchHistory(prev => {
+            const updated = prev.filter(item => item !== keyword);
+            localStorage.setItem('search_history', JSON.stringify(updated));
+            return updated;
+        });
+    };
+
+    const handleClearAllHistory = (e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSearchHistory([]);
+        localStorage.removeItem('search_history');
+    };
+
+    const handleHistoryItemClick = (keyword: string) => {
+        setSearchQuery(keyword);
+        saveToHistory(keyword);
+        setIsSearchModalOpen(false);
+        navigate(`/shop/books?keyword=${encodeURIComponent(keyword)}`);
+    };
+
+    const handleResultClick = (id: string) => {
+        if (searchQuery.trim()) {
+            saveToHistory(searchQuery.trim());
+        }
+        setIsSearchModalOpen(false);
+        navigate(`/shop/book-detail/${id}`);
     };
 
     // Fetch unread count and set up polling/click logic
@@ -207,6 +292,9 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
             if (langMenuRef.current && !langMenuRef.current.contains(event.target as Node)) {
                 setIsLangMenuOpen(false);
             }
+            if (searchWrapperRef.current && !searchWrapperRef.current.contains(event.target as Node)) {
+                setIsSearchModalOpen(false);
+            }
         };
 
         document.addEventListener('mousedown', handleClickOutside);
@@ -215,9 +303,13 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
 
     const handleSearchSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (searchQuery.trim()) {
-            navigate(`/shop/books?keyword=${encodeURIComponent(searchQuery.trim())}`);
+        const trimmed = searchQuery.trim();
+        if (trimmed) {
+            saveToHistory(trimmed);
+            setIsSearchModalOpen(false);
+            navigate(`/shop/books?keyword=${encodeURIComponent(trimmed)}`);
         } else {
+            setIsSearchModalOpen(false);
             navigate('/shop/books');
         }
     };
@@ -296,18 +388,136 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                             )}
                         </div>
 
-                        <form className="new-header__search" onSubmit={handleSearchSubmit}>
-                            <input
-                                type="text"
-                                className="new-header__search-input"
-                                placeholder={t('header.search_placeholder')}
-                                value={searchQuery}
-                                onChange={(e) => setSearchQuery(e.target.value)}
-                            />
-                            <button className="new-header__search-btn" type="submit" aria-label="Search">
-                                <Search size={20} color="white" />
-                            </button>
-                        </form>
+                        <div className="new-header__search-wrapper" ref={searchWrapperRef}>
+                            <form 
+                                className="new-header__search" 
+                                onSubmit={handleSearchSubmit}
+                                onFocus={() => setIsSearchModalOpen(true)}
+                            >
+                                <input
+                                    type="text"
+                                    className="new-header__search-input"
+                                    placeholder={t('header.search_placeholder')}
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                                <button className="new-header__search-btn" type="submit" aria-label="Search">
+                                    <Search size={20} color="white" />
+                                </button>
+                            </form>
+
+                            {/* Search Dropdown Modal */}
+                            {isSearchModalOpen && (
+                                <div className="search-modal">
+                                    {/* 1. Search History Section */}
+                                    {searchHistory.length > 0 && !searchQuery.trim() && (
+                                        <div className="search-modal__section">
+                                            <div className="search-modal__section-header">
+                                                <h4 className="search-modal__section-title">
+                                                    <Clock size={16} color="#7A7E7F" />
+                                                    Lịch sử tìm kiếm
+                                                </h4>
+                                                <button 
+                                                    type="button" 
+                                                    className="search-modal__clear-btn" 
+                                                    onClick={handleClearAllHistory}
+                                                >
+                                                    Xóa tất cả
+                                                </button>
+                                            </div>
+                                            <div className="search-modal__history-tags">
+                                                {searchHistory.map((item, index) => (
+                                                    <div 
+                                                        key={index} 
+                                                        className="search-modal__history-tag"
+                                                        onClick={() => handleHistoryItemClick(item)}
+                                                    >
+                                                        <span className="search-modal__history-tag-text">{item}</span>
+                                                        <span 
+                                                            className="search-modal__history-tag-delete"
+                                                            onClick={(e) => handleRemoveHistoryItem(e, item)}
+                                                            title="Xóa"
+                                                        >
+                                                            <X size={10} />
+                                                        </span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* 2. Live Search Results Section */}
+                                    {searchQuery.trim() && (
+                                        <>
+                                            {isSearching ? (
+                                                <div className="search-modal__loading">
+                                                    <div className="search-modal__spinner"></div>
+                                                    <span>Đang tìm kiếm...</span>
+                                                </div>
+                                            ) : searchResults.length > 0 ? (
+                                                <div className="search-modal__section">
+                                                    <div className="search-modal__section-header">
+                                                        <h4 className="search-modal__section-title">
+                                                            Kết quả tìm kiếm
+                                                        </h4>
+                                                    </div>
+                                                    <div className="search-modal__results-list">
+                                                        {searchResults.map((book) => (
+                                                            <div
+                                                                key={book.id}
+                                                                className="search-modal__result-item"
+                                                                onClick={() => handleResultClick(book.id)}
+                                                            >
+                                                                <div className="search-modal__result-img-wrapper">
+                                                                    <img 
+                                                                        src={book.bookImageUrl || '/placeholder.png'} 
+                                                                        alt={book.name} 
+                                                                        className="search-modal__result-img"
+                                                                        onError={(e) => {
+                                                                            (e.target as HTMLImageElement).src = '/placeholder.png';
+                                                                        }}
+                                                                    />
+                                                                </div>
+                                                                <div className="search-modal__result-info">
+                                                                    <h5 className="search-modal__result-name">{book.name}</h5>
+                                                                    <p className="search-modal__result-author">{book.authorName || 'Chưa cập nhật tác giả'}</p>
+                                                                    <div className="search-modal__result-pricing">
+                                                                        <span className="search-modal__result-final-price">
+                                                                            {book.finalPrice.toLocaleString('vi-VN')}đ
+                                                                        </span>
+                                                                        {book.sale > 0 && (
+                                                                            <>
+                                                                                <span className="search-modal__result-original-price">
+                                                                                    {book.originalCost.toLocaleString('vi-VN')}đ
+                                                                                </span>
+                                                                                <span className="search-modal__result-discount">
+                                                                                    -{book.sale}%
+                                                                                </span>
+                                                                            </>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="search-modal__empty">
+                                                    Không tìm thấy kết quả phù hợp cho "{searchQuery}"
+                                                </div>
+                                            )}
+                                        </>
+                                    )}
+
+                                    {/* 3. Empty State */}
+                                    {!searchQuery.trim() && searchHistory.length === 0 && (
+                                        <div className="search-modal__empty">
+                                            Nhập từ khóa để tìm kiếm sách nhanh...
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Actions */}
@@ -631,6 +841,11 @@ const Header = ({ onLogout, cartItemCount = 3, isAuthenticated }: HeaderProps) =
                     </div>
                 </div>
             </div>
+
+            {/* Search Backdrop Overlay */}
+            {isSearchModalOpen && (
+                <div className="search-backdrop" onClick={() => setIsSearchModalOpen(false)} />
+            )}
         </header >
     );
 };

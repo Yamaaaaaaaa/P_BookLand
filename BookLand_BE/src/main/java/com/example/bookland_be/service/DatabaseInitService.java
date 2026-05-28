@@ -35,6 +35,7 @@ import com.example.bookland_be.repository.CartItemRepository;
 import com.example.bookland_be.repository.BookCommentRepository;
 import com.example.bookland_be.repository.BillBookRepository;
 import com.example.bookland_be.repository.BillRepository;
+import com.example.bookland_be.elasticsearch.service.BookSearchService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +71,7 @@ public class DatabaseInitService {
     private final BookCommentRepository bookCommentRepository;
     private final BillBookRepository billBookRepository;
     private final BillRepository billRepository;
+    private final BookSearchService bookSearchService;
 
     @Transactional
     public String seedData() {
@@ -477,8 +479,15 @@ public class DatabaseInitService {
                 .build());
         log.info("Suppliers have been seeded.");
 
-        log.info("Database seeding completed successfully!");
-        return "Khởi tạo dữ liệu cơ sở dữ liệu mẫu thành công!";
+        log.info("Database seeding completed successfully! Synchronizing to Elasticsearch...");
+        try {
+            bookSearchService.syncAllBooks();
+            log.info("Elasticsearch synchronization successful.");
+        } catch (Exception e) {
+            log.error("Failed to sync books to Elasticsearch: ", e);
+            return "Khởi tạo dữ liệu mẫu MySQL thành công, nhưng đồng bộ Elasticsearch thất bại: " + e.getMessage();
+        }
+        return "Khởi tạo dữ liệu cơ sở dữ liệu mẫu và đồng bộ Elasticsearch thành công!";
     }
 
     @Transactional
@@ -517,8 +526,15 @@ public class DatabaseInitService {
         paymentMethodRepository.deleteAll();
         supplierRepository.deleteAll();
 
-        log.info("Database clearing completed successfully!");
-        return "Xóa toàn bộ dữ liệu (ngoại trừ User, Role, Permission) thành công!";
+        log.info("Database clearing completed successfully! Synchronizing to Elasticsearch...");
+        try {
+            bookSearchService.syncAllBooks();
+            log.info("Elasticsearch clearing successful.");
+        } catch (Exception e) {
+            log.error("Failed to clear Elasticsearch book documents: ", e);
+            return "Xóa dữ liệu MySQL thành công, nhưng xóa dữ liệu Elasticsearch thất bại: " + e.getMessage();
+        }
+        return "Xóa toàn bộ dữ liệu mẫu (bao gồm Elasticsearch, ngoại trừ User, Role, Permission) thành công!";
     }
 
     private static class DoraemonBookData {

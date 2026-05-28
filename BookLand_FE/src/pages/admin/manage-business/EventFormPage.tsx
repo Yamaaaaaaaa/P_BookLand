@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2, X, ImageIcon, Loader2 } from 'lucide-react';
 import GalleryModal from '../../../components/admin/GalleryModal';
+import TargetSearchSelect from '../../../components/admin/TargetSearchSelect';
 import { EventStatus } from '../../../types/Event';
 import { EventType } from '../../../types/EventType';
 import { EventRuleType } from '../../../types/EventRuleType';
@@ -554,7 +555,9 @@ const EventFormPage = () => {
                                         onChange={(e) => {
                                             const newTargets = [...(formData.targets || [])];
                                             newTargets[index].targetType = e.target.value as any;
+                                            newTargets[index].targetId = 0; // reset ID khi đổi type
                                             setFormData(prev => ({ ...prev, targets: newTargets }));
+                                            // label tự reset trong TargetSearchSelect
                                         }}
                                     >
                                         {Object.values(EventTargetType).map(type => (
@@ -563,15 +566,13 @@ const EventFormPage = () => {
                                     </select>
                                 </div>
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Target ID</label>
-                                    <input
-                                        type="number"
-                                        className="form-input"
-                                        value={target.targetId}
-                                        placeholder="ID (e.g. Category ID)"
-                                        onChange={(e) => {
+                                    <label className="form-label">Target</label>
+                                    <TargetSearchSelect
+                                        targetType={target.targetType as EventTargetType}
+                                        selectedId={target.targetId}
+                                        onSelect={(id) => {
                                             const newTargets = [...(formData.targets || [])];
-                                            newTargets[index].targetId = parseInt(e.target.value) || 0;
+                                            newTargets[index].targetId = id;
                                             setFormData(prev => ({ ...prev, targets: newTargets }));
                                         }}
                                     />

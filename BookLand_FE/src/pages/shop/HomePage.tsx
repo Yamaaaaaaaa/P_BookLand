@@ -6,12 +6,14 @@ import FeaturedBookcases from '../../components/FeaturedBookcases';
 import WeeklyBestseller from '../../components/WeeklyBestseller';
 import Recommendations from '../../components/Recommendations';
 import Newsletter from '../../components/Newsletter';
+import EventPromoModal from '../../components/EventPromoModal';
 import '../../styles/pages/home.css';
 import '../../styles/components/book-card.css';
 
 const HomePage = () => {
     return (
         <div>
+            <EventPromoModal />
             <HeroSection />
             <div id="super-sale-section">
                 <FlashSale />

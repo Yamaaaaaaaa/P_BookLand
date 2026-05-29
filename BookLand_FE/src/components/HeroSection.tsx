@@ -5,7 +5,9 @@ import { useEffect, useState } from 'react';
 
 import { eventService } from '../api/eventService';
 import categoryService from '../api/categoryService';
+import homeService from '../api/homeService';
 import type { Category } from '../types/Category';
+import type { HomeSection } from '../types/HomeSection';
 import { useTranslation } from 'react-i18next';
 
 const HeroSection = () => {
@@ -15,7 +17,8 @@ const HeroSection = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [imgLoading, setImgLoading] = useState(true);
     const [pinnedCategories, setPinnedCategories] = useState<Category[]>([]);
-    const { t } = useTranslation();
+    const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
+    const { t, i18n } = useTranslation();
 
     useEffect(() => {
         const fetchEvent = async () => {
@@ -49,8 +52,20 @@ const HeroSection = () => {
             }
         };
 
+        const fetchHomeSections = async () => {
+            try {
+                const res = await homeService.getHomeSections();
+                if (res.result && res.result.length > 0) {
+                    setHomeSections(res.result.filter(s => s.visible));
+                }
+            } catch (error) {
+                console.error("Failed to fetch home sections", error);
+            }
+        };
+
         fetchEvent();
         fetchPinnedCategories();
+        fetchHomeSections();
     }, []);
 
     const nextSlide = () => {
@@ -138,8 +153,28 @@ const HeroSection = () => {
                                 </div>
                             </>
                         ) : (
-                            <Link to="/shop/category/featured" className="hero-slider-item" style={{ backgroundColor: '#C92127', display: 'flex' }}>
-                                <div className="hero-slider-placeholder">Main Slider Banner</div>
+                            <Link 
+                                to="/shop/category/featured" 
+                                className="hero-slider-item" 
+                                style={{ 
+                                    backgroundColor: '#C92127', 
+                                    display: 'flex', 
+                                    flexDirection: 'column',
+                                    alignItems: 'center', 
+                                    justifyContent: 'center',
+                                    textDecoration: 'none',
+                                    color: '#ffffff',
+                                    padding: '24px',
+                                    boxSizing: 'border-box'
+                                }}
+                            >
+                                <div className="hero-slider-empty-content" style={{ textAlign: 'center' }}>
+                                    <div className="hero-slider-empty-icon" style={{ fontSize: '64px', marginBottom: '12px', animation: 'eventIconPulse 2s infinite' }}>🎁</div>
+                                    <h3 className="hero-slider-empty-title" style={{ fontSize: '24px', fontWeight: 700, margin: '0 0 8px 0', color: '#ffffff' }}>Thông báo sự kiện</h3>
+                                    <p className="hero-slider-empty-desc" style={{ fontSize: '15px', margin: 0, opacity: 0.95, color: '#ffffff', fontWeight: 500 }}>
+                                        Hiện không có sự kiện nào, hãy đón chờ nhé!
+                                    </p>
+                                </div>
                             </Link>
                         )}
                     </div>
@@ -178,28 +213,30 @@ const HeroSection = () => {
                     )}
                 </div>
 
-                {/* Bottom Row: Icon Menu */}
+                {/* Bottom Row: Icon Menu - Dynamic */}
                 <div className="hero-icon-menu">
-                    {[
-                        { label: t('home.hero.super_sale'), icon: '⚡', id: 'super-sale-section' },
-                        { label: t('home.hero.trending'), icon: '📈', id: 'trending-section' },
-                        { label: t('home.hero.featured'), icon: '🌟', id: 'featured-section' },
-                        { label: t('home.hero.best_seller'), icon: '🏆', id: 'bestseller-section' },
-                        { label: t('home.hero.recommend'), icon: '💡', id: 'recommendation-section' },
-                    ].map((item, index) => (
+                    {(homeSections.length > 0 ? homeSections : [
+                        { id: 0, sectionKey: 'super_sale', nameVi: t('home.hero.super_sale'), nameEn: 'Super Sale', icon: '⚡', anchorId: 'super-sale-section', displayOrder: 1, visible: true },
+                        { id: 0, sectionKey: 'trending', nameVi: t('home.hero.trending'), nameEn: 'Trending', icon: '📈', anchorId: 'trending-section', displayOrder: 2, visible: true },
+                        { id: 0, sectionKey: 'featured', nameVi: t('home.hero.featured'), nameEn: 'Featured', icon: '🌟', anchorId: 'featured-section', displayOrder: 3, visible: true },
+                        { id: 0, sectionKey: 'best_seller', nameVi: t('home.hero.best_seller'), nameEn: 'Best Sellers', icon: '🏆', anchorId: 'bestseller-section', displayOrder: 4, visible: true },
+                        { id: 0, sectionKey: 'recommend', nameVi: t('home.hero.recommend'), nameEn: 'Recommendations', icon: '💡', anchorId: 'recommendation-section', displayOrder: 5, visible: true },
+                    ]).map((section, index) => (
                         <div
-                            key={index}
+                            key={section.sectionKey || index}
                             className="hero-icon-item"
                             style={{ cursor: 'pointer' }}
                             onClick={() => {
-                                const element = document.getElementById(item.id);
+                                const element = document.getElementById(section.anchorId);
                                 if (element) {
                                     element.scrollIntoView({ behavior: 'smooth', block: 'start' });
                                 }
                             }}
                         >
-                            <div className="hero-icon-box">{item.icon}</div>
-                            <span className="hero-icon-label">{item.label}</span>
+                            <div className="hero-icon-box">{section.icon}</div>
+                            <span className="hero-icon-label">
+                                {i18n.language === 'vi' ? section.nameVi : section.nameEn}
+                            </span>
                         </div>
                     ))}
                 </div>

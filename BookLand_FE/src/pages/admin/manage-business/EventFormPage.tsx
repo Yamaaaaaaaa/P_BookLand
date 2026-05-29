@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2, X, ImageIcon, Loader2 } from 'lucide-react';
 import GalleryModal from '../../../components/admin/GalleryModal';
+import TargetSearchSelect from '../../../components/admin/TargetSearchSelect';
 import { EventStatus } from '../../../types/Event';
 import { EventType } from '../../../types/EventType';
 import { EventRuleType } from '../../../types/EventRuleType';
@@ -9,11 +10,7 @@ import { EventTargetType } from '../../../types/EventTargetType';
 import { EventActionType } from '../../../types/EventActionType';
 import { ImageType } from '../../../types/EventImage';
 import type { EventRequest, EventPayload } from '../../../types/Event';
-import type { Category } from '../../../types/Category';
-import type { PaymentMethod } from '../../../types/PaymentMethod';
 import { eventService } from '../../../api/eventService';
-import categoryService from '../../../api/categoryService';
-import paymentMethodService from '../../../api/paymentMethodService';
 import userService from '../../../api/userService';
 import '../../../styles/components/forms.css';
 import '../../../styles/components/buttons.css';
@@ -30,13 +27,41 @@ const EventFormPage = () => {
     const [isSaving, setIsSaving] = useState(false);
 
     // Dropdown options
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
     // Auth / Creator info
     const [currentUserId, setCurrentUserId] = useState<number>(0);
     const [creatorName, setCreatorName] = useState<string>('');
+
+    // Validation errors cho actions và rules
+    const [actionErrors, setActionErrors] = useState<Record<number, string>>({});
+    const [ruleErrors, setRuleErrors] = useState<Record<number, string>>({});
+
+    /** Validate giá trị của Action Value theo loại action */
+    const validateActionValue = (actionType: EventActionType, value: string): string => {
+        if (!value || value.trim() === '') return 'Value is required.';
+        if (!/^\d+(\.\d+)?$/.test(value.trim())) return 'Must be a valid positive number (digits only).';
+        const num = parseFloat(value);
+        if (actionType === EventActionType.DISCOUNT_PERCENT) {
+            if (num <= 0 || num > 100) return 'DISCOUNT PERCENT must be in range (0, 100].';
+        } else if (actionType === EventActionType.DISCOUNT_AMOUNT) {
+            if (num <= 0) return 'DISCOUNT AMOUNT must be > 0.';
+        }
+        return '';
+    };
+
+    /** Validate giá trị của Rule Value theo loại rule */
+    const validateRuleValue = (ruleType: EventRuleType, value: string): string => {
+        if (!value || value.trim() === '') return 'Value is required.';
+        if (!/^\d+(\.\d+)?$/.test(value.trim())) return 'Must be a valid positive number (digits only).';
+        const num = parseFloat(value);
+        if (ruleType === EventRuleType.MIN_QUANTITY || ruleType === EventRuleType.MAX_QUANTITY) {
+            if (!Number.isInteger(num) || num <= 0) return 'Quantity must be a positive integer.';
+        } else {
+            if (num <= 0) return 'Value must be > 0.';
+        }
+        return '';
+    };
 
     const [formData, setFormData] = useState<EventRequest>({
         name: '',
@@ -53,23 +78,6 @@ const EventFormPage = () => {
     });
 
     useEffect(() => {
-        const fetchOptions = async () => {
-            try {
-                const [catRes, pmRes] = await Promise.all([
-                    categoryService.getAll({ size: 100 }),
-                    paymentMethodService.getAll({ size: 100 })
-                ]);
-
-                if (catRes.result?.content) setCategories(catRes.result.content);
-                if (pmRes.result?.content) setPaymentMethods(pmRes.result.content);
-
-            } catch (error) {
-                console.error('Error fetching options:', error);
-                toast.error(t('admin.book_detail.options_fail'));
-            }
-        };
-        fetchOptions();
-
         // Fetch current user info from token
         const fetchCurrentUser = async () => {
             const token = localStorage.getItem('adminToken');
@@ -165,6 +173,26 @@ const EventFormPage = () => {
 
         if (!formData.name || !formData.startTime || !formData.endTime) {
             toast.error(t('admin.book_detail.validation_error'));
+            return;
+        }
+
+        // Kiểm tra toàn bộ actions và rules có lỗi không
+        const newActionErrors: Record<number, string> = {};
+        formData.actions?.forEach((action, i) => {
+            // FREE_SHIPPING không cần value
+            if (action.actionType === EventActionType.FREE_SHIPPING) return;
+            const err = validateActionValue(action.actionType as EventActionType, action.actionValue);
+            if (err) newActionErrors[i] = err;
+        });
+        const newRuleErrors: Record<number, string> = {};
+        formData.rules?.forEach((rule, i) => {
+            const err = validateRuleValue(rule.ruleType as EventRuleType, rule.ruleValue);
+            if (err) newRuleErrors[i] = err;
+        });
+        if (Object.keys(newActionErrors).length > 0 || Object.keys(newRuleErrors).length > 0) {
+            setActionErrors(newActionErrors);
+            setRuleErrors(newRuleErrors);
+            toast.error('Please fix the validation errors before saving.');
             return;
         }
 
@@ -462,120 +490,29 @@ const EventFormPage = () => {
                                 </div>
                                 <div className="form-group" style={{ flex: 1 }}>
                                     <label className="form-label">Value</label>
-                                    {(() => {
-                                        const handleValueChange = (val: string) => {
+                                    <input
+                                        type="number"
+                                        className={`form-input${ruleErrors[index] ? ' input-error' : ''}`}
+                                        value={rule.ruleValue}
+                                        placeholder={
+                                            rule.ruleType === EventRuleType.MIN_QUANTITY || rule.ruleType === EventRuleType.MAX_QUANTITY
+                                                ? 'Integer > 0'
+                                                : 'Amount > 0 (VND)'
+                                        }
+                                        min="1"
+                                        step={rule.ruleType === EventRuleType.MIN_QUANTITY || rule.ruleType === EventRuleType.MAX_QUANTITY ? '1' : 'any'}
+                                        onChange={(e) => {
                                             const newRules = [...(formData.rules || [])];
-                                            newRules[index].ruleValue = val;
+                                            newRules[index].ruleValue = e.target.value;
                                             setFormData(prev => ({ ...prev, rules: newRules }));
-                                        };
-
-                                        // Date Types
-                                        if (([
-                                            EventRuleType.USER_REGISTERED_BEFORE,
-                                            EventRuleType.USER_REGISTERED_AFTER,
-                                            EventRuleType.BOOK_PUBLISHED_AFTER
-                                        ] as EventRuleType[]).includes(rule.ruleType)) {
-                                            return (
-                                                <input
-                                                    type="date"
-                                                    className="form-input"
-                                                    value={rule.ruleValue}
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                />
-                                            );
-                                        }
-
-                                        // Numeric Types
-                                        if (([
-                                            EventRuleType.MIN_ORDER_VALUE,
-                                            EventRuleType.MAX_ORDER_VALUE,
-                                            EventRuleType.MIN_QUANTITY,
-                                            EventRuleType.MAX_QUANTITY,
-                                            EventRuleType.EXACT_QUANTITY,
-                                            EventRuleType.MIN_ITEMS_IN_CART,
-                                            EventRuleType.MAX_USAGE_PER_USER,
-                                            EventRuleType.MAX_USAGE_TOTAL,
-                                            EventRuleType.MAX_USAGE_PER_DAY,
-                                            EventRuleType.TOTAL_SPENT_MIN,
-                                            EventRuleType.BOOK_PRICE_MIN
-                                        ] as EventRuleType[]).includes(rule.ruleType)) {
-                                            return (
-                                                <input
-                                                    type="number"
-                                                    className="form-input"
-                                                    value={rule.ruleValue}
-                                                    placeholder="0"
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                />
-                                            );
-                                        }
-
-                                        // Boolean / Toggle Types
-                                        if (([
-                                            EventRuleType.NEW_USER_ONLY,
-                                            EventRuleType.FIRST_PURCHASE,
-                                            EventRuleType.PURCHASED_BEFORE,
-                                            EventRuleType.ONLINE_PAYMENT_ONLY,
-                                            EventRuleType.IN_STOCK_ONLY,
-                                            EventRuleType.EXCLUDE_SALE_ITEMS,
-                                            EventRuleType.NEWSLETTER_SUBSCRIBED
-                                        ] as EventRuleType[]).includes(rule.ruleType)) {
-                                            return (
-                                                <select
-                                                    className="form-select"
-                                                    value={rule.ruleValue}
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                >
-                                                    <option value="">Select...</option>
-                                                    <option value="true">True</option>
-                                                    <option value="false">False</option>
-                                                </select>
-                                            );
-                                        }
-
-                                        // Payment Method Select
-                                        if (rule.ruleType === EventRuleType.PAYMENT_METHOD) {
-                                            return (
-                                                <select
-                                                    className="form-select"
-                                                    value={rule.ruleValue}
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                >
-                                                    <option value="">Select Payment Method...</option>
-                                                    {paymentMethods.map(pm => (
-                                                        <option key={pm.id} value={pm.name}>{pm.name}</option>
-                                                    ))}
-                                                </select>
-                                            );
-                                        }
-
-                                        // Category Select
-                                        if (rule.ruleType === EventRuleType.BOOK_CATEGORY || rule.ruleType === EventRuleType.MUST_INCLUDE_CATEGORY) {
-                                            return (
-                                                <select
-                                                    className="form-select"
-                                                    value={rule.ruleValue}
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                >
-                                                    <option value="">Select Category...</option>
-                                                    {categories.map(cat => (
-                                                        <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
-                                                    ))}
-                                                </select>
-                                            );
-                                        }
-
-                                        // Default Text Input
-                                        return (
-                                            <input
-                                                type="text"
-                                                className="form-input"
-                                                value={rule.ruleValue}
-                                                placeholder="Value"
-                                                onChange={(e) => handleValueChange(e.target.value)}
-                                            />
-                                        );
-                                    })()}
+                                            // Real-time validate
+                                            const err = validateRuleValue(rule.ruleType as EventRuleType, e.target.value);
+                                            setRuleErrors(prev => ({ ...prev, [index]: err }));
+                                        }}
+                                    />
+                                    {ruleErrors[index] && (
+                                        <span className="field-error-msg">{ruleErrors[index]}</span>
+                                    )}
                                 </div>
                                 <button
                                     type="button"
@@ -618,7 +555,9 @@ const EventFormPage = () => {
                                         onChange={(e) => {
                                             const newTargets = [...(formData.targets || [])];
                                             newTargets[index].targetType = e.target.value as any;
+                                            newTargets[index].targetId = 0; // reset ID khi đổi type
                                             setFormData(prev => ({ ...prev, targets: newTargets }));
+                                            // label tự reset trong TargetSearchSelect
                                         }}
                                     >
                                         {Object.values(EventTargetType).map(type => (
@@ -627,15 +566,13 @@ const EventFormPage = () => {
                                     </select>
                                 </div>
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Target ID</label>
-                                    <input
-                                        type="number"
-                                        className="form-input"
-                                        value={target.targetId}
-                                        placeholder="ID (e.g. Category ID)"
-                                        onChange={(e) => {
+                                    <label className="form-label">Target</label>
+                                    <TargetSearchSelect
+                                        targetType={target.targetType as EventTargetType}
+                                        selectedId={target.targetId}
+                                        onSelect={(id) => {
                                             const newTargets = [...(formData.targets || [])];
-                                            newTargets[index].targetId = parseInt(e.target.value) || 0;
+                                            newTargets[index].targetId = id;
                                             setFormData(prev => ({ ...prev, targets: newTargets }));
                                         }}
                                     />
@@ -691,20 +628,36 @@ const EventFormPage = () => {
                                         ))}
                                     </select>
                                 </div>
-                                <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Value</label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={action.actionValue}
-                                        placeholder="e.g. 10 (for 10%)"
-                                        onChange={(e) => {
-                                            const newActions = [...(formData.actions || [])];
-                                            newActions[index].actionValue = e.target.value;
-                                            setFormData(prev => ({ ...prev, actions: newActions }));
-                                        }}
-                                    />
-                                </div>
+                                {/* FREE_SHIPPING không cần value */}
+                                {action.actionType !== EventActionType.FREE_SHIPPING && (
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label className="form-label">Value</label>
+                                        <input
+                                            type="number"
+                                            className={`form-input${actionErrors[index] ? ' input-error' : ''}`}
+                                            value={action.actionValue}
+                                            placeholder={
+                                                action.actionType === EventActionType.DISCOUNT_PERCENT
+                                                    ? '1 – 100 (%)'
+                                                    : 'Amount > 0 (VND)'
+                                            }
+                                            min="0.01"
+                                            max={action.actionType === EventActionType.DISCOUNT_PERCENT ? '100' : undefined}
+                                            step="any"
+                                            onChange={(e) => {
+                                                const newActions = [...(formData.actions || [])];
+                                                newActions[index].actionValue = e.target.value;
+                                                setFormData(prev => ({ ...prev, actions: newActions }));
+                                                // Real-time validate
+                                                const err = validateActionValue(action.actionType as EventActionType, e.target.value);
+                                                setActionErrors(prev => ({ ...prev, [index]: err }));
+                                            }}
+                                        />
+                                        {actionErrors[index] && (
+                                            <span className="field-error-msg">{actionErrors[index]}</span>
+                                        )}
+                                    </div>
+                                )}
                                 <button
                                     type="button"
                                     className="btn-icon delete"

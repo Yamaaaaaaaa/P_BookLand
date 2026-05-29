@@ -159,12 +159,13 @@ const CheckoutPage = () => {
             const response = await billService.createBill(billRequest);
 
             if (response.result) {
-                // Clear the cart after successful order
+                // Clear only the purchased items from the cart after successful order
                 try {
-                    await cartService.clearCart(userId);
+                    const purchasedBookIds = cartItems.map(item => item.bookId);
+                    await cartService.removeMultipleFromMyCart(purchasedBookIds);
                 } catch (clearError) {
-                    console.error('Failed to clear cart:', clearError);
-                    // We don't block the user if clear cart fails, as the bill is already created
+                    console.error('Failed to remove purchased items from cart:', clearError);
+                    // We don't block the user if it fails, as the bill is already created
                 }
 
                 toast.success(t('checkout.success_message'));
@@ -182,7 +183,10 @@ const CheckoutPage = () => {
     };
 
     const subtotal = cartItems.reduce((sum, item) => sum + item.subtotal, 0);
-    const shippingFee = shippingMethod?.price || 0;
+    // Phí vận chuyển gốc từ phương thức được chọn (trước khi áp dụng event)
+    const originalShippingFee = shippingMethod?.price ?? 0;
+    // Phí thực tế: nếu billPreview có shippingCost thì dùng, ngược lại dùng giá gốc
+    const shippingFee = billPreview != null ? billPreview.shippingCost : originalShippingFee;
     const total = subtotal + shippingFee;
 
     if (isLoading) {
@@ -312,7 +316,14 @@ const CheckoutPage = () => {
                                     <div className="method-info">
                                         <span className="label">{t('checkout.label_shipping')}</span>
                                         <span className="value">{shippingMethod?.name}</span>
-                                        <span className="price">({formatCurrency(shippingFee)})</span>
+                                        {shippingFee === 0 && originalShippingFee > 0 ? (
+                                            <span className="price" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                                <span style={{ textDecoration: 'line-through', color: '#999' }}>{formatCurrency(originalShippingFee)}</span>
+                                                <span style={{ color: '#28a745', fontWeight: 600 }}>Miễn phí</span>
+                                            </span>
+                                        ) : (
+                                            <span className="price">({formatCurrency(originalShippingFee)})</span>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="method-review-item">
@@ -396,7 +407,14 @@ const CheckoutPage = () => {
                                 )}
                                 <div className="row">
                                     <span>{t('checkout.summary_shipping')}</span>
-                                    <span>{formatCurrency(billPreview?.shippingCost || shippingFee)}</span>
+                                    {shippingFee === 0 && originalShippingFee > 0 ? (
+                                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                            <span style={{ textDecoration: 'line-through', color: '#999', fontSize: '12px' }}>{formatCurrency(originalShippingFee)}</span>
+                                            <span style={{ color: '#28a745', fontWeight: 600 }}>Miễn phí</span>
+                                        </span>
+                                    ) : (
+                                        <span>{formatCurrency(shippingFee)}</span>
+                                    )}
                                 </div>
                                 <div className="divider"></div>
                                 <div className="row total">

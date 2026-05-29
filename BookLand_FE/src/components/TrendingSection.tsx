@@ -65,6 +65,10 @@ const TrendingSection = () => {
                 {/* Product Grid */}
                 <div className="trending-grid">
                     {books.map((book, index) => {
+                        const soldCount = book.soldCount || 0;
+                        const totalAmount = book.stock + soldCount;
+                        const remainingPercent = totalAmount > 0 ? (book.stock / totalAmount) * 100 : 0;
+
                         return (
                             <Link key={book.id} to={`/shop/book-detail/${book.id}`} className="trending-card">
                                 <div className="trending-image-wrapper">
@@ -91,7 +95,7 @@ const TrendingSection = () => {
                                     <div className="trending-sold-bar">
                                         <div
                                             className="trending-sold-progress"
-                                            style={{ width: `${Math.min(book.stock, 100)}%` }}
+                                            style={{ width: `${remainingPercent}%` }}
                                         ></div>
                                         <span className="trending-sold-text">
                                             {t('home.trending.sold', { count: book.stock })}

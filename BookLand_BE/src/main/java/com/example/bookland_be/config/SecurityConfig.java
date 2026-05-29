@@ -39,6 +39,8 @@ public class SecurityConfig {
             "/chatbot/sessions",          // Tạo/resume session
             "/chatbot/sessions/**",       // Gửi message, lấy lịch sử, đóng session
             "/chatbot/escalations",       // Khách tạo escalation (POST)
+            "/api/init/seed-data",        // Kích hoạt init dữ liệu mẫu thủ công
+            "/api/init/clear-data",       // Xóa sạch dữ liệu mẫu thủ công
     };
 
     // Public GET endpoints - ai cũng có thể đọc, không cần đăng nhập
@@ -54,6 +56,7 @@ public class SecurityConfig {
             "/api/publishers",        // getAllPublishers
             "/api/publishers/**",
             "/api/events/highest-priority",
+            "/api/home-sections",          // Lấy thứ tự sections trang chủ (public)
             "/book-comments",         // getAllComments
             "/book-comments/**",      // getCommentsByBook
     };

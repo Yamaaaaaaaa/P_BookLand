@@ -80,8 +80,17 @@ public class BookService {
             }
         }
 
-        return PageResponse.from(bookRepository.findBestSellingBooks(keyword, minPrice, maxPrice, startDate, categoryIds, authorIds, publisherIds, seriesIds, pageable)
-                .map(this::convertToDTO));
+        org.springframework.data.domain.Page<Object[]> results = bookRepository.findBestSellingBooks(
+                keyword, minPrice, maxPrice, startDate, categoryIds, authorIds, publisherIds, seriesIds, pageable
+        );
+
+        return PageResponse.from(results.map(row -> {
+            Book book = (Book) row[0];
+            Number soldQty = (Number) row[1];
+            BookDTO dto = convertToDTO(book);
+            dto.setSoldCount(soldQty != null ? soldQty.intValue() : 0);
+            return dto;
+        }));
     }
 
     @Cacheable(value = "books", key = "#id")

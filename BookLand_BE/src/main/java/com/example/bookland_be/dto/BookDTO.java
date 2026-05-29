@@ -19,6 +19,7 @@ public class BookDTO implements Serializable {
     private Double sale;
     private Double finalPrice;
     private Integer stock;
+    private Integer soldCount;
     private BookStatus status;
     private LocalDate publishedDate;
     private String bookImageUrl;

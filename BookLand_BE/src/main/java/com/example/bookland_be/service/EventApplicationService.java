@@ -103,59 +103,9 @@ public class EventApplicationService {
                     return totalQuantity >= Integer.parseInt(value);
                 case MAX_QUANTITY:
                     return totalQuantity <= Integer.parseInt(value);
-                case EXACT_QUANTITY:
-                    return totalQuantity == Integer.parseInt(value);
 
-                // --- Số lượng items trong giỏ (Tạm tính bằng totalQuantity nếu không có data cart) ---
-                case MIN_ITEMS_IN_CART:
-                    return totalQuantity >= Integer.parseInt(value);
-
-                // --- Giới hạn sử dụng (Cần repository check log - Tạm thời bỏ qua hoặc return true) ---
-                case MAX_USAGE_PER_USER:
-                case MAX_USAGE_TOTAL:
-                case MAX_USAGE_PER_DAY:
-                    // TODO: Implement actual check using EventLogRepository
-                    return true;
-
-                // --- Thời gian ---
-                case TIME_RANGE:
-                    // value format: "HH:mm-HH:mm" e.g. "09:00-21:00"
-                    String[] parts = value.split("-");
-                    if (parts.length == 2) {
-                        LocalTime start = LocalTime.parse(parts[0]);
-                        LocalTime end = LocalTime.parse(parts[1]);
-                        LocalTime now = LocalTime.now();
-                        return !now.isBefore(start) && !now.isAfter(end);
-                    }
-                    return false;
-                case DAY_OF_WEEK:
-                    // value: MON,TUE...
-                    String today = LocalDate.now().getDayOfWeek().name().substring(0, 3);
-                    return value.contains(today);
-
-                // --- User conditions ---
-                case NEW_USER_ONLY:
-                    // Giả sử logic check new user (ví dụ đăng ký trong vòng 7 ngày)
-                    boolean isNew = user.getCreatedAt().isAfter(LocalDateTime.now().minusDays(7));
-                    return Boolean.parseBoolean(value) == isNew;
-                    
-                case USER_REGISTERED_BEFORE:
-                    LocalDate regBefore = LocalDate.parse(value);
-                    return user.getCreatedAt().toLocalDate().isBefore(regBefore);
-                
-                case USER_REGISTERED_AFTER:
-                     LocalDate regAfter = LocalDate.parse(value);
-                     return user.getCreatedAt().toLocalDate().isAfter(regAfter);
-
-                // --- Purchase history (Cần BillRepo - Tạm return true) ---
-                case FIRST_PURCHASE:
-                case PURCHASED_BEFORE:
-                case TOTAL_SPENT_MIN:
-                    return true;
-
-                 // --- Payment & Location & Other ---
                 default:
-                    // Các rule khác tạm thời trả về true nếu chưa có context xử lý
+                    // Các rule khác tạm thời trả về true
                     return true;
             }
         } catch (Exception e) {
@@ -179,23 +129,47 @@ public class EventApplicationService {
     }
 
     private Double applyAction(EventAction action, Double originalPrice) {
-        try {
-            if (action.getActionType() == EventActionType.DISCOUNT_PERCENT) {
-                Double percent = Double.parseDouble(action.getActionValue());
-                if (percent < 0 || percent > 100) return originalPrice;
-                return originalPrice * (1 - percent / 100);
-            } else if (action.getActionType() == EventActionType.DISCOUNT_AMOUNT) {
-                Double amount = Double.parseDouble(action.getActionValue());
-                Double result = originalPrice - amount;
-                return result > 0 ? result : 0.0;
-            } else if (action.getActionType() == EventActionType.DISCOUNT_FIXED_PRICE) {
-                 Double fixed = Double.parseDouble(action.getActionValue());
-                 return fixed < originalPrice ? fixed : originalPrice;
-            }
-            return originalPrice;
-        } catch (NumberFormatException e) {
+        String rawValue = action.getActionValue();
+
+        // Validate: giá trị không được null/rỗng và phải là số hợp lệ (chỉ chứa chữ số và dấu chấm)
+        if (rawValue == null || rawValue.isBlank()) {
+            System.err.println("[EventAction] actionValue is null or blank, skipping discount.");
             return originalPrice;
         }
+        if (!rawValue.matches("^\\d+(\\.\\d+)?$")) {
+            System.err.println("[EventAction] actionValue '" + rawValue + "' is not a valid number, skipping discount.");
+            return originalPrice;
+        }
+
+        double value = Double.parseDouble(rawValue);
+
+        if (action.getActionType() == EventActionType.DISCOUNT_PERCENT) {
+            // DISCOUNT_PERCENT: phải trong khoảng (0, 100]
+            if (value <= 0 || value > 100) {
+                System.err.println("[EventAction] DISCOUNT_PERCENT value=" + value + " out of range (0, 100], skipping.");
+                return originalPrice;
+            }
+            return originalPrice * (1 - value / 100);
+
+        } else if (action.getActionType() == EventActionType.DISCOUNT_AMOUNT) {
+            // DISCOUNT_AMOUNT: phải > 0
+            if (value <= 0) {
+                System.err.println("[EventAction] DISCOUNT_AMOUNT value=" + value + " must be > 0, skipping.");
+                return originalPrice;
+            }
+            double result = originalPrice - value;
+            return result > 0 ? result : 0.0;
+        }
+
+        return originalPrice;
+    }
+
+    public boolean hasFreeShipping(Event event) {
+        if (event.getActions() == null || event.getActions().isEmpty()) {
+            return false;
+        }
+        return event.getActions().stream()
+                .anyMatch(action -> action.getActionType() == EventActionType.FREE_SHIPPING);
     }
 
     /**

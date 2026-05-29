@@ -56,6 +56,7 @@ public class SecurityConfig {
             "/api/publishers",        // getAllPublishers
             "/api/publishers/**",
             "/api/events/highest-priority",
+            "/api/home-sections",          // Lấy thứ tự sections trang chủ (public)
             "/book-comments",         // getAllComments
             "/book-comments/**",      // getCommentsByBook
     };

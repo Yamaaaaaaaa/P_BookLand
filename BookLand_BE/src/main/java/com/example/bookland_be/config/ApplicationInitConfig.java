@@ -2,10 +2,13 @@ package com.example.bookland_be.config;
 
 import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.List;
 
 import com.example.bookland_be.constant.PredefinedRole;
+import com.example.bookland_be.entity.HomeSection;
 import com.example.bookland_be.entity.Role;
 import com.example.bookland_be.entity.User;
+import com.example.bookland_be.repository.HomeSectionRepository;
 import com.example.bookland_be.repository.RoleRepository;
 import com.example.bookland_be.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +49,9 @@ public class ApplicationInitConfig {
             havingValue = "com.mysql.cj.jdbc.Driver")
     ApplicationRunner applicationRunner(
             UserRepository userRepository,
-            RoleRepository roleRepository) {
-        log.info("Initializing application (Roles & Users).....");
+            RoleRepository roleRepository,
+            HomeSectionRepository homeSectionRepository) {
+        log.info("Initializing application (Roles, Users & HomeSections).....");
         return args -> {
             if (userRepository.findByUsername(ADMIN_USER_NAME).isEmpty()) {
                 log.info("Khởi tạo Roles và Users mặc định...");
@@ -170,6 +174,61 @@ public class ApplicationInitConfig {
                 log.info("shipper user has been created with default password: shipper");
             }
             log.info("Application initialization (Roles & Users) completed .....");
+
+            // ─── Khởi tạo HomeSections mặc định nếu chưa có ───────────────────
+            if (homeSectionRepository.count() == 0) {
+                log.info("Seeding default home sections...");
+                homeSectionRepository.saveAll(List.of(
+                        HomeSection.builder()
+                                .sectionKey("super_sale")
+                                .nameVi("Super Sale")
+                                .nameEn("Super Sale")
+                                .icon("⚡")
+                                .anchorId("super-sale-section")
+                                .displayOrder(1)
+                                .visible(true)
+                                .build(),
+                        HomeSection.builder()
+                                .sectionKey("trending")
+                                .nameVi("Xu Hướng")
+                                .nameEn("Trending")
+                                .icon("📈")
+                                .anchorId("trending-section")
+                                .displayOrder(2)
+                                .visible(true)
+                                .build(),
+                        HomeSection.builder()
+                                .sectionKey("featured")
+                                .nameVi("Nổi Bật")
+                                .nameEn("Featured")
+                                .icon("🌟")
+                                .anchorId("featured-section")
+                                .displayOrder(3)
+                                .visible(true)
+                                .build(),
+                        HomeSection.builder()
+                                .sectionKey("best_seller")
+                                .nameVi("Bán Chạy")
+                                .nameEn("Best Sellers")
+                                .icon("🏆")
+                                .anchorId("bestseller-section")
+                                .displayOrder(4)
+                                .visible(true)
+                                .build(),
+                        HomeSection.builder()
+                                .sectionKey("recommend")
+                                .nameVi("Gợi Ý")
+                                .nameEn("Recommendations")
+                                .icon("💡")
+                                .anchorId("recommendation-section")
+                                .displayOrder(5)
+                                .visible(true)
+                                .build()
+                ));
+                log.info("Default home sections seeded successfully.");
+            } else {
+                log.info("Home sections already exist. Skipping seeding.");
+            }
         };
     }
 }

@@ -44,6 +44,7 @@ import AdminChatListPage from './pages/admin/AdminChatListPage';
 import AdminChatDetailPage from './pages/admin/AdminChatDetailPage';
 import AdminSendEmailPage from './pages/admin/AdminSendEmailPage';
 import EscalationQueuePage from './pages/admin/EscalationQueuePage';
+import AdminHomeSettingPage from './pages/admin/AdminHomeSettingPage';
 
 // Shipper Pages
 import ShipperLoginPage from './pages/shipper/auth/ShipperLoginPage';
@@ -93,6 +94,7 @@ function App() {
           <Route element={<ProtectedRoute checkAuth={isAdminAuthenticated} redirectPath="/admin/login" />}>
             <Route element={<AdminLayout />}>
               <Route path="dashboard" element={<DashboardPage />} />
+              <Route path="home-setting" element={<AdminHomeSettingPage />} />
               <Route path="manage-user" element={<ManageUserPage />} />
               <Route path="manage-role" element={<ManageRolePage />} />
               <Route path="send-email" element={<AdminSendEmailPage />} />

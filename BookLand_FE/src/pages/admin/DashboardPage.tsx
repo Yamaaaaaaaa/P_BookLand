@@ -212,7 +212,7 @@ const DashboardPage = () => {
                     </div>
                     <div className="stat-info">
                         <div className="stat-value">{topCustomers.length > 0 ? topCustomers[0].username : '—'}</div>
-                        <div className="stat-label">Khách hàng VIP ({periodLabel(customersPeriod)})</div>
+                        <div className="stat-label">Khách hàng mua nhiều nhất ({periodLabel(customersPeriod)})</div>
                     </div>
                 </div>
             </div>

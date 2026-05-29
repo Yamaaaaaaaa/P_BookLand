@@ -100,7 +100,7 @@ public class AiProviderService {
     public GeminiService.GeminiResult generate(String userMessage, String context) {
 
         // 1. Kiểm tra cache trước (tránh gọi API không cần thiết)
-        String cacheKey = buildCacheKey(userMessage);
+        String cacheKey = buildCacheKey(userMessage, context);
         GeminiService.GeminiResult cached = getFromCache(cacheKey);
         if (cached != null) {
             log.debug("[AI] Cache hit: '{}'", truncate(userMessage));
@@ -350,8 +350,11 @@ public class AiProviderService {
 
     // ── Cache (Redis) ───────────────────────────────────────────────────────
 
-    private String buildCacheKey(String userMessage) {
-        String normalized = userMessage.toLowerCase().trim().replaceAll("\\s+", " ");
+    private String buildCacheKey(String userMessage, String context) {
+        String normalized = (userMessage + "\n" + (context == null ? "" : context))
+                .toLowerCase()
+                .trim()
+                .replaceAll("\\s+", " ");
         try {
             byte[] hash = MessageDigest.getInstance("SHA-256")
                     .digest(normalized.getBytes(StandardCharsets.UTF_8));

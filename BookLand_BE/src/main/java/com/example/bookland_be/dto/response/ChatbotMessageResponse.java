@@ -63,5 +63,6 @@ public class ChatbotMessageResponse {
         private Double averageRating;
         private Integer stock;
         private String reason;       // Lý do bot gợi ý cuốn sách này
+        private String productUrl;
     }
 }

@@ -26,9 +26,13 @@ const MessageBubble: React.FC<{ msg: ChatMessageDTO }> = ({ msg }) => {
 
     // Parse metadata cho quick reply và product card
     let metadata: any = {};
-    try {
-        if (msg.metadata) metadata = JSON.parse(msg.metadata);
-    } catch (_) {}
+    if (msg.metadata) {
+        try {
+            metadata = JSON.parse(msg.metadata);
+        } catch (e: any) {
+            console.error(`[Chatbot] Failed to parse metadata for message ${msg.id}: ${e.message}`, msg.metadata);
+        }
+    }
 
     return (
         <div className={`cw-message ${isBot ? 'cw-message--bot' : 'cw-message--user'}`}>
@@ -191,7 +195,9 @@ const ChatbotWidget: React.FC = () => {
         try {
             const parsed = JSON.parse(lastBotMsg.metadata);
             quickReplyOptions = parsed.options || [];
-        } catch (_) {}
+        } catch (e: any) {
+            console.error('[Chatbot] Failed to parse quick reply metadata:', e.message, lastBotMsg.metadata);
+        }
     }
 
     const handleMeetAdmin = () => {

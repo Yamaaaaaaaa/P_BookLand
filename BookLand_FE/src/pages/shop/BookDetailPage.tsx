@@ -297,13 +297,13 @@ const BookDetailPage = () => {
                                         <Star
                                             key={s}
                                             size={14}
-                                            fill={s <= (commentSummary?.averageRating || book.rating || 5) ? "#F69113" : "none"}
+                                            fill={s <= (commentSummary?.averageRating || book.rating || 0) ? "#F69113" : "none"}
                                             color="#F69113"
                                         />
                                     ))}
                                     <span className="rating-count">{t('product.reviews_count', { count: comments.length || book.ratingCount || 0 })}</span>
                                 </div>
-                                <div className="sold-count">| {t('product.sold_count', { count: book.ratingCount ? book.ratingCount * 12 : 24 })}</div>
+                                <div className="sold-count">| {t('product.sold_count', { count: book.soldCount || 0 })}</div>
                             </div>
 
                             <div className="detail-price-box">

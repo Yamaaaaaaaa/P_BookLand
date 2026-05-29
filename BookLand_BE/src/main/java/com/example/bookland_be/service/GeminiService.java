@@ -1,6 +1,5 @@
 package com.example.bookland_be.service;
 
-import com.example.bookland_be.dto.response.ChatbotMessageResponse.BookSuggestionDTO;
 import com.example.bookland_be.entity.Book;
 import com.example.bookland_be.entity.ChatbotKnowledge;
 import com.example.bookland_be.repository.BookRepository;
@@ -8,17 +7,12 @@ import com.example.bookland_be.repository.ChatbotKnowledgeRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.net.URI;
-import java.net.http.HttpClient;
-import java.net.http.HttpRequest;
-import java.net.http.HttpResponse;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +54,10 @@ public class GeminiService {
         2. KHÔNG cam kết giá hoặc chính sách đặc biệt ngoài thông tin có sẵn
         3. KHÔNG trả lời chủ đề ngoài phạm vi sách/truyện/dịch vụ BookLand
         4. Luôn lịch sự, thân thiện, dùng tiếng Việt tự nhiên
+        5. Khi gợi ý sản phẩm, CHỈ dùng sách có trong mục "Sách trong DB phù hợp" và đưa id vào suggested_book_ids
+        6. Nếu không có sách phù hợp trong context, hãy hỏi thêm nhu cầu hoặc nói thông tin còn hạn chế, không bịa tên sách
+        7. KHÔNG chèn link, URL hay ID sản phẩm vào nội dung tin nhắn. Hệ thống sẽ tự động hiển thị thẻ sản phẩm.
+        8. CHỈ sử dụng tiếng Việt, tuyệt đối không chèn tiếng Trung (như 喜欢) hay ngôn ngữ khác.
         
         ## Khi nào chuyển sang admin (đặt suggest_escalation: true)
         - Khách yêu cầu gặp người thật
@@ -103,6 +101,35 @@ public class GeminiService {
             }
         }
 
+        List<Book> relevantBooks = findRelevantBooks(userQuery);
+        if (!relevantBooks.isEmpty()) {
+            context.append("## Sách trong DB phù hợp\n");
+            context.append("Chỉ gợi ý sách từ danh sách này.\n");
+            for (Book book : relevantBooks) {
+                context.append("- ID: ").append(book.getId()).append("\n");
+                context.append("  Tên: ").append(book.getName()).append("\n");
+                context.append("  Giá: ").append(formatPrice(book.getFinalPrice())).append("\n");
+                context.append("  Giảm giá: ").append(book.getSale() != null ? book.getSale() : 0).append("%\n");
+                context.append("  Tồn kho: ").append(book.getStock()).append("\n");
+                if (book.getAuthor() != null) {
+                    context.append("  Tác giả: ").append(book.getAuthor().getName()).append("\n");
+                }
+                if (book.getCategories() != null && !book.getCategories().isEmpty()) {
+                    context.append("  Thể loại: ")
+                            .append(book.getCategories().stream()
+                                    .map(c -> c.getName())
+                                    .collect(Collectors.joining(", ")))
+                            .append("\n");
+                }
+                if (book.getDescription() != null && !book.getDescription().isBlank()) {
+                    context.append("  Mô tả ngắn: ")
+                            .append(truncate(book.getDescription().replaceAll("\\s+", " "), 220))
+                            .append("\n");
+                }
+                context.append("\n");
+            }
+        }
+
         // Lịch sử chat gần nhất (tối đa 10 tin)
         if (!chatHistory.isEmpty()) {
             context.append("## Lịch sử hội thoại\n");
@@ -113,6 +140,68 @@ public class GeminiService {
         }
 
         return context.toString();
+    }
+
+    private List<Book> findRelevantBooks(String userQuery) {
+        if (!isBookQuery(userQuery)) {
+            return List.of();
+        }
+        List<String> keywords = buildBookSearchKeywords(userQuery);
+        List<Book> books = new ArrayList<>();
+        for (String keyword : keywords) {
+            List<Book> found = bookRepository.searchAvailableBooksForChatbot(keyword, PageRequest.of(0, 8));
+            for (Book book : found) {
+                if (books.stream().noneMatch(existing -> existing.getId().equals(book.getId()))) {
+                    books.add(book);
+                }
+                if (books.size() >= 8) return books;
+            }
+        }
+        return books;
+    }
+
+    private boolean isBookQuery(String userQuery) {
+        String normalized = userQuery == null ? "" : userQuery.toLowerCase();
+        return normalized.contains("sách")
+                || normalized.contains("truyện")
+                || normalized.contains("manga")
+                || normalized.contains("comic")
+                || normalized.contains("gợi ý")
+                || normalized.contains("tìm")
+                || normalized.contains("mua");
+    }
+
+    private List<String> buildBookSearchKeywords(String userQuery) {
+        String normalized = userQuery == null ? "" : userQuery.toLowerCase()
+                .replaceAll("[^a-zA-Z0-9àáạảãâầấậẩẫăắặẳẵèéẹẻẽêềếệểễìíịỉĩòóọỏõôồốộổỗơờớợởỡùúụủũưừứựửữỳýỵỷỹđ\\s]", " ")
+                .replaceAll("\\s+", " ")
+                .trim();
+
+        List<String> keywords = new ArrayList<>();
+        if (normalized.contains("truyện tranh") || normalized.contains("manga") || normalized.contains("comic")) {
+            keywords.add("truyện tranh");
+            keywords.add("manga");
+        }
+        if (normalized.contains("tiểu thuyết")) keywords.add("tiểu thuyết");
+        if (normalized.contains("văn học")) keywords.add("văn học");
+        if (normalized.contains("thiếu nhi") || normalized.contains("trẻ em")) keywords.add("thiếu nhi");
+        if (normalized.contains("kinh tế")) keywords.add("kinh tế");
+        if (normalized.contains("khoa học")) keywords.add("khoa học");
+        if (normalized.contains("harry")) keywords.add("harry");
+        if (normalized.contains("nguyễn nhật ánh")) keywords.add("nguyễn nhật ánh");
+        if (!normalized.isBlank()) keywords.add(normalized);
+        keywords.add("");
+        return keywords.stream().distinct().toList();
+    }
+
+    private String formatPrice(Double price) {
+        if (price == null) return "Chưa có giá";
+        return String.format("%,.0f VND", price);
+    }
+
+    private String truncate(String value, int maxLength) {
+        if (value == null || value.length() <= maxLength) return value;
+        return value.substring(0, maxLength) + "...";
     }
 
     /**

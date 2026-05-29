@@ -58,9 +58,11 @@ const Recommendations = () => {
                                 )}
                                 <div className="recommend-stats">
                                     <div className="recommend-rating">
-                                        <span className="star-filled">★★★★★</span>
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <span key={s} style={{ color: s <= Math.round(book.rating || 0) ? '#F69113' : '#ddd' }}>★</span>
+                                        ))}
                                     </div>
-                                    <span className="recommend-sold">| Đã bán {Math.floor(Math.random() * 100) + 1}</span>
+                                    <span className="recommend-sold">| Đã bán {book.soldCount || 0}</span>
                                 </div>
                             </div>
                         </Link>

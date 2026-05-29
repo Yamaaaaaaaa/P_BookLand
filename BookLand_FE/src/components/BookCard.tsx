@@ -160,7 +160,7 @@ const BookCard = ({ book, viewMode = 'grid' }: BookCardProps) => {
 
                 <div className="book-card__rating">
                     <div className="book-card__stars">
-                        {renderStars(book.rating || 5)}
+                        {renderStars(book.rating || 0)}
                     </div>
                     {book.ratingCount !== undefined && (
                         <span className="book-card__rating-count">({book.ratingCount})</span>

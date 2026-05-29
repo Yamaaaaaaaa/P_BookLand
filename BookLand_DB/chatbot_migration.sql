@@ -7,6 +7,9 @@
 -- STEP 1: Mở rộng bảng chat_message hiện có
 -- ======================================================
 
+-- ALTER TABLE chatbot_knowledge ADD FULLTEXT INDEX ft_chatbot_knowledge (title, content, keywords);
+
+
 -- Cho phép fromUserId NULL (bot reply không có userId)
 ALTER TABLE chat_message 
   MODIFY COLUMN from_user_id BIGINT NULL;

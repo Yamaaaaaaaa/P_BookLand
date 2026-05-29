@@ -29,6 +29,7 @@ export interface Book {
     rating?: number;
     ratingCount?: number;
     volume?: string | number;
+    soldCount?: number;
     createdAt?: string;
     updatedAt?: string;
 }

@@ -131,7 +131,7 @@ const WeeklyBestseller = () => {
                                     <div className="ranking-info">
                                         <h4 className="ranking-book-title">{book.name}</h4>
                                         <p className="ranking-author">{book.authorName}</p>
-                                        <p className="ranking-points">{t('home.bestseller.sold', { count: Math.floor(Math.random() * 200) + 100 })}</p>
+                                        <p className="ranking-points">{t('home.bestseller.sold', { count: book.soldCount || 0 })}</p>
                                     </div>
                                 </div>
                             ))}

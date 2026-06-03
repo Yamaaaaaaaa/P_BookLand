@@ -164,6 +164,34 @@ public class EventApplicationService {
         return originalPrice;
     }
 
+    public boolean isBillLevelAction(Event event) {
+        if (event.getActions() == null || event.getActions().isEmpty()) return false;
+        EventAction action = event.getActions().iterator().next();
+        return action.getActionType() == EventActionType.BILL_DISCOUNT_AMOUNT ||
+               action.getActionType() == EventActionType.BILL_DISCOUNT_PERCENT;
+    }
+
+    public Double calculateBillLevelDiscountAmount(Event event, Double eligibleSubtotal) {
+        if (event.getActions() == null || event.getActions().isEmpty()) return 0.0;
+        EventAction action = event.getActions().iterator().next();
+        String rawValue = action.getActionValue();
+        
+        if (rawValue == null || rawValue.isBlank() || !rawValue.matches("^\\d+(\\.\\d+)?$")) {
+            return 0.0;
+        }
+        
+        double value = Double.parseDouble(rawValue);
+
+        if (action.getActionType() == EventActionType.BILL_DISCOUNT_PERCENT) {
+            if (value <= 0 || value > 100) return 0.0;
+            return eligibleSubtotal * (value / 100.0);
+        } else if (action.getActionType() == EventActionType.BILL_DISCOUNT_AMOUNT) {
+            if (value <= 0) return 0.0;
+            return value > eligibleSubtotal ? eligibleSubtotal : value;
+        }
+        return 0.0;
+    }
+
     public boolean hasFreeShipping(Event event) {
         if (event.getActions() == null || event.getActions().isEmpty()) {
             return false;

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactElement } from 'react';
+import React, { useEffect, useState, type ReactElement } from 'react';
 import HeroSection from '../../components/HeroSection';
 import FlashSale from '../../components/FlashSale';
 import TrendingSection from '../../components/TrendingSection';
@@ -22,11 +22,11 @@ const SECTION_COMPONENTS: Record<string, ReactElement> = {
 
 // Fallback default order if API is unavailable
 const DEFAULT_SECTIONS: HomeSection[] = [
-    { id: 1, sectionKey: 'super_sale', nameVi: 'Super Sale', nameEn: 'Super Sale', icon: '⚡', anchorId: 'super-sale-section', displayOrder: 1, visible: true },
-    { id: 2, sectionKey: 'trending', nameVi: 'Xu Hướng', nameEn: 'Trending', icon: '📈', anchorId: 'trending-section', displayOrder: 2, visible: true },
-    { id: 3, sectionKey: 'featured', nameVi: 'Nổi Bật', nameEn: 'Featured', icon: '🌟', anchorId: 'featured-section', displayOrder: 3, visible: true },
-    { id: 4, sectionKey: 'best_seller', nameVi: 'Bán Chạy', nameEn: 'Best Sellers', icon: '🏆', anchorId: 'bestseller-section', displayOrder: 4, visible: true },
-    { id: 5, sectionKey: 'recommend', nameVi: 'Gợi Ý', nameEn: 'Recommendations', icon: '💡', anchorId: 'recommendation-section', displayOrder: 5, visible: true },
+    { id: 1, sectionKey: 'super_sale', nameVi: 'Super Sale', nameEn: 'Super Sale', icon: '⚡', anchorId: 'super-sale-section', displayOrder: 1, visible: true, itemLimit: 5 },
+    { id: 2, sectionKey: 'trending', nameVi: 'Xu Hướng', nameEn: 'Trending', icon: '📈', anchorId: 'trending-section', displayOrder: 2, visible: true, itemLimit: 5 },
+    { id: 3, sectionKey: 'featured', nameVi: 'Nổi Bật', nameEn: 'Featured', icon: '🌟', anchorId: 'featured-section', displayOrder: 3, visible: true, itemLimit: 5 },
+    { id: 4, sectionKey: 'best_seller', nameVi: 'Bán Chạy', nameEn: 'Best Sellers', icon: '🏆', anchorId: 'bestseller-section', displayOrder: 4, visible: true, itemLimit: 5 },
+    { id: 5, sectionKey: 'recommend', nameVi: 'Gợi Ý', nameEn: 'Recommendations', icon: '💡', anchorId: 'recommendation-section', displayOrder: 5, visible: true, itemLimit: 5 },
 ];
 
 const HomePage = () => {
@@ -54,7 +54,9 @@ const HomePage = () => {
                 .filter(s => s.visible)
                 .map(section => (
                     <div key={section.sectionKey} id={section.anchorId}>
-                        {SECTION_COMPONENTS[section.sectionKey] ?? null}
+                        {SECTION_COMPONENTS[section.sectionKey] 
+                            ? React.cloneElement(SECTION_COMPONENTS[section.sectionKey] as React.ReactElement<any>, { itemLimit: section.itemLimit || 5 }) 
+                            : null}
                     </div>
                 ))
             }

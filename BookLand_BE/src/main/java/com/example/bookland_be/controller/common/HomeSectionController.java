@@ -60,4 +60,14 @@ public class HomeSectionController {
                 .result(homeSectionService.resetToDefault())
                 .build();
     }
+
+    @PutMapping("/bulk-update")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_MANAGER')")
+    @SecurityRequirement(name = "BearerAuth")
+    @Operation(summary = "Cập nhật hàng loạt config", description = "Admin cập nhật thứ tự, ẩn/hiện, và số lượng item của các section")
+    public ApiResponse<List<HomeSectionDTO>> bulkUpdateConfig(@RequestBody List<com.example.bookland_be.dto.request.HomeSectionConfigRequest> requests) {
+        return ApiResponse.<List<HomeSectionDTO>>builder()
+                .result(homeSectionService.bulkUpdateConfig(requests))
+                .build();
+    }
 }

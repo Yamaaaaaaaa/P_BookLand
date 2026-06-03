@@ -399,7 +399,7 @@ public class EventService {
 
     private void validateEventTime(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime.isAfter(endTime)) {
-            throw new RuntimeException("Start time must be before end time");
+            throw new AppException(ErrorCode.EVENT_INVALID_TIME);
         }
     }
 

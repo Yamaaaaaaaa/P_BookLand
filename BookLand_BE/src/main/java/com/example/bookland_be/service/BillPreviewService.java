@@ -66,10 +66,29 @@ public class BillPreviewService {
         }
 
 
-        // 3. Build kết quả
+        // 3. Phân bổ giảm giá và build kết quả
         List<BookPreviewDTO> bookPreviews = new ArrayList<>();
         double originalTotal = 0.0;
         double discountedTotal = 0.0;
+        
+        List<Book> eligibleBooks = new ArrayList<>();
+        double eligibleSubtotal = 0.0;
+        
+        if (appliedEvent != null) {
+            for (BillBookRequest br : bookRequests) {
+                Book book = bookMap.get(br.getBookId());
+                if (eventApplicationService.isBookInEventTarget(appliedEvent, book)) {
+                    eligibleBooks.add(book);
+                    eligibleSubtotal += book.getFinalPrice() * br.getQuantity();
+                }
+            }
+        }
+        
+        double discountRatio = 0.0;
+        if (appliedEvent != null && eventApplicationService.isBillLevelAction(appliedEvent) && eligibleSubtotal > 0) {
+            Double discountAmount = eventApplicationService.calculateBillLevelDiscountAmount(appliedEvent, eligibleSubtotal);
+            discountRatio = discountAmount / eligibleSubtotal;
+        }
 
         for (BillBookRequest br : bookRequests) {
             Book book = bookMap.get(br.getBookId());
@@ -78,7 +97,11 @@ public class BillPreviewService {
             boolean hasDiscount = false;
 
             if (appliedEvent != null && eventApplicationService.isBookInEventTarget(appliedEvent, book)) {
-                finalPrice = eventApplicationService.calculateDiscountedPrice(appliedEvent, originalPrice);
+                if (eventApplicationService.isBillLevelAction(appliedEvent)) {
+                    finalPrice = originalPrice * (1.0 - discountRatio);
+                } else {
+                    finalPrice = eventApplicationService.calculateDiscountedPrice(appliedEvent, originalPrice);
+                }
                 hasDiscount = true;
             }
 

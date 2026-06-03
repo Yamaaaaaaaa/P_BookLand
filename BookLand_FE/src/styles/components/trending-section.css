@@ -85,10 +85,33 @@
 
 /* Grid */
 .trending-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
   gap: 20px;
   padding: 20px 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+.trending-grid::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for a cleaner look */
+}
+
+.scroll-btn {
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #333;
+  font-weight: bold;
+}
+.scroll-btn:hover {
+  background: #f0f0f0;
 }
 
 .trending-card {
@@ -97,6 +120,8 @@
   flex-direction: column;
   gap: 12px;
   transition: all 0.2s;
+  flex: 0 0 calc(20% - 16px); /* Fix width for 5 items per view */
+  scroll-snap-align: start;
 }
 
 .trending-card:hover {

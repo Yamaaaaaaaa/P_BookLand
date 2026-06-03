@@ -181,7 +181,7 @@
 }
 
 .hs-section-icon {
-    width: 38px;
+    padding: 0 12px;
     height: 38px;
     border-radius: var(--radius-md);
     background-color: var(--shop-bg-secondary);

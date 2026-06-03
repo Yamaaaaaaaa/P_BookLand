@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ChevronRight, ChevronLeft, Zap } from 'lucide-react';
 import '../styles/components/flash-sale.css';
@@ -7,10 +7,9 @@ import bookService from '../api/bookService';
 import type { Book } from '../types/Book';
 import { useTranslation } from 'react-i18next';
 
-const FlashSale = () => {
+const FlashSale = ({ itemLimit = 10 }: { itemLimit?: number }) => {
     const [books, setBooks] = useState<Book[]>([]);
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const itemsPerPage = 5;
+    const scrollRef = useRef<HTMLDivElement>(null);
     const navigate = useNavigate();
     const { t } = useTranslation();
 
@@ -19,7 +18,7 @@ const FlashSale = () => {
             try {
                 const response = await bookService.getAllBooks({
                     page: 0,
-                    size: 10,
+                    size: itemLimit,
                     sortBy: 'sale',
                     sortDirection: 'DESC'
                 });
@@ -32,23 +31,10 @@ const FlashSale = () => {
         };
 
         fetchBestSellers();
-    }, []);
+    }, [itemLimit]);
 
-    const handleNext = () => {
-        if (currentIndex + itemsPerPage < books.length) {
-            setCurrentIndex(prev => prev + 1);
-        } else {
-            setCurrentIndex(0);
-        }
-    };
-
-    const handlePrev = () => {
-        if (currentIndex > 0) {
-            setCurrentIndex(prev => prev - 1);
-        }
-    };
-
-    const visibleBooks = books.slice(currentIndex, currentIndex + itemsPerPage);
+    const scrollLeft = () => scrollRef.current?.scrollBy({ left: -300, behavior: 'smooth' });
+    const scrollRight = () => scrollRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
 
     const handleBookClick = (bookId: number) => {
         navigate(`/shop/book-detail/${bookId}`);
@@ -69,14 +55,15 @@ const FlashSale = () => {
                     {/* Optional: Add View All link if there is a page for it */}
                 </div>
 
-                <div className="flash-sale__grid">
-                    {currentIndex > 0 && (
-                        <button className="flash-sale__nav-prev" onClick={handlePrev}>
+                <div className="flash-sale__grid-wrapper" style={{ position: 'relative' }}>
+                    {books.length > 5 && (
+                        <button className="flash-sale__nav-prev" onClick={scrollLeft}>
                             <ChevronLeft size={24} />
                         </button>
                     )}
 
-                    {visibleBooks.map((book) => (
+                    <div className="flash-sale__grid" ref={scrollRef}>
+                    {books.map((book) => (
                         <div key={book.id} className="flash-sale__card" onClick={() => handleBookClick(book.id)}>
                             <div className="flash-sale__image-wrapper">
                                 <img src={book.bookImageUrl} alt={book.name} className="flash-sale__image" />
@@ -103,9 +90,10 @@ const FlashSale = () => {
                             </div>
                         </div>
                     ))}
+                    </div>
 
-                    {books.length > itemsPerPage && (
-                        <button className="flash-sale__nav-next" onClick={handleNext}>
+                    {books.length > 5 && (
+                        <button className="flash-sale__nav-next" onClick={scrollRight}>
                             <ChevronRight size={24} />
                         </button>
                     )}

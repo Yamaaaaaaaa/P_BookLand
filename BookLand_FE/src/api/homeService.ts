@@ -29,6 +29,10 @@ const homeService = {
     resetHomeSectionsToDefault: () => {
         return axiosClient.post<any, ApiResponse<HomeSection[]>>('/api/home-sections/reset');
     },
+
+    bulkUpdateHomeSections: (requests: { id: number; displayOrder?: number; visible?: boolean; itemLimit?: number }[]) => {
+        return axiosClient.put<any, ApiResponse<HomeSection[]>>('/api/home-sections/bulk-update', requests);
+    },
 };
 
 export default homeService;

@@ -7,4 +7,5 @@ export interface HomeSection {
     anchorId: string;
     displayOrder: number;
     visible: boolean;
+    itemLimit: number;
 }

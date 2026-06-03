@@ -1,6 +1,7 @@
 package com.example.bookland_be.service;
 
 import com.example.bookland_be.dto.HomeSectionDTO;
+import com.example.bookland_be.dto.request.HomeSectionConfigRequest;
 import com.example.bookland_be.entity.HomeSection;
 import com.example.bookland_be.repository.HomeSectionRepository;
 import lombok.RequiredArgsConstructor;
@@ -70,6 +71,30 @@ public class HomeSectionService {
 
     @CacheEvict(value = "homeSections", allEntries = true)
     @Transactional
+    public List<HomeSectionDTO> bulkUpdateConfig(List<HomeSectionConfigRequest> requests) {
+        Map<Long, HomeSection> sectionMap = homeSectionRepository.findAll()
+                .stream()
+                .collect(Collectors.toMap(HomeSection::getId, s -> s));
+
+        for (HomeSectionConfigRequest req : requests) {
+            HomeSection section = sectionMap.get(req.getId());
+            if (section != null) {
+                if (req.getDisplayOrder() != null) section.setDisplayOrder(req.getDisplayOrder());
+                if (req.getVisible() != null) section.setVisible(req.getVisible());
+                if (req.getItemLimit() != null) section.setItemLimit(req.getItemLimit());
+                homeSectionRepository.save(section);
+            }
+        }
+
+        log.info("Bulk updated home section configs");
+        return homeSectionRepository.findAllByOrderByDisplayOrderAsc()
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @CacheEvict(value = "homeSections", allEntries = true)
+    @Transactional
     public List<HomeSectionDTO> resetToDefault() {
         List<HomeSection> sections = homeSectionRepository.findAllByOrderByDisplayOrderAsc();
         String[] defaultOrder = {"super_sale", "trending", "featured", "best_seller", "recommend"};
@@ -82,6 +107,7 @@ public class HomeSectionService {
             if (section != null) {
                 section.setDisplayOrder(i + 1);
                 section.setVisible(true);
+                section.setItemLimit(5);
                 homeSectionRepository.save(section);
             }
         }
@@ -103,6 +129,7 @@ public class HomeSectionService {
                 .anchorId(section.getAnchorId())
                 .displayOrder(section.getDisplayOrder())
                 .visible(section.getVisible())
+                .itemLimit(section.getItemLimit())
                 .build();
     }
 }

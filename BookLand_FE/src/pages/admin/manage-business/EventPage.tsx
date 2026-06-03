@@ -105,9 +105,10 @@ const EventPage = () => {
                 await eventService.deleteEvent(id);
                 toast.success(t('admin.event.delete_success'));
                 fetchEvents();
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Error deleting event:', error);
-                toast.error(t('admin.event.delete_fail'));
+                const backendError = error.response?.data?.message || error.response?.data?.error || error.message;
+                toast.error(backendError ? `${t('admin.event.delete_fail')}: ${backendError}` : t('admin.event.delete_fail'));
             }
         }
     };

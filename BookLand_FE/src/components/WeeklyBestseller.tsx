@@ -12,7 +12,7 @@ import { getCurrentUserId } from '../utils/auth';
 import type { Book } from '../types/Book';
 import type { Category } from '../types/Category';
 
-const WeeklyBestseller = () => {
+const WeeklyBestseller = ({ itemLimit = 5 }: { itemLimit?: number }) => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [activeCategoryId, setActiveCategoryId] = useState<number | null>(null);
     const [books, setBooks] = useState<Book[]>([]);
@@ -46,7 +46,7 @@ const WeeklyBestseller = () => {
                     period: 'MONTH',
                     categoryIds: [activeCategoryId],
                     page: 0,
-                    size: 5
+                    size: itemLimit
                 });
                 if (response.result && response.result.content) {
                     setBooks(response.result.content);

@@ -16,4 +16,5 @@ public class HomeSectionDTO {
     private String anchorId;
     private Integer displayOrder;
     private Boolean visible;
+    private Integer itemLimit;
 }

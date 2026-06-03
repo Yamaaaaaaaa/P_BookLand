@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { TrendingUp } from 'lucide-react';
 import '../styles/components/trending-section.css';
@@ -6,9 +6,10 @@ import bookService from '../api/bookService';
 import type { Book } from '../types/Book';
 import { useTranslation } from 'react-i18next';
 
-const TrendingSection = () => {
+const TrendingSection = ({ itemLimit = 5 }: { itemLimit?: number }) => {
     const [activeTab, setActiveTab] = useState<string>('WEEK');
     const [books, setBooks] = useState<Book[]>([]);
+    const scrollRef = useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
 
     const tabs = [
@@ -21,9 +22,9 @@ const TrendingSection = () => {
         const fetchTrendingBooks = async () => {
             try {
                 const response = await bookService.getBestSellingBooks({
-                    period: activeTab as any, // Cast to match type if needed
+                    period: activeTab as any,
                     page: 0,
-                    size: 5
+                    size: itemLimit
                 });
                 if (response.result && response.result.content) {
                     setBooks(response.result.content);
@@ -34,7 +35,10 @@ const TrendingSection = () => {
         };
 
         fetchTrendingBooks();
-    }, [activeTab]);
+    }, [activeTab, itemLimit]);
+
+    const scrollLeft = () => scrollRef.current?.scrollBy({ left: -300, behavior: 'smooth' });
+    const scrollRight = () => scrollRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
 
     return (
         <section className="trending-section">
@@ -63,7 +67,11 @@ const TrendingSection = () => {
                 </div>
 
                 {/* Product Grid */}
-                <div className="trending-grid">
+                <div className="trending-grid-wrapper" style={{ position: 'relative' }}>
+                    {books.length > 5 && (
+                        <button className="nav-prev" onClick={scrollLeft}>&lt;</button>
+                    )}
+                    <div className="trending-grid" ref={scrollRef}>
                     {books.map((book, index) => {
                         const soldCount = book.soldCount || 0;
                         const totalAmount = book.stock + soldCount;
@@ -105,6 +113,10 @@ const TrendingSection = () => {
                             </Link>
                         );
                     })}
+                    </div>
+                    {books.length > 5 && (
+                        <button className="nav-next" onClick={scrollRight}>&gt;</button>
+                    )}
                 </div>
             </div>
         </section>

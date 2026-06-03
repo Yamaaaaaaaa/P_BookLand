@@ -8,7 +8,11 @@ public enum EventActionType {
     DISCOUNT_AMOUNT("Giảm theo số tiền (VNĐ)"),
 
     // Miễn phí vận chuyển
-    FREE_SHIPPING("Miễn phí ship");
+    FREE_SHIPPING("Miễn phí ship"),
+
+    // Giảm trên tổng hóa đơn (nhóm)
+    BILL_DISCOUNT_PERCENT("Giảm % trên tổng hóa đơn nhóm"),
+    BILL_DISCOUNT_AMOUNT("Giảm tiền trên tổng hóa đơn nhóm");
 
     private final String description;
 

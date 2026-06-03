@@ -149,15 +149,41 @@ public class BillService {
                 }
                 
                 // Áp dụng giảm giá
+                List<Book> eligibleBooks = new ArrayList<>();
+                double eligibleSubtotal = 0.0;
+                
                 for (Book book : books) {
                     if (eventApplicationService.isBookInEventTarget(event, book)) {
-                        Double originalPrice = book.getFinalPrice();
-                        Double discountedPrice = eventApplicationService.calculateDiscountedPrice(event, originalPrice);
-                        int qty = quantities.get(book.getId());
-
-                        eventDiscountedPrices.put(book.getId(), discountedPrice);
-                        totalDiscountValue += (int)((originalPrice - discountedPrice) * qty);
-                        appliedEvent = event;
+                        eligibleBooks.add(book);
+                        eligibleSubtotal += book.getFinalPrice() * quantities.get(book.getId());
+                    }
+                }
+                
+                if (!eligibleBooks.isEmpty()) {
+                    appliedEvent = event;
+                    
+                    if (eventApplicationService.isBillLevelAction(event)) {
+                        Double discountAmount = eventApplicationService.calculateBillLevelDiscountAmount(event, eligibleSubtotal);
+                        double discountRatio = eligibleSubtotal > 0 ? discountAmount / eligibleSubtotal : 0.0;
+                        
+                        for (Book book : eligibleBooks) {
+                            Double originalPrice = book.getFinalPrice();
+                            Double discountedPrice = originalPrice * (1.0 - discountRatio);
+                            int qty = quantities.get(book.getId());
+                            
+                            eventDiscountedPrices.put(book.getId(), discountedPrice);
+                            totalDiscountValue += (int)((originalPrice - discountedPrice) * qty);
+                        }
+                    } else {
+                        // Áp dụng giảm giá từng sản phẩm
+                        for (Book book : eligibleBooks) {
+                            Double originalPrice = book.getFinalPrice();
+                            Double discountedPrice = eventApplicationService.calculateDiscountedPrice(event, originalPrice);
+                            int qty = quantities.get(book.getId());
+    
+                            eventDiscountedPrices.put(book.getId(), discountedPrice);
+                            totalDiscountValue += (int)((originalPrice - discountedPrice) * qty);
+                        }
                     }
                 }
             }

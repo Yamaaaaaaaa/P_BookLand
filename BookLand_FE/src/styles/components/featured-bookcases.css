@@ -41,9 +41,15 @@
 }
 
 .bookcases-grid {
-  display: grid;
-  grid-template-columns: repeat(8, 1fr);
+  display: flex;
   gap: 16px;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+.bookcases-grid::-webkit-scrollbar {
+  display: none;
 }
 
 .bookcase-item {
@@ -53,6 +59,8 @@
   align-items: center;
   gap: 12px;
   transition: transform 0.2s;
+  flex: 0 0 calc(20% - 12.8px); /* 5 items per view */
+  scroll-snap-align: start;
 }
 
 .bookcase-item:hover {

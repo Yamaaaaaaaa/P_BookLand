@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { toast } from 'react-toastify';
 import homeService from '../../api/homeService';
 import axiosClient from '../../api/axiosClient';
@@ -45,6 +45,9 @@ const AdminHomeSettingPage = () => {
     const [savedAt, setSavedAt] = useState<Date | null>(null);
     const [resetting, setResetting] = useState(false);
 
+    const dragItem = useRef<number | null>(null);
+    const dragOverItem = useRef<number | null>(null);
+
     /* ── DB section state ── */
     const [pendingAction, setPendingAction] = useState<DbAction>(null);
     const [dbLoading, setDbLoading] = useState(false);
@@ -81,14 +84,50 @@ const AdminHomeSettingPage = () => {
         setSavedAt(null);
     };
 
+    const handleItemLimitChange = (index: number, value: number) => {
+        const next = [...sections];
+        next[index] = { ...next[index], itemLimit: value };
+        setSections(next);
+        setSavedAt(null);
+    };
+
+    const handleDragStart = (position: number) => {
+        dragItem.current = position;
+    };
+
+    const handleDragEnter = (position: number) => {
+        dragOverItem.current = position;
+    };
+
+    const handleDragEnd = () => {
+        if (dragItem.current !== null && dragOverItem.current !== null && dragItem.current !== dragOverItem.current) {
+            const next = [...sections];
+            const draggedContent = next.splice(dragItem.current, 1)[0];
+            next.splice(dragOverItem.current, 0, draggedContent);
+            setSections(next);
+            setSavedAt(null);
+        }
+        dragItem.current = null;
+        dragOverItem.current = null;
+    };
+
     const handleSave = async () => {
+        // Validation
+        const invalidSection = sections.find(s => !Number.isInteger(s.itemLimit) || s.itemLimit <= 0 || s.itemLimit > 30);
+        if (invalidSection) {
+            toast.error('❌ Số lượng sản phẩm phải là số dương từ 1 đến 30!');
+            return;
+        }
+
         setSaving(true);
         try {
-            const sectionIds = sections.map(s => s.id);
-            await homeService.updateHomeSectionsOrder(sectionIds);
-            for (const s of sections) {
-                await homeService.toggleHomeSectionVisibility(s.id, s.visible);
-            }
+            const requests = sections.map((s, index) => ({
+                id: s.id,
+                displayOrder: index + 1,
+                visible: s.visible,
+                itemLimit: s.itemLimit
+            }));
+            await homeService.bulkUpdateHomeSections(requests);
             setSavedAt(new Date());
             toast.success('✅ Cập nhật cấu hình trang chủ thành công!');
             fetchSections();
@@ -191,14 +230,33 @@ const AdminHomeSettingPage = () => {
                                 <div
                                     key={section.id}
                                     className={`hs-section-item${!section.visible ? ' hs-section-item--hidden' : ''}`}
+                                    draggable
+                                    onDragStart={() => handleDragStart(index)}
+                                    onDragEnter={() => handleDragEnter(index)}
+                                    onDragEnd={handleDragEnd}
+                                    onDragOver={(e) => e.preventDefault()}
+                                    style={{ cursor: 'move' }}
                                 >
                                     <div className="hs-order-badge">{index + 1}</div>
-                                    <div className="hs-section-icon">{section.icon}</div>
+                                    <div className="hs-section-icon" style={{ cursor: 'move', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '18px' }}>
+                                        <span style={{ color: '#999', fontSize: '20px' }}>≡</span> 
+                                        <span>{section.icon}</span>
+                                    </div>
                                     <div className="hs-section-info">
                                         <div className="hs-section-name">{section.nameVi}</div>
                                         <div className="hs-section-key">{section.sectionKey}</div>
                                     </div>
                                     <div className="hs-section-controls">
+                                        <input
+                                            type="number"
+                                            className="hs-limit-input"
+                                            value={section.itemLimit || ''}
+                                            onChange={(e) => handleItemLimitChange(index, Number(e.target.value))}
+                                            title="Số lượng sản phẩm hiển thị (Tối đa 30)"
+                                            min={1}
+                                            max={30}
+                                            style={{ width: '60px', padding: '4px', borderRadius: '4px', border: '1px solid #ccc', marginRight: '10px' }}
+                                        />
                                         <button
                                             className="hs-move-btn"
                                             onClick={() => moveSection(index, 'up')}
@@ -227,36 +285,6 @@ const AdminHomeSettingPage = () => {
                             ))}
                         </div>
                     )}
-                </div>
-
-                {/* Right — Preview */}
-                <div className="hs-preview-card">
-                    <div className="hs-card-header">
-                        <span className="hs-card-title">👁 Xem trước thứ tự</span>
-                    </div>
-                    <div className="hs-preview-body">
-                        <div className="hs-preview-label">Trang chủ sẽ hiển thị theo thứ tự:</div>
-                        <div className="hs-preview-items">
-                            {sections.map((s, i) => (
-                                <div
-                                    key={s.id}
-                                    className={`hs-preview-item${!s.visible ? ' hs-preview-item--hidden' : ''}`}
-                                >
-                                    <span className="hs-preview-num">{i + 1}</span>
-                                    <span className="hs-preview-emoji">{s.icon}</span>
-                                    <span className="hs-preview-name">{s.nameVi}</span>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="hs-divider" />
-                        <div className="hs-preview-label">Hướng dẫn</div>
-                        <ul className="hs-hint-list">
-                            <li>Bấm ▲ ▼ để thay đổi thứ tự</li>
-                            <li>Bật/tắt switch để ẩn/hiện section</li>
-                            <li>Bấm <strong>Lưu thay đổi</strong> để áp dụng</li>
-                            <li>Bấm Reset mặc định để hoàn tác</li>
-                        </ul>
-                    </div>
                 </div>
             </div>
 

@@ -36,4 +36,8 @@ public class HomeSection {
 
     @Column(name = "visible", nullable = false)
     private Boolean visible = true;
+
+    @Column(name = "item_limit", nullable = false)
+    @Builder.Default
+    private Integer itemLimit = 5;
 }

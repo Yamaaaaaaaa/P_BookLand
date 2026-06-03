@@ -60,7 +60,7 @@ public enum ErrorCode {
     // Event errors (2901-2950)
     EVENT_NOT_FOUND(2901, "Event not found", HttpStatus.NOT_FOUND),
     EVENT_HAS_LOGS(2902, "Cannot delete event with existing logs", HttpStatus.BAD_REQUEST),
-    EVENT_INVALID_TIME(2903, "Start time must be before end time", HttpStatus.BAD_REQUEST),
+    EVENT_INVALID_TIME(2903, "Ngày bắt đầu phải trước ngày kết thúc", HttpStatus.BAD_REQUEST),
 
     // Event Target errors (2910-2920)
     EVENT_TARGET_BOOK_NOT_FOUND(2910, "Target book not found", HttpStatus.NOT_FOUND),

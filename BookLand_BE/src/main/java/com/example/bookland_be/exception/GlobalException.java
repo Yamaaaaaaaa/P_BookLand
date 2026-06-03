@@ -25,7 +25,7 @@ public class GlobalException {
         ApiResponse response = new ApiResponse();
  
         response.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getErrorCode());
-        response.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
+        response.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage() + ": " + exception.getMessage());
         return ResponseEntity.badRequest().body(response);
     }
 

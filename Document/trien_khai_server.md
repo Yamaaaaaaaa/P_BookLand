@@ -147,6 +147,9 @@ Khi bạn tiếp tục code ở máy cá nhân (Local) và muốn cập nhật p
    
    # (Tùy chọn) Dọn dẹp các images cũ để giải phóng dung lượng đĩa:
    docker image prune -f
+
+   # Check log: 
+   docker logs -f bookland-be
    ```
 
 ---

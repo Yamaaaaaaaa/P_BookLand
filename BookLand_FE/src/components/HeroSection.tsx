@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { eventService } from '../api/eventService';
 import categoryService from '../api/categoryService';
 import homeService from '../api/homeService';
+import settingService from '../api/settingService';
 import type { Category } from '../types/Category';
 import type { HomeSection } from '../types/HomeSection';
 import { useTranslation } from 'react-i18next';
@@ -18,6 +19,7 @@ const HeroSection = () => {
     const [imgLoading, setImgLoading] = useState(true);
     const [pinnedCategories, setPinnedCategories] = useState<Category[]>([]);
     const [homeSections, setHomeSections] = useState<HomeSection[]>([]);
+    const [sideBanners, setSideBanners] = useState({ banner1: '', banner2: '' });
     const { t, i18n } = useTranslation();
 
     useEffect(() => {
@@ -63,9 +65,24 @@ const HeroSection = () => {
             }
         };
 
+        const fetchSettings = async () => {
+            try {
+                const res = await settingService.getAllSettings();
+                if (res.result) {
+                    setSideBanners({
+                        banner1: res.result['home_side_banner_1'] || '',
+                        banner2: res.result['home_side_banner_2'] || ''
+                    });
+                }
+            } catch (error) {
+                console.error("Failed to fetch settings", error);
+            }
+        };
+
         fetchEvent();
         fetchPinnedCategories();
         fetchHomeSections();
+        fetchSettings();
     }, []);
 
     const nextSlide = () => {
@@ -179,11 +196,11 @@ const HeroSection = () => {
                         )}
                     </div>
                     <div className="hero-side-banners">
-                        <div className="hero-side-banner" style={{ padding: 0, overflow: 'hidden', backgroundColor: 'transparent' }}>
-                            <img src="/momo.png" alt="Momo" style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '8px', display: 'block' }} />
+                        <div className="hero-side-banner">
+                            <img src={sideBanners.banner1 || "/momo.png"} alt="Banner 1" />
                         </div>
-                        <div className="hero-side-banner" style={{ padding: 0, overflow: 'hidden', backgroundColor: 'transparent' }}>
-                            <img src="/vn-pay.png" alt="VNPay" style={{ width: '100%', height: 'auto', objectFit: 'cover', borderRadius: '8px', display: 'block' }} />
+                        <div className="hero-side-banner">
+                            <img src={sideBanners.banner2 || "/vn-pay.png"} alt="Banner 2" />
                         </div>
                     </div>
                 </div>

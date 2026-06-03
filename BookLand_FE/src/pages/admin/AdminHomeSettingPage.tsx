@@ -4,6 +4,8 @@ import homeService from '../../api/homeService';
 import axiosClient from '../../api/axiosClient';
 import type { HomeSection } from '../../types/HomeSection';
 import type { ApiResponse } from '../../types/api';
+import settingService from '../../api/settingService';
+import GalleryModal from '../../components/admin/GalleryModal';
 import './admin-home-setting.css';
 
 /* ── DB action types ── */
@@ -45,6 +47,12 @@ const AdminHomeSettingPage = () => {
     const [savedAt, setSavedAt] = useState<Date | null>(null);
     const [resetting, setResetting] = useState(false);
 
+    // Banner Settings
+    const [banner1, setBanner1] = useState<string>('');
+    const [banner2, setBanner2] = useState<string>('');
+    const [showGallery, setShowGallery] = useState(false);
+    const [currentBannerSelect, setCurrentBannerSelect] = useState<1 | 2 | null>(null);
+
     const dragItem = useRef<number | null>(null);
     const dragOverItem = useRef<number | null>(null);
 
@@ -54,7 +62,20 @@ const AdminHomeSettingPage = () => {
 
     useEffect(() => {
         fetchSections();
+        fetchSettings();
     }, []);
+
+    const fetchSettings = async () => {
+        try {
+            const res = await settingService.getAllSettings();
+            if (res.result) {
+                if (res.result['home_side_banner_1']) setBanner1(res.result['home_side_banner_1']);
+                if (res.result['home_side_banner_2']) setBanner2(res.result['home_side_banner_2']);
+            }
+        } catch (error) {
+            console.error('Failed to fetch settings', error);
+        }
+    };
 
     const fetchSections = async () => {
         setLoading(true);
@@ -128,6 +149,13 @@ const AdminHomeSettingPage = () => {
                 itemLimit: s.itemLimit
             }));
             await homeService.bulkUpdateHomeSections(requests);
+            
+            // Save settings
+            await settingService.saveSettings({
+                'home_side_banner_1': banner1,
+                'home_side_banner_2': banner2
+            });
+
             setSavedAt(new Date());
             toast.success('✅ Cập nhật cấu hình trang chủ thành công!');
             fetchSections();
@@ -206,6 +234,61 @@ const AdminHomeSettingPage = () => {
                     >
                         {saving ? '⏳ Đang lưu...' : '💾 Lưu thay đổi'}
                     </button>
+                </div>
+            </div>
+
+            <div className="hs-layout" style={{ marginBottom: '24px' }}>
+                <div className="hs-card">
+                    <div className="hs-card-header">
+                        <span className="hs-card-title">🖼️ Cấu hình Banners phụ (Bên phải)</span>
+                    </div>
+                    <div className="hs-card-body" style={{ display: 'flex', gap: '24px', padding: '16px' }}>
+                        <div className="banner-config-item" style={{ flex: 1 }}>
+                            <h4>Banner trên</h4>
+                            <div 
+                                className="banner-preview" 
+                                style={{ 
+                                    width: '100%', height: '120px', 
+                                    border: '1px dashed #ccc', borderRadius: '8px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    cursor: 'pointer', overflow: 'hidden', position: 'relative'
+                                }}
+                                onClick={() => { setCurrentBannerSelect(1); setShowGallery(true); }}
+                            >
+                                {banner1 ? (
+                                    <img src={banner1} alt="Banner 1" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <span style={{ color: '#888' }}>+ Chọn ảnh</span>
+                                )}
+                            </div>
+                            {banner1 && (
+                                <button onClick={() => setBanner1('')} style={{ marginTop: '8px', color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>Xóa ảnh</button>
+                            )}
+                        </div>
+
+                        <div className="banner-config-item" style={{ flex: 1 }}>
+                            <h4>Banner dưới</h4>
+                            <div 
+                                className="banner-preview" 
+                                style={{ 
+                                    width: '100%', height: '120px', 
+                                    border: '1px dashed #ccc', borderRadius: '8px',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    cursor: 'pointer', overflow: 'hidden', position: 'relative'
+                                }}
+                                onClick={() => { setCurrentBannerSelect(2); setShowGallery(true); }}
+                            >
+                                {banner2 ? (
+                                    <img src={banner2} alt="Banner 2" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                    <span style={{ color: '#888' }}>+ Chọn ảnh</span>
+                                )}
+                            </div>
+                            {banner2 && (
+                                <button onClick={() => setBanner2('')} style={{ marginTop: '8px', color: 'red', border: 'none', background: 'none', cursor: 'pointer' }}>Xóa ảnh</button>
+                            )}
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -390,6 +473,19 @@ const AdminHomeSettingPage = () => {
                         </div>
                     </div>
                 </div>
+            )}
+            {showGallery && (
+                <GalleryModal
+                    isOpen={true}
+                    onClose={() => setShowGallery(false)}
+                    onSelect={(images) => {
+                        if (images.length > 0) {
+                            if (currentBannerSelect === 1) setBanner1(images[0].url);
+                            if (currentBannerSelect === 2) setBanner2(images[0].url);
+                        }
+                    }}
+                    multiple={false}
+                />
             )}
         </div>
     );

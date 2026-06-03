@@ -116,7 +116,19 @@ const CheckoutPage = () => {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({ ...prev, [name]: value }));
+        if (name === 'phone') {
+            // Only allow digits
+            const digitsOnly = value.replace(/\D/g, '');
+            // Max 10 digits
+            const capped = digitsOnly.slice(0, 10);
+            setFormData(prev => ({ ...prev, phone: capped }));
+        } else if (name === 'fullName') {
+            // No numbers and special chars
+            const noNumbersOrSpecial = value.replace(/[^a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]/g, '');
+            setFormData(prev => ({ ...prev, [name]: noNumbersOrSpecial }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: value }));
+        }
     };
 
     const handleSubmitOrder = async (e: React.FormEvent) => {
@@ -124,6 +136,11 @@ const CheckoutPage = () => {
 
         if (!formData.fullName || !formData.phone || !formData.address) {
             toast.warning(t('checkout.missing_info_warning'));
+            return;
+        }
+
+        if (formData.phone.length !== 10 || !formData.phone.startsWith('0')) {
+            toast.warning('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0!');
             return;
         }
 
@@ -257,9 +274,12 @@ const CheckoutPage = () => {
                                             <Phone size={18} />
                                             <input
                                                 name="phone"
+                                                type="tel"
+                                                inputMode="numeric"
                                                 value={formData.phone}
                                                 onChange={handleInputChange}
                                                 placeholder={t('checkout.placeholder_phone')}
+                                                maxLength={10}
                                                 required
                                             />
                                         </div>

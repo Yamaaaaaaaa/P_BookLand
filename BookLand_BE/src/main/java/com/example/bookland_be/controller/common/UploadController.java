@@ -127,7 +127,8 @@ public class UploadController {
             return ApiResponse.<Map<String, Object>>builder().result(response).build();
 
         } catch (Exception e) {
-             throw new AppException(ErrorCode.FILE_UPLOAD_FAILED);
+            e.printStackTrace();
+            throw new AppException(ErrorCode.FILE_UPLOAD_FAILED);
         }
     }
 
@@ -171,6 +172,7 @@ public class UploadController {
                             return result;
 
                         } catch (Exception e) {
+                            e.printStackTrace();
                             Map<String, Object> error = new HashMap<>();
                             error.put("fileName", file.getOriginalFilename());
                             error.put("error", e.getMessage());

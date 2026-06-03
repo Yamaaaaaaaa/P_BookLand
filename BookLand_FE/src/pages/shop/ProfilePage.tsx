@@ -4,7 +4,6 @@ import {
     ClipboardList,
     Bell,
     ChevronDown,
-    Info,
     MapPin,
     Loader2,
     MessageSquare,
@@ -15,7 +14,7 @@ import userService from '../../api/userService';
 import { getCurrentUserId } from '../../utils/auth';
 import type { User as UserType } from '../../types/User';
 import { toast } from 'react-toastify';
-import { useTranslation, Trans } from 'react-i18next';
+import { useTranslation } from 'react-i18next';
 
 type TabType = 'profile' | 'addresses' | 'notifications' | 'password';
 
@@ -70,12 +69,42 @@ const ProfilePage = () => {
         }
     };
 
+    // Today's date in YYYY-MM-DD for max date constraint
+    const todayStr = new Date().toISOString().split('T')[0];
 
-
+    const handleProfileChange = (field: string, value: string) => {
+        if (field === 'phone') {
+            const digitsOnly = value.replace(/\D/g, '').slice(0, 10);
+            setProfileForm(prev => ({ ...prev, phone: digitsOnly }));
+        } else if (field === 'firstName' || field === 'lastName') {
+            // Remove digits and special chars
+            const noNumbersOrSpecial = value.replace(/[^a-zA-ZÀÁÂÃÈÉÊÌÍÒÓÔÕÙÚĂĐĨŨƠàáâãèéêìíòóôõùúăđĩũơƯĂẠẢẤẦẨẪẬẮẰẲẴẶẸẺẼỀỀỂưăạảấầẩẫậắằẳẵặẹẻẽềềểỄỆỈỊỌỎỐỒỔỖỘỚỜỞỠỢỤỦỨỪễệỉịọỏốồổỗộớờởỡợụủứừỬỮỰỲỴÝỶỸửữựỳỵỷỹ\s]/g, '');
+            setProfileForm(prev => ({ ...prev, [field]: noNumbersOrSpecial }));
+        } else {
+            setProfileForm(prev => ({ ...prev, [field]: value }));
+        }
+    };
 
     const handleUpdateProfile = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!userId) return;
+
+        // Validate phone
+        if (profileForm.phone && (profileForm.phone.length !== 10 || !profileForm.phone.startsWith('0'))) {
+            toast.warning('Số điện thoại phải gồm 10 chữ số và bắt đầu bằng số 0!');
+            return;
+        }
+
+        // Validate dob
+        if (profileForm.dob) {
+            const dobDate = new Date(profileForm.dob);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+            if (dobDate > today) {
+                toast.warning('Ngày sinh không được vượt quá ngày hiện tại!');
+                return;
+            }
+        }
 
         setIsProcessing(true);
         try {
@@ -198,28 +227,7 @@ const ProfilePage = () => {
 
                     {/* Main Content */}
                     <main className="profile-main">
-                        {/* Membership Banner (Stats) */}
-                        <div className="membership-banner">
-                            <div className="banner-alert">
-                                <Info size={16} />
-                                <span><Trans i18nKey="profile.welcome_back" values={{ name: userData?.username || '' }} components={{ b: <b /> }} /></span>
-                            </div>
-                            <div className="banner-content">
-                                <div className="mascot-section">
-                                    <div className="mascot-container">
-                                        <img src="https://cdn0.fahasa.com/skin/frontend/ma_fahasa7/default/images/fahasa-mascot.png" alt="Mascot" />
-                                    </div>
-                                </div>
-                                <div className="stats-grid">
-                                    <div className="stat-card">
-                                        <h4>{t('profile.achievement')}</h4>
-                                        <div className="stat-items">
-                                            {/* Stats removed as they require separate API calls now or moved to respective pages */}
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
 
                         {/* Profile Tab */}
                         {activeTab === 'profile' && (
@@ -231,7 +239,7 @@ const ProfilePage = () => {
                                         <input
                                             type="text"
                                             value={profileForm.firstName}
-                                            onChange={(e) => setProfileForm({ ...profileForm, firstName: e.target.value })}
+                                            onChange={(e) => handleProfileChange('firstName', e.target.value)}
                                             placeholder={t('profile.enter_first_name')}
                                             required
                                         />
@@ -241,7 +249,7 @@ const ProfilePage = () => {
                                         <input
                                             type="text"
                                             value={profileForm.lastName}
-                                            onChange={(e) => setProfileForm({ ...profileForm, lastName: e.target.value })}
+                                            onChange={(e) => handleProfileChange('lastName', e.target.value)}
                                             placeholder={t('profile.enter_last_name')}
                                             required
                                         />
@@ -249,10 +257,12 @@ const ProfilePage = () => {
                                     <div className="form-group-row">
                                         <label>{t('profile.phone')}</label>
                                         <input
-                                            type="text"
+                                            type="tel"
+                                            inputMode="numeric"
                                             value={profileForm.phone}
-                                            onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+                                            onChange={(e) => handleProfileChange('phone', e.target.value)}
                                             placeholder={t('profile.enter_phone')}
+                                            maxLength={10}
                                         />
                                     </div>
                                     <div className="form-group-row">
@@ -269,7 +279,8 @@ const ProfilePage = () => {
                                         <input
                                             type="date"
                                             value={profileForm.dob ? profileForm.dob.split('T')[0] : ''}
-                                            onChange={(e) => setProfileForm({ ...profileForm, dob: e.target.value })}
+                                            onChange={(e) => handleProfileChange('dob', e.target.value)}
+                                            max={todayStr}
                                             style={{ height: '36px', padding: '0 12px', border: '1px solid #ddd', borderRadius: '4px', fontSize: '13px' }}
                                         />
                                     </div>

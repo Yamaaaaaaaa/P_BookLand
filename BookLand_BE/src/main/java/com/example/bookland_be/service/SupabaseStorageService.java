@@ -32,7 +32,11 @@ public class SupabaseStorageService {
 
     public String uploadImage(MultipartFile file) throws IOException {
 
-        String fileName = UUID.randomUUID() + "-" + file.getOriginalFilename();
+        String originalName = file.getOriginalFilename();
+        if (originalName != null) {
+            originalName = originalName.replaceAll("[^a-zA-Z0-9\\.\\-]", "_");
+        }
+        String fileName = UUID.randomUUID() + "-" + originalName;
 
         String uploadUrl = supabaseUrl
                 + "/storage/v1/object/"

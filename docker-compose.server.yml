@@ -59,6 +59,8 @@ services:
         condition: service_started
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - TZ=Asia/Ho_Chi_Minh
+      - JAVA_TOOL_OPTIONS=-Duser.timezone=Asia/Ho_Chi_Minh
       - REDIS_HOST=bookland-redis
       - REDIS_PORT=6379
       - ELASTICSEARCH_URIS=http://bookland-elasticsearch:9200

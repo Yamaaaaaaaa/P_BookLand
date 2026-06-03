@@ -254,3 +254,21 @@ Nếu bạn đang gặp lỗi **521 "Web server is down"** khi truy cập `https
 > 1. Truy cập Dashboard **Cloudflare**.
 > 2. Chọn tên miền của bạn và chuyển đến phần **SSL/TLS**.
 > 3. Đổi chế độ mã hóa SSL từ **Flexible** (Linh hoạt) thành **Full** hoặc **Full (strict)**. Trang web sẽ hoạt động bình thường ngay lập tức.
+
+---
+
+## 🧹 Mẹo Quản Lý & Vận Hành (Tips & Tricks)
+
+### 1. Xóa sạch Cache Redis (Clear Cache)
+Nếu bạn thay đổi dữ liệu (ví dụ: cập nhật sách, danh mục) nhưng giao diện vẫn hiển thị dữ liệu cũ do cơ chế lưu cache, bạn có thể xóa sạch cache của Redis bằng lệnh sau trên terminal VPS:
+
+```bash
+docker exec -it bookland-redis redis-cli FLUSHALL
+```
+
+*Giải thích:*
+- `docker exec -it bookland-redis`: Thực thi một lệnh trực tiếp vào bên trong container Redis đang chạy.
+- `redis-cli FLUSHALL`: Gọi công cụ dòng lệnh của Redis và thực hiện xóa toàn bộ mọi dữ liệu (keys) hiện có trong bộ nhớ cache. Sau khi chạy, màn hình hiển thị chữ **`OK`** là thành công.
+
+---
+*Chúc bạn triển khai thành công dự án BookLand! Nếu có bất kỳ vấn đề gì phát sinh trong quá trình cấu hình trên server, hãy hỏi tôi ngay lập tức.*

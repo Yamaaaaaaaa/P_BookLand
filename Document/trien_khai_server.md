@@ -1,24 +1,27 @@
-# 🚀 Hướng Dẫn Triển Khai Hệ Thống BookLand Lên Server (Backend + DB + Redis)
+# 🚀 Hướng Dẫn Triển Khai Hệ Thống BookLand Lên Server (Backend + DB + Redis + Elasticsearch)
 
-Tài liệu này hướng dẫn chi tiết từng bước để triển khai toàn bộ hệ thống BookLand (ngoại trừ Frontend) lên máy chủ VPS qua SSH bằng **Docker** và **Git**.
+Tài liệu này hướng dẫn chi tiết từng bước để triển khai toàn bộ hệ thống BookLand (Backend, Database, Redis, Elasticsearch) lên máy chủ VPS **Kamatera Cloud** mới qua SSH bằng **Docker** và **Git**.
 
 ---
 
 ## 📌 Thông Tin Hệ Thống Server
-* **Địa chỉ IP Server:** `114.29.239.206`
+* **Tên Server:** `kaitaserver`
+* **Địa chỉ IP Server (Public WAN):** `103.6.168.46`
 * **Tài khoản SSH:** `root`
+* **Cấu hình phần cứng:** 4 vCPUs | 8 GB RAM | 40 GB SSD (Chạy ở vùng Singapore)
 * **Các dịch vụ được triển khai:**
-  * **Backend (Spring Boot):** Port `8080`
-  * **Database (MySQL 8.0):** Port `3307` (nội bộ hoặc công khai)
-  * **Cache (Redis 7):** Port `6379` (nội bộ)
+  * **Backend (Spring Boot):** Port `8080` (Mặc định được ánh xạ qua Nginx proxy hoặc truy cập trực tiếp)
+  * **Database (MySQL 8.0):** Port `3307` (Ánh xạ nội bộ từ 3306 của container)
+  * **Cache (Redis 7):** Port `6379` (Chạy nội bộ trong Docker Network)
+  * **Search Engine (Elasticsearch 8.11.1):** Port `9200` (Chạy nội bộ trong Docker Network)
 
 ---
 
 ## 🛠️ Bước 1: Kết Nối Vào Server & Cập Nhật Hệ Thống
 
-1. Mở Terminal (PowerShell, Bash hoặc Git Bash) ở máy cá nhân của bạn và chạy lệnh sau để đăng nhập vào VPS:
+1. Mở Terminal (PowerShell, Bash hoặc Git Bash) ở máy cá nhân của bạn và chạy lệnh sau để đăng nhập vào VPS qua SSH:
    ```bash
-   ssh root@114.29.239.206
+   ssh root@103.6.168.46
    ```
    *(Nhập mật khẩu VPS của bạn khi được yêu cầu).*
 
@@ -27,16 +30,16 @@ Tài liệu này hướng dẫn chi tiết từng bước để triển khai to�
    apt update && apt upgrade -y
    ```
 
-3. Cài đặt các công cụ cơ bản cần thiết (Git, curl, ufw):
+3. Cài đặt các công cụ cơ bản cần thiết (Git, curl, nano, ufw):
    ```bash
-   apt install git curl ufw -y
+   apt install git curl nano ufw -y
    ```
 
 ---
 
 ## 🐳 Bước 2: Cài Đặt Docker & Docker Compose Lên Server
 
-Nếu máy chủ của bạn chưa cài đặt Docker, hãy chạy các lệnh sau để cài đặt phiên bản Docker Engine chính thức:
+Nếu máy chủ mới của bạn chưa cài đặt Docker, hãy chạy các lệnh sau để cài đặt phiên bản Docker Engine chính thức:
 
 1. Tải và chạy script cài đặt Docker tự động:
    ```bash
@@ -44,18 +47,22 @@ Nếu máy chủ của bạn chưa cài đặt Docker, hãy chạy các lệnh s
    sudo sh get-docker.sh
    ```
 
-2. Kiểm tra xem Docker đã hoạt động chưa:
+2. Cài đặt Docker Compose v2 (dạng plugin):
+   ```bash
+   sudo apt install docker-compose-plugin -y
+   ```
+
+3. Kiểm tra xem Docker & Docker Compose đã hoạt động chưa:
    ```bash
    docker --version
-   systemctl status docker
+   docker compose version
    ```
-   *(Nhấn `q` để thoát trạng thái hiển thị).*
 
 ---
 
 ## 📂 Bước 3: Clone Dự Án & Thiết Lập File Môi Trường (`.env`)
 
-1. Chọn một thư mục để chứa mã nguồn trên server (ví dụ `/var/www` hoặc `/root/app`):
+1. Chọn một thư mục để chứa mã nguồn trên server (ví dụ `/root/app`):
    ```bash
    mkdir -p /root/app
    cd /root/app
@@ -63,46 +70,54 @@ Nếu máy chủ của bạn chưa cài đặt Docker, hãy chạy các lệnh s
 
 2. Clone Git repository dự án của bạn và chuyển thẳng sang nhánh `dev_backend`:
    ```bash
-   # Thay đổi URL dưới đây bằng URL repository thực tế của bạn
    git clone -b dev_backend https://github.com/Yamaaaaaaaa/P_BookLand.git ptit-bookland
    cd ptit-bookland
    ```
 
-3. **Copy File Môi Trường Production (`.env.production`) Lên Server:**
-   Để đảm bảo bảo mật và tránh lộ mật mã/khóa bí mật, file `.env.production` nên được lưu trữ và quản lý cục bộ ở máy cá nhân chứ không đẩy lên GitHub công khai.
-   
-   Hãy mở một **Terminal mới trên máy cá nhân (Local)** tại thư mục gốc của dự án `PTIT_BookLand` và chạy lệnh `scp` dưới đây để truyền file sang server:
+3. **Cấu hình File Môi trường Production (`.env.production`):**
+   Do Frontend được triển khai riêng trên Cloudflare tại địa chỉ `https://p-bookland.sonasked1.workers.dev` nên VPS này **chỉ chạy Backend, Database và Redis** (thông qua file `docker-compose.server.yml` đã được tách phần Frontend). 
+
+   Bạn cần đảm bảo file `.env.production` cấu hình đúng các địa chỉ CORS và redirect của Frontend:
+   * **CORS_ALLOWED_ORIGINS:** `https://p-bookland.sonasked1.workers.dev`
+   * **VNP_RETURN_URL:** `https://p-bookland.sonasked1.workers.dev/shop/payment-result`
+
+   **Cách 1: Truyền bằng lệnh SCP (Chạy ở terminal máy cá nhân của bạn):**
+   Mở một terminal mới **trên máy cá nhân (Local)** tại thư mục gốc của dự án `PTIT_BookLand` và chạy:
    ```bash
-   scp BookLand_BE/.env.production root@114.29.239.206:/root/app/ptit-bookland/BookLand_BE/
+   scp BookLand_BE/.env.production root@103.6.168.46:/root/app/ptit-bookland/BookLand_BE/
    ```
    *(Nhập mật khẩu VPS để hoàn tất truyền tệp).*
-   
-   Nếu sau này bạn muốn chỉnh sửa nhanh bất cứ thông số cấu hình nào trực tiếp trên server, bạn có thể chạy lệnh:
+
+   **Cách 2: Tạo thủ công trực tiếp trên server:**
+   Nếu không dùng SCP, bạn có thể tạo và soạn thảo file trực tiếp trên Server:
    ```bash
    nano BookLand_BE/.env.production
    ```
+   Sau đó sao chép nội dung cấu hình sản xuất của bạn và dán vào, sau đó nhấn `Ctrl + O` -> `Enter` để lưu, và `Ctrl + X` để thoát.
 
 ---
 
 ## 🚢 Bước 4: Triển Khai Hệ Thống Bằng Docker Compose
 
-Chúng tôi đã chuẩn bị sẵn file `docker-compose.server.yml` chỉ chứa Backend, MySQL và Redis (đã loại bỏ Frontend):
+Chúng tôi sử dụng file cấu hình dành riêng cho server `docker-compose.server.yml` tại thư mục gốc dự án:
 
 1. Khởi chạy các container ở chế độ chạy ngầm (detached mode) và build lại Backend:
    ```bash
    docker compose -f docker-compose.server.yml up -d --build
    ```
+   *Lệnh này sẽ tải MySQL, Redis, đồng thời build dự án Spring Boot thành file Jar trong Docker container.*
 
-2. Kiểm tra danh sách các container đang hoạt động trên server:
+2. Kiểm tra trạng thái hoạt động của các container:
    ```bash
    docker compose -f docker-compose.server.yml ps
    ```
+   *(Đảm bảo cả 3 container `bookland-db`, `bookland-redis`, và `bookland-be` đều báo trạng thái Up/running).*
 
-3. **Theo dõi logs khởi động của Backend** để đảm bảo quá trình tự động tạo bảng (schema) và nạp dữ liệu mẫu (`data.sql`) diễn ra thành công:
+3. **Theo dõi logs khởi động của Backend** để kiểm tra quá trình chạy ứng dụng:
    ```bash
    docker compose -f docker-compose.server.yml logs -f bookland-be
    ```
-   *(Nhấn `Ctrl + C` để ngừng theo dõi log).*
+   *(Nhấn `Ctrl + C` để ngừng theo dõi logs).*
 
 ---
 
@@ -111,7 +126,7 @@ Chúng tôi đã chuẩn bị sẵn file `docker-compose.server.yml` chỉ chứ
 Khi bạn tiếp tục code ở máy cá nhân (Local) và muốn cập nhật phiên bản mới lên Server:
 
 1. **Ở máy cá nhân (Local):**
-   Đẩy các thay đổi lên GitHub/GitLab từ nhánh `dev_backend`:
+   Đẩy các thay đổi lên GitHub từ nhánh `dev_backend`:
    ```bash
    git add .
    git commit -m "feat: cập nhật chức năng mới"
@@ -119,61 +134,75 @@ Khi bạn tiếp tục code ở máy cá nhân (Local) và muốn cập nhật p
    ```
 
 2. **Ở máy chủ (Server):**
-   SSH vào server và thực hiện các lệnh sau để kéo code nhánh `dev_backend` về:
+   SSH vào server và thực hiện các lệnh sau để kéo code mới về và build lại:
    ```bash
+   # Di chuyển vào thư mục dự án trên VPS
    cd /root/app/ptit-bookland
+   
+   # Kéo code mới nhất từ nhánh dev_backend
    git pull origin dev_backend
    
    # Chỉ cần build lại dịch vụ backend (không ảnh hưởng tới Database và Redis)
    docker compose -f docker-compose.server.yml up -d --build bookland-be
+   
+   # (Tùy chọn) Dọn dẹp các images cũ để giải phóng dung lượng đĩa:
+   docker image prune -f
    ```
 
 ---
 
-## 🔒 Bước 6: Các Biện Phương Bảo Mật Quan Trọng (Security Best Practices)
+## 🔒 Bước 6: Các Biện Pháp Bảo Mật Quan Trọng & Firewall
 
-> **Cảnh báo bảo mật:**
-> Máy chủ có IP công khai rất dễ bị dò quét mật khẩu và tấn công. Hãy thực hiện ngay các bước sau:
-
-### 1. Đổi mật khẩu mặc định của Admin
-Sau khi hệ thống khởi chạy lần đầu, hãy đăng nhập ngay vào tài khoản quản trị mặc định (`admin` / `admin`) và tiến hành thay đổi mật khẩu sang một chuỗi bảo mật hơn.
-
-### 2. Thiết lập Tường lửa (UFW)
-Chỉ cho phép truy cập SSH và cổng API của Backend từ bên ngoài. Tuyệt đối không mở công khai các cổng Database (`3307`) và Redis (`6379`) ra internet trừ khi thực sự cần thiết.
-
-```bash
-# Cho phép kết nối SSH (BẮT BUỘC để tránh tự khóa mình bên ngoài)
-ufw allow 22/tcp
-
-# Cho phép truy cập Backend API
-ufw allow 8080/tcp
-
-# Kích hoạt tường lửa
-ufw enable
-```
+> [!IMPORTANT]
+> **1. Mở Cổng Trên Tường Lửa Kamatera (BẮT BUỘC):**
+> Giao diện quản trị của Kamatera có một tab chuyên biệt tên là **FIREWALL** (bên cạnh CONNECT và SNAPSHOTS). Bạn bắt buộc phải truy cập vào đó và cấu hình mở các cổng:
+> - `22/tcp` (SSH)
+> - `80/tcp` và `443/tcp` (HTTP/HTTPS cho web/API)
+> - `8080/tcp` (Nếu bạn muốn frontend truy cập thẳng vào API Spring Boot mà không qua Nginx)
+>
+> **2. Thiết lập Tường lửa trên HĐH (UFW) trên VPS:**
+> Cấu hình UFW để chỉ cho phép các cổng cần thiết kết nối từ bên ngoài:
+> ```bash
+> # Cho phép kết nối SSH (BẮT BUỘC để tránh bị khóa ngoài server)
+> ufw allow 22/tcp
+> 
+> # Cho phép cổng HTTP/HTTPS phục vụ API
+> ufw allow 80/tcp
+> ufw allow 443/tcp
+> 
+> # Cho phép cổng 8080 tạm thời (nếu chưa cài SSL Nginx)
+> ufw allow 8080/tcp
+> 
+> # Kích hoạt tường lửa
+> ufw enable
+> ```
+> *Lưu ý: Không mở cổng `3307` (MySQL) và `6379` (Redis) ra ngoài Internet để tránh bị dò quét và hack dữ liệu.*
+>
+> **3. Bảo toàn dữ liệu Database:**
+> Dữ liệu MySQL được lưu trữ lâu dài ở volume có tên `mysql_data` trên host VPS. Restart container hay rebuild code **sẽ không làm mất dữ liệu**. Tuy nhiên, nếu bạn chạy lệnh `docker compose -f docker-compose.server.yml down -v` (có cờ `-v`), nó sẽ xóa sạch volume dữ liệu này. Hãy cẩn thận!
 
 ---
 
 ## 🌐 Mở Rộng: Cấu Hình Tên Miền (Domain) & HTTPS (SSL) bằng Nginx Reverse Proxy
 
-Để API của bạn chạy chuyên nghiệp dưới dạng địa chỉ `https://api.p-bookland.io.vn` thay vì sử dụng IP và cổng `http://114.29.239.206:8080`, hãy làm theo hướng dẫn sau:
+Để API của backend chạy qua đường dẫn HTTPS an toàn (ví dụ `https://api.p-bookland.io.vn`) kết nối với Cloudflare Proxy:
 
-> [!NOTE]
-> **Nginx & Certbot là gì? Chúng dùng để làm gì?**
-> * **Nginx (Web Server / Reverse Proxy):** Là một máy chủ web hiệu năng cao đóng vai trò như một **"Lễ tân bảo mật"** ở cửa ngõ VPS. Nginx lắng nghe các kết nối từ Internet gửi tới cổng `80` (HTTP) và `443` (HTTPS). Khi nhận được yêu cầu, Nginx sẽ tiếp nhận, xử lý mã hóa bảo mật và âm thầm chuyển tiếp (proxy) yêu cầu đó vào cổng nội bộ `8080` cho ứng dụng Spring Boot chạy bên trong. Điều này giúp bảo vệ mã nguồn, ẩn cổng chạy thực tế của Spring Boot và tăng tối đa hiệu năng.
-> * **Certbot (Let's Encrypt):** Là công cụ tự động đăng ký, cài đặt cấu hình và tự động gia hạn chứng chỉ bảo mật **SSL/TLS miễn phí** từ tổ chức Let's Encrypt. Certbot giúp biến API của bạn từ dạng không an toàn (`http://`) thành dạng bảo mật mã hóa đầu cuối (`https://`).
+### ⚠️ Lưu ý quan trọng về DNS Cloudflare (Tránh lỗi 521 "Web server is down")
+Nếu bạn đang gặp lỗi **521 "Web server is down"** khi truy cập `https://api.p-bookland.io.vn`, đó là do Cloudflare chưa kết nối được tới VPS mới của bạn. Hãy thực hiện 2 việc sau:
+1. **Cập nhật A Record trên Cloudflare:** Đăng nhập vào trang quản trị DNS Cloudflare, tìm bản ghi `A` có tên `api` (hoặc `api.p-bookland.io.vn`) và đổi giá trị IP cũ thành IP mới của bạn: **`103.6.168.46`**.
+2. **Cài đặt Nginx & chạy container:** Lỗi 521 cũng xuất hiện nếu bạn chưa chạy Nginx trên VPS hoặc chưa mở cổng `80/443` trên tường lửa Kamatera. Hãy làm theo các bước dưới đây để cài đặt:
 
 1. Cài đặt Nginx và Certbot Let's Encrypt trên server:
    ```bash
    apt install nginx certbot python3-certbot-nginx -y
    ```
 
-2. Tạo file cấu hình Nginx:
+2. Tạo file cấu hình Nginx cho API:
    ```bash
    nano /etc/nginx/sites-available/bookland-be
    ```
 
-3. Dán đoạn cấu hình sau vào:
+3. Dán đoạn cấu hình sau vào (thay `api.p-bookland.io.vn` bằng domain thực tế của bạn):
    ```nginx
    server {
        listen 80;
@@ -186,57 +215,39 @@ ufw enable
            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
            proxy_set_header X-Forwarded-Proto $scheme;
            
-           # Hỗ trợ WebSockets (Cho real-time chat)
+           # Hỗ trợ WebSockets (Cho thông báo real-time)
            proxy_http_version 1.1;
            proxy_set_header Upgrade $http_upgrade;
            proxy_set_header Connection "upgrade";
        }
    }
    ```
-   ```javascript
-      // Bước 1 (Lưu file): Ấn tổ hợp phím Ctrl + O (chữ O, không phải số 0).
-      // Bước 2 (Xác nhận tên file): Hệ thống sẽ hiện dòng hỏi xác nhận tên file ở cuối màn hình, bạn chỉ cần nhấn phím Enter.
-      // Bước 3 (Thoát ra): Ấn tổ hợp phím Ctrl + X để quay lại dòng lệnh chính của Linux.
-   ```
+   *(Nhấn `Ctrl + O` -> `Enter` để lưu, và `Ctrl + X` để thoát).*
 
-4. Kích hoạt cấu hình và restart Nginx:
+4. Kích hoạt cấu hình và chạy thử Nginx:
    ```bash
    ln -s /etc/nginx/sites-available/bookland-be /etc/nginx/sites-enabled/
    nginx -t
    systemctl restart nginx
    ```
 
-> [!IMPORTANT]
-> **Mở cổng Firewall trước khi cấp chứng chỉ SSL:**
-> Let's Encrypt bắt buộc phải kết nối tới máy chủ của bạn qua cổng `80` (HTTP) để xác thực quyền sở hữu tên miền. Do đó, bạn **bắt buộc** phải mở cổng 80 và 443 trên tường lửa trước khi chạy lệnh Certbot:
-> ```bash
-> ufw allow 80/tcp
-> ufw allow 443/tcp
-> ufw reload
-> ```
-
-5. Cài đặt chứng chỉ SSL miễn phí tự động gia hạn:
+5. Cài đặt chứng chỉ SSL tự động từ Let's Encrypt:
    ```bash
    certbot --nginx -d api.p-bookland.io.vn
    ```
-   *(Lúc này Certbot sẽ tự động xác thực và cấu hình HTTPS SSL toàn diện cho bạn).*
-   
-6. Tăng cường bảo mật tối đa (Đóng cổng backend 8080 từ internet):
-   Sau khi hoàn tất cài đặt SSL, để đảm bảo không ai có thể truy cập trực tiếp cổng Backend `8080` chưa được mã hóa mà bắt buộc phải đi qua Reverse Proxy HTTPS bảo mật, hãy thực hiện đóng cổng 8080 trực tiếp từ bên ngoài:
+   *(Nhập email cá nhân/công việc bất kỳ của bạn — ví dụ: `sonasked1@gmail.com` — để Let's Encrypt gửi thông báo nhắc nhở khi chứng chỉ sắp hết hạn hoặc gặp sự cố, sau đó bấm `Y` để đồng ý với điều khoản dịch vụ).*
+
+6. Đóng cổng 8080 để chỉ cho phép truy cập qua cổng HTTPS (443):
    ```bash
    ufw delete allow 8080/tcp
    ufw reload
    ```
 
 > [!WARNING]
-> ### ⚠️ Xử lý lỗi vòng lặp chuyển hướng `ERR_TOO_MANY_REDIRECTS` (Nếu dùng Cloudflare)
-> Nếu bạn tích hợp tên miền qua Cloudflare và gặp lỗi **`ERR_TOO_MANY_REDIRECTS`** khi truy cập `https://api.p-bookland.io.vn`, đây là hiện tượng xung đột chế độ mã hóa giữa Cloudflare và Nginx SSL.
-> 
-> **Cách xử lý cực kỳ đơn giản:**
-> 1. Truy cập vào trang quản trị **Cloudflare**.
-> 2. Chọn tên miền của bạn và click vào mục **SSL/TLS** ở thanh menu bên trái.
-> 3. Chuyển chế độ mã hóa từ **Flexible** (Linh hoạt) thành **Full** hoặc **Full (strict)** *(Khuyên dùng chế độ **Full (strict)** để mã hóa hoàn toàn từ trình duyệt đến VPS và đạt bảo mật cao nhất)*.
-> 4. Reload (F5) lại trình duyệt, trang API sẽ hoạt động mượt mà ngay lập tức!
-
----
-*Chúc bạn triển khai thành công dự án BookLand! Nếu có bất kỳ vấn đề gì phát sinh trong quá trình cấu hình trên server, hãy hỏi tôi ngay lập tức.*
+> ### ⚠️ Cách sửa lỗi `ERR_TOO_MANY_REDIRECTS` khi dùng Cloudflare
+> Nếu bạn sử dụng Cloudflare để quản lý DNS tên miền và bật Proxy (đám mây màu vàng), bạn có thể gặp lỗi vòng lặp chuyển hướng do xung đột SSL.
+>
+> **Cách xử lý:**
+> 1. Truy cập Dashboard **Cloudflare**.
+> 2. Chọn tên miền của bạn và chuyển đến phần **SSL/TLS**.
+> 3. Đổi chế độ mã hóa SSL từ **Flexible** (Linh hoạt) thành **Full** hoặc **Full (strict)**. Trang web sẽ hoạt động bình thường ngay lập tức.

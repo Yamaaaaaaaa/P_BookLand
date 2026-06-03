@@ -78,7 +78,7 @@ Nếu máy chủ mới của bạn chưa cài đặt Docker, hãy chạy các l�
    Do Frontend được triển khai riêng trên Cloudflare tại địa chỉ `https://p-bookland.sonasked1.workers.dev` nên VPS này **chỉ chạy Backend, Database và Redis** (thông qua file `docker-compose.server.yml` đã được tách phần Frontend). 
 
    Bạn cần đảm bảo file `.env.production` cấu hình đúng các địa chỉ CORS và redirect của Frontend:
-   * **CORS_ALLOWED_ORIGINS:** `https://p-bookland.sonasked1.workers.dev`
+   * **CORS_ALLOWED_ORIGINS:** `https://p-bookland.sonasked1.workers.dev,https://api.p-bookland.io.vn` (Cho phép cả domain Frontend và domain API của Backend để Swagger UI chạy được)
    * **VNP_RETURN_URL:** `https://p-bookland.sonasked1.workers.dev/shop/payment-result`
 
    **Cách 1: Truyền bằng lệnh SCP (Chạy ở terminal máy cá nhân của bạn):**

@@ -150,7 +150,8 @@ public class BookService {
 
     @Caching(evict = {
             @CacheEvict(value = "books", key = "#id"),
-            @CacheEvict(value = "all_books", allEntries = true)
+            @CacheEvict(value = "all_books", allEntries = true),
+            @CacheEvict(value = "best_selling_books", allEntries = true)
     })
     @Transactional
     public BookDTO updateBook(Long id, BookRequest request) {
@@ -199,7 +200,8 @@ public class BookService {
 
     @Caching(evict = {
             @CacheEvict(value = "books", key = "#id"),
-            @CacheEvict(value = "all_books", allEntries = true)
+            @CacheEvict(value = "all_books", allEntries = true),
+            @CacheEvict(value = "best_selling_books", allEntries = true)
     })
     @Transactional
     public void deleteBook(Long id) {
@@ -216,7 +218,8 @@ public class BookService {
 
     @Caching(evict = {
             @CacheEvict(value = "books", key = "#id"),
-            @CacheEvict(value = "all_books", allEntries = true)
+            @CacheEvict(value = "all_books", allEntries = true),
+            @CacheEvict(value = "best_selling_books", allEntries = true)
     })
     @Transactional
     public BookDTO updateBookStock(Long id, Integer quantity) {

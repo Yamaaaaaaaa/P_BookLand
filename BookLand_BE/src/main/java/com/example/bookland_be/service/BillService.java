@@ -12,6 +12,9 @@ import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.*;
 import com.example.bookland_be.repository.specification.BillSpecification;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BillService {
 
     private final BillRepository billRepository;
@@ -35,6 +39,7 @@ public class BillService {
     private final EventApplicationService eventApplicationService;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final CacheManager cacheManager;
 
     @Transactional(readOnly = true)
     public Page<BillDTO> getAllBills(Long userId, BillStatus status,
@@ -241,6 +246,14 @@ public class BillService {
             eventApplicationService.logEventApplication(appliedEvent, user, savedBill, totalDiscountValue);
         }
 
+        // Clear caches
+        try {
+            List<Long> bookIds = books.stream().map(Book::getId).collect(Collectors.toList());
+            evictBookCaches(bookIds);
+        } catch (Exception e) {
+            log.error("Error evicting caches in createBill: {}", e.getMessage());
+        }
+
         return convertToDTO(savedBill);
     }
 
@@ -264,10 +277,12 @@ public class BillService {
         }
 
         if (newStatus == BillStatus.CANCELED) {
+            List<Long> bookIds = new ArrayList<>();
             for (BillBook billBook : bill.getBillBooks()) {
                 try {
                     Book book = billBook.getBook();
                     if (book != null) {
+                        bookIds.add(book.getId());
                         bookRepository.findById(book.getId()).ifPresent(existingBook -> {
                             existingBook.setStock(existingBook.getStock() + billBook.getQuantity());
                             bookRepository.save(existingBook);
@@ -275,6 +290,11 @@ public class BillService {
                     }
                 } catch (Exception e) {
                 }
+            }
+            try {
+                evictBookCaches(bookIds);
+            } catch (Exception e) {
+                log.error("Error evicting caches in updateBillStatus: {}", e.getMessage());
             }
         }
 
@@ -354,11 +374,13 @@ public class BillService {
             throw new RuntimeException("Can only delete pending or cancelled bills");
         }
 
+        List<Long> bookIds = new ArrayList<>();
         if (bill.getStatus() == BillStatus.PENDING) {
             for (BillBook billBook : bill.getBillBooks()) {
                 try {
                     Book book = billBook.getBook();
                     if (book != null) {
+                        bookIds.add(book.getId());
                         bookRepository.findById(book.getId()).ifPresent(existingBook -> {
                             existingBook.setStock(existingBook.getStock() + billBook.getQuantity());
                             bookRepository.save(existingBook);
@@ -367,9 +389,21 @@ public class BillService {
                 } catch (Exception e) {
                 }
             }
+        } else if (bill.getStatus() == BillStatus.CANCELED) {
+            for (BillBook billBook : bill.getBillBooks()) {
+                if (billBook.getBook() != null) {
+                    bookIds.add(billBook.getBook().getId());
+                }
+            }
         }
 
         billRepository.delete(bill);
+
+        try {
+            evictBookCaches(bookIds);
+        } catch (Exception e) {
+            log.error("Error evicting caches in deleteBill: {}", e.getMessage());
+        }
     }
 
     private void validateStatusTransition(BillStatus oldStatus, BillStatus newStatus) {
@@ -444,5 +478,29 @@ public class BillService {
                 .quantity(billBook.getQuantity())
                 .subtotal(subtotal)
                 .build();
+    }
+
+    private void evictBookCaches(Collection<Long> bookIds) {
+        try {
+            Cache allBooksCache = cacheManager.getCache("all_books");
+            if (allBooksCache != null) {
+                allBooksCache.clear();
+                log.info("Evicted all_books cache");
+            }
+            Cache bestSellingCache = cacheManager.getCache("best_selling_books");
+            if (bestSellingCache != null) {
+                bestSellingCache.clear();
+                log.info("Evicted best_selling_books cache");
+            }
+            Cache booksCache = cacheManager.getCache("books");
+            if (booksCache != null && bookIds != null) {
+                for (Long bookId : bookIds) {
+                    booksCache.evict(bookId);
+                    log.info("Evicted books cache for bookId: {}", bookId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to evict book caches: {}", e.getMessage(), e);
+        }
     }
 }

@@ -42,7 +42,13 @@ public class BookSearchService {
 
     @Transactional(readOnly = true)
     public void syncAllBooks() {
-        bookElasticsearchRepository.deleteAll();
+        org.springframework.data.elasticsearch.core.IndexOperations indexOps = elasticsearchOperations.indexOps(BookDocument.class);
+        if (indexOps.exists()) {
+            indexOps.delete();
+        }
+        indexOps.create();
+        indexOps.putMapping(indexOps.createMapping(BookDocument.class));
+
         List<Book> books = bookRepository.findAll();
         List<BookDocument> docs = books.stream()
                 .map(this::convertToDocument)
@@ -71,13 +77,17 @@ public class BookSearchService {
                 .withPageable(pageable)
                 .build();
 
-        SearchHits<BookDocument> hits = elasticsearchOperations.search(query, BookDocument.class);
-        List<BookDocument> results = hits.getSearchHits()
-                .stream()
-                .map(SearchHit::getContent)
-                .collect(Collectors.toList());
-
-        return new PageImpl<>(results, pageable, hits.getTotalHits());
+        try {
+            SearchHits<BookDocument> hits = elasticsearchOperations.search(query, BookDocument.class);
+            List<BookDocument> results = hits.getSearchHits()
+                    .stream()
+                    .map(SearchHit::getContent)
+                    .collect(Collectors.toList());
+            return new PageImpl<>(results, pageable, hits.getTotalHits());
+        } catch (Exception e) {
+            // Trả về trang trống thay vì ném lỗi 500 ra ngoài khi index chưa tồn tại hoặc gặp sự cố
+            return new PageImpl<>(List.of(), pageable, 0);
+        }
     }
 
     private BookDocument convertToDocument(Book book) {

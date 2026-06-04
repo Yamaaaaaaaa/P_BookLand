@@ -16,6 +16,10 @@ public interface ChatbotKnowledgeRepository extends JpaRepository<ChatbotKnowled
     List<ChatbotKnowledge> findByIsActiveTrueAndCategoryOrderByPriorityDesc(KnowledgeCategory category);
 
     /** Tìm kiếm full-text (MySQL FULLTEXT) */
+    @org.springframework.transaction.annotation.Transactional(
+            propagation = org.springframework.transaction.annotation.Propagation.REQUIRES_NEW,
+            readOnly = true
+    )
     @Query(value = "SELECT * FROM chatbot_knowledge " +
                    "WHERE is_active = true " +
                    "AND MATCH(title, content, keywords) AGAINST(:query IN BOOLEAN MODE) " +

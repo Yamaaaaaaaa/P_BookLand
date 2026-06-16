@@ -917,12 +917,17 @@
     "price_700_up": "700,000đ - Trở Lên",
     "category_title": "DANH MỤC THỂ LOẠI",
     "category_placeholder": "Tìm thể loại...",
+    "category_hints": "Truyện tranh · Kinh dị · Lãng mạn · Khoa học",
     "author_title": "TÁC GIẢ",
     "author_placeholder": "Tìm tác giả...",
+    "author_hints": "Nguyễn Nhật Ánh · Tô Hoài · Nam Cao",
     "publisher_title": "NHÀ XUẤT BẢN",
     "publisher_placeholder": "Tìm nhà xuất bản...",
+    "publisher_hints": "Kim Đồng · Trẻ · Giáo dục · Tổng hợp",
     "series_title": "PHÂN LOẠI SERIES",
     "series_placeholder": "Tìm series...",
+    "series_hints": "Conan · Doraemon · One Piece · Naruto",
+    "hints_label": "Gợi ý:",
     "clear_section": "Xóa hết"
   },
   "book_management": {

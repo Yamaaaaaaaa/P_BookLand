@@ -4,7 +4,6 @@
   background-image: linear-gradient(135deg, #F64A4A 0%, #C92127 100%);
   padding: 20px 0;
   position: relative;
-  overflow: hidden;
 }
 
 /* Background lightning bolt pattern simulation */
@@ -115,11 +114,16 @@
 
 /* Grid Layout */
 .flash-sale__grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
   gap: 12px;
   background-color: transparent;
-  position: relative;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+.flash-sale__grid::-webkit-scrollbar {
+  display: none;
 }
 
 .flash-sale__card {
@@ -130,6 +134,8 @@
   flex-direction: column;
   transition: transform 0.2s, box-shadow 0.2s;
   cursor: pointer;
+  flex: 0 0 calc(20% - 9.6px);
+  scroll-snap-align: start;
 }
 
 .flash-sale__card:hover {
@@ -232,7 +238,7 @@
 /* Nav Arrow */
 .flash-sale__nav-next {
   position: absolute;
-  right: -20px;
+  right: 5px;
   top: 50%;
   transform: translateY(-50%);
   width: 40px;
@@ -256,7 +262,7 @@
 
 .flash-sale__nav-prev {
   position: absolute;
-  left: -20px;
+  left: 5px;
   top: 50%;
   transform: translateY(-50%);
   width: 40px;

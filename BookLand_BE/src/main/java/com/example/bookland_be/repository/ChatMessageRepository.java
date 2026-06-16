@@ -11,6 +11,9 @@ import java.util.List;
 @Repository
 public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> {
 
+    /** Lấy tất cả tin nhắn trong một chatbot session */
+    List<ChatMessage> findBySessionIdOrderByCreatedAtAsc(String sessionId);
+
     @Query("SELECT cm FROM ChatMessage cm WHERE " +
            "(cm.fromUser.id = :userId1 AND cm.toUser.id = :userId2) OR " +
            "(cm.fromUser.id = :userId2 AND cm.toUser.id = :userId1) " +

@@ -40,28 +40,8 @@ function formatAction(type: string, value: string): string {
             return `Giảm ${value}% trên giá gốc`;
         case EventActionType.DISCOUNT_AMOUNT:
             return `Giảm ${Number(value).toLocaleString('vi-VN')}₫`;
-        case EventActionType.DISCOUNT_FIXED_PRICE:
-            return `Giá cố định ${Number(value).toLocaleString('vi-VN')}₫`;
         case EventActionType.FREE_SHIPPING:
             return 'Miễn phí vận chuyển';
-        case EventActionType.DISCOUNT_SHIPPING_PERCENT:
-            return `Giảm ${value}% phí ship`;
-        case EventActionType.DISCOUNT_SHIPPING_AMOUNT:
-            return `Giảm ${Number(value).toLocaleString('vi-VN')}₫ phí ship`;
-        case EventActionType.FREE_GIFT:
-            return 'Tặng kèm quà';
-        case EventActionType.FREE_GIFT_BY_POINT:
-            return `Tặng ${value} điểm thưởng`;
-        case EventActionType.BUY_X_GET_Y_FREE:
-            return `Mua ${value.split(',')[0]} tặng ${value.split(',')[1]} sách`;
-        case EventActionType.CASHBACK_PERCENT:
-            return `Hoàn tiền ${value}%`;
-        case EventActionType.CASHBACK_AMOUNT:
-            return `Hoàn ${Number(value).toLocaleString('vi-VN')}₫`;
-        case EventActionType.GENERATE_VOUCHER:
-            return `Tặng voucher: ${value}`;
-        case EventActionType.UPGRADE_MEMBERSHIP:
-            return `Nâng hạng thành viên: ${value}`;
         default:
             return `${type}: ${value}`;
     }
@@ -77,22 +57,6 @@ function formatRule(type: string, value: string): string {
             return `Mua ít nhất ${value} quyển`;
         case EventRuleType.MAX_QUANTITY:
             return `Tối đa ${value} quyển`;
-        case EventRuleType.MIN_ITEMS_IN_CART:
-            return `Giỏ hàng có ít nhất ${value} sản phẩm`;
-        case EventRuleType.MAX_USAGE_PER_USER:
-            return `Tối đa ${value} lần/người`;
-        case EventRuleType.MAX_USAGE_TOTAL:
-            return `Giới hạn ${value} lượt sử dụng`;
-        case EventRuleType.NEW_USER_ONLY:
-            return 'Chỉ dành cho người dùng mới';
-        case EventRuleType.FIRST_PURCHASE:
-            return 'Chỉ áp dụng lần mua đầu tiên';
-        case EventRuleType.ONLINE_PAYMENT_ONLY:
-            return 'Chỉ thanh toán online';
-        case EventRuleType.COUPON_CODE_REQUIRED:
-            return `Cần mã: ${value}`;
-        case EventRuleType.TOTAL_SPENT_MIN:
-            return `Đã chi tối thiểu ${Number(value).toLocaleString('vi-VN')}₫`;
         default:
             return `${type}: ${value}`;
     }
@@ -287,18 +251,7 @@ const EventDetailPage = () => {
     // Has product-level targets
     // - targets rỗng = áp dụng tất cả → luôn hiện sách
     // - có target ALL → hiện sách
-    // - target BOOK/CATEGORY/SERIES/AUTHOR/PUBLISHER → hiện sách
-    // - chỉ toàn target USER/ORDER related → ẩn sách
-    const NON_PRODUCT_TYPES: string[] = [
-        EventTargetType.USER, EventTargetType.USER_GROUP,
-        EventTargetType.NEW_USER, EventTargetType.VIP_USER,
-        EventTargetType.ALL_ORDERS, EventTargetType.FIRST_ORDER,
-        EventTargetType.LOCATION,
-    ];
-    const targets = event.targets || [];
-    const hasProductTargets =
-        targets.length === 0 ||
-        targets.some(t => !NON_PRODUCT_TYPES.includes(t.targetType));
+    const hasProductTargets = true;
 
     return (
         <div className="event-detail-page">

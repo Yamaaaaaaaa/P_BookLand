@@ -69,7 +69,17 @@ const billService = {
     // Customer own bills
     getOwnBills: (params?: Omit<BillQueryParams, 'userId'>) => {
         return axiosClient.get<any, ApiResponse<Page<Bill>>>('/api/bills/my-bills', { params });
-    }
+    },
+
+    // Shipper: get list of SHIPPING orders
+    getShippingList: (params?: { page?: number; size?: number; sortBy?: string; sortDirection?: string }) => {
+        return axiosClient.get<any, ApiResponse<Page<Bill>>>('/api/bills/shipping-list', { params });
+    },
+
+    // Shipper: confirm delivered (SHIPPING -> SHIPPED)
+    confirmDelivered: (id: number) => {
+        return axiosClient.patch<any, ApiResponse<Bill>>(`/api/bills/${id}/confirm-delivered`);
+    },
 };
 
 export default billService;

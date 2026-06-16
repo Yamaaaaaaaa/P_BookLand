@@ -14,6 +14,7 @@ public enum ErrorCode {
     EMAIL_EXISTED(1009, "Email existed, please choose another one", HttpStatus.BAD_REQUEST),
     USER_EXISTED(1010, "Username existed, please choose another one", HttpStatus.BAD_REQUEST),
     USERNAME_IS_MISSING(1011, "Please enter username", HttpStatus.BAD_REQUEST),
+    CONCURRENT_UPDATE_CONFLICT(1012, "Data is being updated by another process, please try again", HttpStatus.CONFLICT),
     
     // Book errors
     BOOK_NOT_FOUND(2001, "Book not found", HttpStatus.NOT_FOUND),
@@ -59,7 +60,7 @@ public enum ErrorCode {
     // Event errors (2901-2950)
     EVENT_NOT_FOUND(2901, "Event not found", HttpStatus.NOT_FOUND),
     EVENT_HAS_LOGS(2902, "Cannot delete event with existing logs", HttpStatus.BAD_REQUEST),
-    EVENT_INVALID_TIME(2903, "Start time must be before end time", HttpStatus.BAD_REQUEST),
+    EVENT_INVALID_TIME(2903, "Ngày bắt đầu phải trước ngày kết thúc", HttpStatus.BAD_REQUEST),
 
     // Event Target errors (2910-2920)
     EVENT_TARGET_BOOK_NOT_FOUND(2910, "Target book not found", HttpStatus.NOT_FOUND),
@@ -95,6 +96,7 @@ public enum ErrorCode {
     BILL_NOT_COMPLETED(3002, "Bill is not completed", HttpStatus.BAD_REQUEST),
     USER_NOT_OWN_BILL(3003, "You do not own this bill", HttpStatus.FORBIDDEN),
     BOOK_NOT_IN_BILL(3004, "Book is not in this bill", HttpStatus.BAD_REQUEST),
+    INVALID_STATUS_TRANSITION(3005, "Invalid status transition: order must be in SHIPPING status", HttpStatus.BAD_REQUEST),
     ;
 
 

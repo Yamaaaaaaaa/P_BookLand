@@ -25,6 +25,9 @@ public class CartItem {
     @JoinColumn(name = "bookId")
     private Book book;
 
+    @Version
+    private Long version;
+
     @Column(nullable = false)
     @Builder.Default
     private Integer quantity = 1;

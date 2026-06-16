@@ -26,7 +26,17 @@
   font-size: 24px;
   font-weight: 700;
   margin: 0;
-  text-transform: none;
+  text-transform: uppercase;
+}
+
+.recommendations-icon-box {
+  background-color: #2F9C55;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .spark-icon {
@@ -34,10 +44,16 @@
 }
 
 .recommendations-grid {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
   gap: 8px;
   padding: 0;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x mandatory;
+}
+
+.recommendations-grid::-webkit-scrollbar {
+  display: none;
 }
 
 .recommend-card {
@@ -49,6 +65,8 @@
   gap: 8px;
   transition: transform 0.2s;
   border-radius: 4px;
+  flex: 0 0 calc(20% - 6.4px); /* 5 items per view */
+  scroll-snap-align: start;
 }
 
 .recommend-card:hover {

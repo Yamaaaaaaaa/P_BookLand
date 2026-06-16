@@ -47,8 +47,8 @@ public class BookCommentService {
         Bill bill = billRepository.findById(request.getBillId())
                 .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
 
-        // Validation: Bill must be COMPLETED
-        if (bill.getStatus() != Bill.BillStatus.COMPLETED) {
+        // Validation: Bill must be SHIPPED or COMPLETED
+        if (bill.getStatus() != Bill.BillStatus.SHIPPED && bill.getStatus() != Bill.BillStatus.COMPLETED) {
             throw new AppException(ErrorCode.BILL_NOT_COMPLETED);
         }
 

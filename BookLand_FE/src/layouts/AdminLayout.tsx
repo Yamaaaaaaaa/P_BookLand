@@ -1,7 +1,7 @@
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { logoutAdmin, getAdminRefreshToken } from '../utils/auth';
 import authService from '../api/authService';
-import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt, ImageIcon, MessageCircle, Shield, ChevronDown, Mail } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, Truck, Calendar, Book, Layers, Hash, LogOut, Receipt, ImageIcon, MessageCircle, Shield, ChevronDown, Mail, Settings } from 'lucide-react';
 import '../styles/layouts/admin.css';
 import { useTranslation } from 'react-i18next';
 import { useState } from 'react';
@@ -44,6 +44,9 @@ const AdminLayout = () => {
                         <div className="admin-nav-title">{t('admin.overview')}</div>
                         <Link to="/admin/dashboard" className={`admin-nav-item ${isActive('/dashboard') ? 'active' : ''}`}>
                             <LayoutDashboard /> {t('admin.dashboard')}
+                        </Link>
+                        <Link to="/admin/home-setting" className={`admin-nav-item ${isActive('/home-setting') ? 'active' : ''}`}>
+                            <Settings size={18} /> Set up Trang chủ
                         </Link>
                     </div>
 

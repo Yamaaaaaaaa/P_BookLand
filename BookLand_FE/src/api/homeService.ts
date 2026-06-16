@@ -1,14 +1,38 @@
 import axiosClient from './axiosClient';
 import type { ApiResponse } from '../types/api';
+import type { HomeSection } from '../types/HomeSection';
 
 const homeService = {
     getHomeData: () => {
         return axiosClient.get<any, ApiResponse<string>>('/home');
     },
+
     getAdminHomeData: () => {
-        return axiosClient.get<any, string>('/admin/home'); // API doc says schema type string, not wrapped in api response for admin home? actually check doc again.
-        // Doc says: /admin/home 200 OK content string schema type string
-    }
+        return axiosClient.get<any, string>('/admin/home');
+    },
+
+    // ── Home Sections ───────────────────────────────────────────────────────
+    getHomeSections: () => {
+        return axiosClient.get<any, ApiResponse<HomeSection[]>>('/api/home-sections');
+    },
+
+    updateHomeSectionsOrder: (sectionIds: number[]) => {
+        return axiosClient.put<any, ApiResponse<HomeSection[]>>('/api/home-sections/order', { sectionIds });
+    },
+
+    toggleHomeSectionVisibility: (id: number, visible: boolean) => {
+        return axiosClient.patch<any, ApiResponse<HomeSection[]>>(
+            `/api/home-sections/${id}/visibility?visible=${visible}`
+        );
+    },
+
+    resetHomeSectionsToDefault: () => {
+        return axiosClient.post<any, ApiResponse<HomeSection[]>>('/api/home-sections/reset');
+    },
+
+    bulkUpdateHomeSections: (requests: { id: number; displayOrder?: number; visible?: boolean; itemLimit?: number }[]) => {
+        return axiosClient.put<any, ApiResponse<HomeSection[]>>('/api/home-sections/bulk-update', requests);
+    },
 };
 
 export default homeService;

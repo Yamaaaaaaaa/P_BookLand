@@ -51,6 +51,7 @@ public class BillPreviewService {
         // 2. Lấy Event và Check Rule
         Optional<Event> activeEventOpt = eventApplicationService.getHighestPriorityActiveEvent();
         Event appliedEvent = null;
+        boolean isFreeShipping = false;
         
         if (activeEventOpt.isPresent()) {
             Event event = activeEventOpt.get();
@@ -58,14 +59,36 @@ public class BillPreviewService {
             boolean isEligible = eventApplicationService.checkEventRule(event, null, tempTotalCost, totalQuantity);
             if (isEligible) {
                 appliedEvent = event;
+                if (eventApplicationService.hasFreeShipping(event)) {
+                    isFreeShipping = true;
+                }
             }
         }
 
 
-        // 3. Build kết quả
+        // 3. Phân bổ giảm giá và build kết quả
         List<BookPreviewDTO> bookPreviews = new ArrayList<>();
         double originalTotal = 0.0;
         double discountedTotal = 0.0;
+        
+        List<Book> eligibleBooks = new ArrayList<>();
+        double eligibleSubtotal = 0.0;
+        
+        if (appliedEvent != null) {
+            for (BillBookRequest br : bookRequests) {
+                Book book = bookMap.get(br.getBookId());
+                if (eventApplicationService.isBookInEventTarget(appliedEvent, book)) {
+                    eligibleBooks.add(book);
+                    eligibleSubtotal += book.getFinalPrice() * br.getQuantity();
+                }
+            }
+        }
+        
+        double discountRatio = 0.0;
+        if (appliedEvent != null && eventApplicationService.isBillLevelAction(appliedEvent) && eligibleSubtotal > 0) {
+            Double discountAmount = eventApplicationService.calculateBillLevelDiscountAmount(appliedEvent, eligibleSubtotal);
+            discountRatio = discountAmount / eligibleSubtotal;
+        }
 
         for (BillBookRequest br : bookRequests) {
             Book book = bookMap.get(br.getBookId());
@@ -74,7 +97,11 @@ public class BillPreviewService {
             boolean hasDiscount = false;
 
             if (appliedEvent != null && eventApplicationService.isBookInEventTarget(appliedEvent, book)) {
-                finalPrice = eventApplicationService.calculateDiscountedPrice(appliedEvent, originalPrice);
+                if (eventApplicationService.isBillLevelAction(appliedEvent)) {
+                    finalPrice = originalPrice * (1.0 - discountRatio);
+                } else {
+                    finalPrice = eventApplicationService.calculateDiscountedPrice(appliedEvent, originalPrice);
+                }
                 hasDiscount = true;
             }
 
@@ -95,9 +122,9 @@ public class BillPreviewService {
             discountedTotal += finalPrice * br.getQuantity();
         }
 
-        double shippingCost = shippingMethod.getPrice();
+        double shippingCost = isFreeShipping ? 0.0 : shippingMethod.getPrice();
         double grandTotal = discountedTotal + shippingCost;
-        double totalSaved = originalTotal - discountedTotal;
+        double totalSaved = (originalTotal - discountedTotal) + (isFreeShipping ? shippingMethod.getPrice() : 0.0);
 
         return BillPreviewDTO.builder()
                 .books(bookPreviews)

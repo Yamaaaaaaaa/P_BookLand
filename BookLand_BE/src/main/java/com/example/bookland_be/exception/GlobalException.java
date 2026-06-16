@@ -10,7 +10,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 
 import jakarta.validation.metadata.ConstraintDescriptor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,11 +21,23 @@ public class GlobalException {
     private static final String MIN_ATTRIBUTE = "min";
     @ExceptionHandler
     ResponseEntity<ApiResponse<String>> handleRuntimeException(RuntimeException exception){
+        log.error("RuntimeException occurred: ", exception);
         ApiResponse response = new ApiResponse();
-
+ 
         response.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getErrorCode());
-        response.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage());
+        response.setMessage(ErrorCode.UNCATEGORIZED_EXCEPTION.getMessage() + ": " + exception.getMessage());
         return ResponseEntity.badRequest().body(response);
+    }
+
+    @ExceptionHandler(value = ObjectOptimisticLockingFailureException.class)
+    ResponseEntity<ApiResponse> handlingOptimisticLockException(ObjectOptimisticLockingFailureException exception) {
+        ErrorCode errorCode = ErrorCode.CONCURRENT_UPDATE_CONFLICT;
+        ApiResponse apiResponse = new ApiResponse();
+        
+        apiResponse.setCode(errorCode.getErrorCode());
+        apiResponse.setMessage(errorCode.getMessage());
+        
+        return ResponseEntity.status(errorCode.getHttpStatus()).body(apiResponse);
     }
 
     @ExceptionHandler(value = AppException.class)
@@ -52,10 +64,11 @@ public class GlobalException {
 
     @ExceptionHandler(value = IllegalArgumentException.class)
     ResponseEntity<ApiResponse<String>> handleIllegalArgumentException(IllegalArgumentException exception){
+        log.error("IllegalArgumentException: ", exception);
         ApiResponse response = new ApiResponse();
 
-        response.setCode(ErrorCode.USER_EXISTED.getErrorCode());
-        response.setMessage(ErrorCode.USER_EXISTED.getMessage());
+        response.setCode(ErrorCode.UNCATEGORIZED_EXCEPTION.getErrorCode());
+        response.setMessage(exception.getMessage() != null ? exception.getMessage() : "Illegal Argument");
         return ResponseEntity.badRequest().body(response);
     }
 

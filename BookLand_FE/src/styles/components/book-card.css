@@ -12,11 +12,15 @@
   display: flex;
   flex-direction: column;
   height: 100%;
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
 }
 
 .book-card:hover {
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.13);
   border-color: #eee;
+  transform: translateY(-2px);
 }
 
 .book-card__image-wrapper {
@@ -34,6 +38,11 @@
   max-width: 100%;
   height: 180px;
   object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.book-card:hover .book-card__image {
+  transform: scale(1.04);
 }
 
 /* Badges (Top Left) */

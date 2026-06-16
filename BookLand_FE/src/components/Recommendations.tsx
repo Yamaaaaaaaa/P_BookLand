@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import '../styles/components/recommendations.css';
 import bookService from '../api/bookService';
 import type { Book } from '../types/Book';
 import { useTranslation } from 'react-i18next';
 
-const Recommendations = () => {
+const Recommendations = ({ itemLimit = 5 }: { itemLimit?: number }) => {
     const [books, setBooks] = useState<Book[]>([]);
+    const scrollRef = useRef<HTMLDivElement>(null);
     const { t } = useTranslation();
 
     useEffect(() => {
@@ -15,7 +16,7 @@ const Recommendations = () => {
                 const response = await bookService.getAllBooks({
                     pinned: true,
                     page: 0,
-                    size: 5
+                    size: itemLimit
                 });
                 if (response.result && response.result.content) {
                     setBooks(response.result.content);
@@ -26,16 +27,27 @@ const Recommendations = () => {
         };
 
         fetchRecommendations();
-    }, []);
+    }, [itemLimit]);
+
+    const scrollLeft = () => scrollRef.current?.scrollBy({ left: -300, behavior: 'smooth' });
+    const scrollRight = () => scrollRef.current?.scrollBy({ left: 300, behavior: 'smooth' });
 
     return (
         <section className="recommendations-section">
             <div className="recommendations-container">
                 <div className="recommendations-header">
-                    <h2 className="recommendations-title">{t('home.recommendations.title')}</h2>
-                    {/* Filter tabs could go here */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div className="recommendations-icon-box">
+                            <span style={{ fontSize: '20px' }}>💡</span>
+                        </div>
+                        <h2 className="recommendations-title">{t('home.recommendations.title')}</h2>
+                    </div>
                 </div>
-                <div className="recommendations-grid">
+                <div className="recommendations-grid-wrapper" style={{ position: 'relative' }}>
+                    {books.length > 5 && (
+                        <button className="nav-prev" onClick={scrollLeft}>&lt;</button>
+                    )}
+                    <div className="recommendations-grid" ref={scrollRef}>
                     {books.map((book) => (
                         <Link key={book.id} to={`/shop/book-detail/${book.id}`} className="recommend-card">
                             <div className="recommend-image-wrapper">
@@ -58,13 +70,19 @@ const Recommendations = () => {
                                 )}
                                 <div className="recommend-stats">
                                     <div className="recommend-rating">
-                                        <span className="star-filled">★★★★★</span>
+                                        {[1, 2, 3, 4, 5].map((s) => (
+                                            <span key={s} style={{ color: s <= Math.round(book.rating || 0) ? '#F69113' : '#ddd' }}>★</span>
+                                        ))}
                                     </div>
-                                    <span className="recommend-sold">| Đã bán {Math.floor(Math.random() * 100) + 1}</span>
+                                    <span className="recommend-sold">| Đã bán {book.soldCount || 0}</span>
                                 </div>
                             </div>
                         </Link>
                     ))}
+                    </div>
+                    {books.length > 5 && (
+                        <button className="nav-next" onClick={scrollRight}>&gt;</button>
+                    )}
                 </div>
 
             </div>

@@ -41,7 +41,7 @@ export const mockEvents: Event[] = [
             { id: 1, event: undefined as any, actionType: EventActionType.DISCOUNT_PERCENT, actionValue: '20' } // 20% off
         ],
         targets: [
-            { id: 1, event: undefined as any, targetType: EventTargetType.ALL_ORDERS, targetId: 0 }
+            { id: 1, event: undefined as any, targetType: EventTargetType.ALL, targetId: 0 }
         ]
     },
     {
@@ -56,7 +56,7 @@ export const mockEvents: Event[] = [
         createdBy: mockUsers[0],
         images: [image2],
         rules: [
-            { id: 2, event: undefined as any, ruleType: EventRuleType.BOOK_CATEGORY, ruleValue: '5' } // Category 5 (Tech) or similar
+            { id: 2, event: undefined as any, ruleType: EventRuleType.MIN_ORDER_VALUE, ruleValue: '150000' }
         ],
         actions: [
             { id: 2, event: undefined as any, actionType: EventActionType.DISCOUNT_AMOUNT, actionValue: '50000' } // 50k off
@@ -81,7 +81,7 @@ export const mockEvents: Event[] = [
             { id: 3, event: undefined as any, actionType: EventActionType.FREE_SHIPPING, actionValue: 'true' }
         ],
         targets: [
-             { id: 3, event: undefined as any, targetType: EventTargetType.ALL_ORDERS, targetId: 0 }
+             { id: 3, event: undefined as any, targetType: EventTargetType.ALL, targetId: 0 }
         ]
     },
     {
@@ -96,13 +96,13 @@ export const mockEvents: Event[] = [
         createdBy: mockUsers[0],
         images: [],
         rules: [
-             { id: 4, event: undefined as any, ruleType: EventRuleType.NEW_USER_ONLY, ruleValue: 'true' }
+             { id: 4, event: undefined as any, ruleType: EventRuleType.MIN_QUANTITY, ruleValue: '1' }
         ],
         actions: [
              { id: 4, event: undefined as any, actionType: EventActionType.DISCOUNT_PERCENT, actionValue: '10' }
         ],
         targets: [
-             { id: 4, event: undefined as any, targetType: EventTargetType.USER, targetId: 0 }
+             { id: 4, event: undefined as any, targetType: EventTargetType.ALL, targetId: 0 }
         ]
     }
 ];

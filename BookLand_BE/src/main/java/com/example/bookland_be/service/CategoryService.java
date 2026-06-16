@@ -26,11 +26,15 @@ public class CategoryService {
 
     @Cacheable(value = "categories")
     @Transactional(readOnly = true)
-    public PageResponse<CategoryDTO> getAllCategories(String keyword, Pageable pageable) {
+    public PageResponse<CategoryDTO> getAllCategories(String keyword, Boolean pinned, Pageable pageable) {
         Specification<Category> spec = Specification.unrestricted();
 
         if (keyword != null && !keyword.trim().isEmpty()) {
             spec = spec.and(CategorySpecification.searchByKeyword(keyword));
+        }
+        
+        if (pinned != null) {
+            spec = spec.and(CategorySpecification.isPinned(pinned));
         }
 
         return PageResponse.from(categoryRepository.findAll(spec, pageable)
@@ -55,6 +59,8 @@ public class CategoryService {
         Category category = Category.builder()
                 .name(request.getName())
                 .description(request.getDescription())
+                .pin(request.getPin() != null ? request.getPin() : false)
+                .imageUrl(request.getImageUrl())
                 .build();
 
         Category savedCategory = categoryRepository.save(category);
@@ -78,6 +84,8 @@ public class CategoryService {
 
         category.setName(request.getName());
         category.setDescription(request.getDescription());
+        category.setPin(request.getPin() != null ? request.getPin() : false);
+        category.setImageUrl(request.getImageUrl());
 
         Category updatedCategory = categoryRepository.save(category);
         return convertToDTO(updatedCategory);
@@ -105,6 +113,8 @@ public class CategoryService {
                 .id(category.getId())
                 .name(category.getName())
                 .description(category.getDescription())
+                .pin(category.getPin())
+                .imageUrl(category.getImageUrl())
                 .bookCount(category.getBooks() != null ? category.getBooks().size() : 0)
                 .build();
     }

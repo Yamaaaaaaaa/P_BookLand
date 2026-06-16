@@ -105,7 +105,7 @@ public class EventService {
     }
 
     @Transactional(readOnly = true)
-    @Cacheable(value = "events", key = "'highest-priority'")
+    @Cacheable(value = "events", key = "'highest-priority'", unless = "#result == null")
     public EventDTO getHighestPriorityEvent() {
         LocalDateTime now = LocalDateTime.now();
         Event event = eventRepository.findFirstByStatusAndStartTimeLessThanEqualAndEndTimeGreaterThanEqualOrderByPriorityDesc(
@@ -248,19 +248,7 @@ public class EventService {
                     }
                     break;
 
-                case USER:
-                    if (!userRepository.existsById(target.getTargetId())) {
-                        throw new AppException(ErrorCode.EVENT_TARGET_USER_NOT_FOUND);
-                    }
-                    break;
-
                 case ALL:
-                case ALL_ORDERS:
-                case FIRST_ORDER:
-                case NEW_USER:
-                case VIP_USER:
-                case USER_GROUP:
-                case LOCATION:
                     // Không cần validate cho các loại này
                     break;
             }
@@ -411,7 +399,7 @@ public class EventService {
 
     private void validateEventTime(LocalDateTime startTime, LocalDateTime endTime) {
         if (startTime.isAfter(endTime)) {
-            throw new RuntimeException("Start time must be before end time");
+            throw new AppException(ErrorCode.EVENT_INVALID_TIME);
         }
     }
 

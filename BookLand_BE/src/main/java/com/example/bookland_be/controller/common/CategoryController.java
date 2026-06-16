@@ -28,6 +28,7 @@ public class CategoryController {
     @Operation(summary = "Lấy danh sách danh mục", description = "Lấy danh sách danh mục có phân trang và tìm kiếm")
     public ApiResponse<PageResponse<CategoryDTO>> getAllCategories(
             @RequestParam(required = false) String keyword,
+            @RequestParam(required = false) Boolean pinned,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "id") String sortBy,
@@ -38,7 +39,7 @@ public class CategoryController {
                 : Sort.Direction.DESC;
         Pageable pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
 
-        PageResponse<CategoryDTO> categories = categoryService.getAllCategories(keyword, pageable);
+        PageResponse<CategoryDTO> categories = categoryService.getAllCategories(keyword, pinned, pageable);
         return ApiResponse.<PageResponse<CategoryDTO>>builder().result(categories).build();
     }
 

@@ -12,6 +12,9 @@ import com.example.bookland_be.exception.ErrorCode;
 import com.example.bookland_be.repository.*;
 import com.example.bookland_be.repository.specification.BillSpecification;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.Cache;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -24,6 +27,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class BillService {
 
     private final BillRepository billRepository;
@@ -35,6 +39,7 @@ public class BillService {
     private final EventApplicationService eventApplicationService;
     private final NotificationService notificationService;
     private final EmailService emailService;
+    private final CacheManager cacheManager;
 
     @Transactional(readOnly = true)
     public Page<BillDTO> getAllBills(Long userId, BillStatus status,
@@ -134,6 +139,7 @@ public class BillService {
         Event appliedEvent = null;
         Map<Long, Double> eventDiscountedPrices = new HashMap<>();
         int totalDiscountValue = 0;
+        boolean isFreeShipping = false;
 
         if (activeEventOpt.isPresent()) {
             Event event = activeEventOpt.get();
@@ -142,16 +148,47 @@ public class BillService {
             boolean isEligible = eventApplicationService.checkEventRule(event, user, tempTotalCost, totalQuantity);
             
             if (isEligible) {
+                if (eventApplicationService.hasFreeShipping(event)) {
+                    isFreeShipping = true;
+                    appliedEvent = event;
+                }
+                
                 // Áp dụng giảm giá
+                List<Book> eligibleBooks = new ArrayList<>();
+                double eligibleSubtotal = 0.0;
+                
                 for (Book book : books) {
                     if (eventApplicationService.isBookInEventTarget(event, book)) {
-                        Double originalPrice = book.getFinalPrice();
-                        Double discountedPrice = eventApplicationService.calculateDiscountedPrice(event, originalPrice);
-                        int qty = quantities.get(book.getId());
-
-                        eventDiscountedPrices.put(book.getId(), discountedPrice);
-                        totalDiscountValue += (int)((originalPrice - discountedPrice) * qty);
-                        appliedEvent = event;
+                        eligibleBooks.add(book);
+                        eligibleSubtotal += book.getFinalPrice() * quantities.get(book.getId());
+                    }
+                }
+                
+                if (!eligibleBooks.isEmpty()) {
+                    appliedEvent = event;
+                    
+                    if (eventApplicationService.isBillLevelAction(event)) {
+                        Double discountAmount = eventApplicationService.calculateBillLevelDiscountAmount(event, eligibleSubtotal);
+                        double discountRatio = eligibleSubtotal > 0 ? discountAmount / eligibleSubtotal : 0.0;
+                        
+                        for (Book book : eligibleBooks) {
+                            Double originalPrice = book.getFinalPrice();
+                            Double discountedPrice = originalPrice * (1.0 - discountRatio);
+                            int qty = quantities.get(book.getId());
+                            
+                            eventDiscountedPrices.put(book.getId(), discountedPrice);
+                            totalDiscountValue += (int)((originalPrice - discountedPrice) * qty);
+                        }
+                    } else {
+                        // Áp dụng giảm giá từng sản phẩm
+                        for (Book book : eligibleBooks) {
+                            Double originalPrice = book.getFinalPrice();
+                            Double discountedPrice = eventApplicationService.calculateDiscountedPrice(event, originalPrice);
+                            int qty = quantities.get(book.getId());
+    
+                            eventDiscountedPrices.put(book.getId(), discountedPrice);
+                            totalDiscountValue += (int)((originalPrice - discountedPrice) * qty);
+                        }
                     }
                 }
             }
@@ -164,7 +201,12 @@ public class BillService {
             finalBooksCost += price * quantities.get(book.getId());
         }
 
-        double totalCost = finalBooksCost + shippingMethod.getPrice();
+        if (isFreeShipping) {
+            totalDiscountValue += shippingMethod.getPrice();
+        }
+
+        double shippingCost = isFreeShipping ? 0.0 : shippingMethod.getPrice();
+        double totalCost = finalBooksCost + shippingCost;
 
         // 4. Lưu Bill
         Bill bill = Bill.builder()
@@ -191,14 +233,25 @@ public class BillService {
 
             billBookRepository.save(billBook);
 
-            // Giảm tồn kho
-            book.setStock(book.getStock() - qty);
-            bookRepository.save(book);
+            // Giảm tồn kho an toàn bằng Native Query (Atomic Update)
+            int updatedRows = bookRepository.deductStock(book.getId(), qty);
+            if (updatedRows == 0) {
+                // Mặc dù đã check sớm ở trên, nhưng có thể ai đó vừa mua xong ở phân số giây trước
+                throw new AppException(ErrorCode.BOOK_OUT_OF_STOCK);
+            }
         }
 
         // 6. Lưu Log
         if (appliedEvent != null) {
             eventApplicationService.logEventApplication(appliedEvent, user, savedBill, totalDiscountValue);
+        }
+
+        // Clear caches
+        try {
+            List<Long> bookIds = books.stream().map(Book::getId).collect(Collectors.toList());
+            evictBookCaches(bookIds);
+        } catch (Exception e) {
+            log.error("Error evicting caches in createBill: {}", e.getMessage());
         }
 
         return convertToDTO(savedBill);
@@ -224,10 +277,12 @@ public class BillService {
         }
 
         if (newStatus == BillStatus.CANCELED) {
+            List<Long> bookIds = new ArrayList<>();
             for (BillBook billBook : bill.getBillBooks()) {
                 try {
                     Book book = billBook.getBook();
                     if (book != null) {
+                        bookIds.add(book.getId());
                         bookRepository.findById(book.getId()).ifPresent(existingBook -> {
                             existingBook.setStock(existingBook.getStock() + billBook.getQuantity());
                             bookRepository.save(existingBook);
@@ -235,6 +290,11 @@ public class BillService {
                     }
                 } catch (Exception e) {
                 }
+            }
+            try {
+                evictBookCaches(bookIds);
+            } catch (Exception e) {
+                log.error("Error evicting caches in updateBillStatus: {}", e.getMessage());
             }
         }
 
@@ -263,6 +323,49 @@ public class BillService {
     }
 
     @Transactional
+    public BillDTO confirmDelivered(Long id, String shipperEmail) {
+        // 1. Load bill nhẹ (chỉ validate status) — không trigger lazy collection
+        Bill bill = billRepository.findById(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
+
+        if (bill.getStatus() != BillStatus.SHIPPING) {
+            throw new AppException(ErrorCode.INVALID_STATUS_TRANSITION);
+        }
+
+        Long userId = bill.getUser().getId();
+        Long shipperId = userRepository.findByEmail(shipperEmail)
+                .map(User::getId)
+                .orElse(null);
+
+        // 2. UPDATE trực tiếp bằng JPQL — tránh cascade lock của Hibernate
+        billRepository.updateStatusById(id, BillStatus.SHIPPED, LocalDateTime.now());
+
+        // 3. Re-fetch với JOIN FETCH để build DTO (không gây lazy-load bên trong transaction save)
+        Bill updatedBill = billRepository.findByIdWithBooks(id)
+                .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
+
+        // 4. Notification & Email
+        String title = "Giao hàng thành công";
+        String content = String.format("Đơn hàng #%d của bạn đã được giao thành công!", id);
+        notificationService.createNotification(userId, "BILL_STATUS", title, content, shipperId);
+
+        String emailTo = updatedBill.getUser().getEmail();
+        if (emailTo != null && !emailTo.isEmpty()) {
+            Map<String, Object> templateModel = Map.of(
+                "name", updatedBill.getUser().getUsername(),
+                "message", String.format("Đơn hàng #%d của bạn đã được giao thành công.", id),
+                "details", "Trạng thái hiện tại: SHIPPED - Đã giao",
+                "actionUrl", "http://localhost:5173",
+                "actionText", "Xem đơn hàng"
+            );
+            emailService.sendEmailWithHtmlTemplate(emailTo, title, "email-template", templateModel);
+        }
+
+        return convertToDTO(updatedBill);
+    }
+
+
+    @Transactional
     public void deleteBill(Long id) {
         Bill bill = billRepository.findById(id)
                 .orElseThrow(() -> new AppException(ErrorCode.BILL_NOT_FOUND));
@@ -271,11 +374,13 @@ public class BillService {
             throw new RuntimeException("Can only delete pending or cancelled bills");
         }
 
+        List<Long> bookIds = new ArrayList<>();
         if (bill.getStatus() == BillStatus.PENDING) {
             for (BillBook billBook : bill.getBillBooks()) {
                 try {
                     Book book = billBook.getBook();
                     if (book != null) {
+                        bookIds.add(book.getId());
                         bookRepository.findById(book.getId()).ifPresent(existingBook -> {
                             existingBook.setStock(existingBook.getStock() + billBook.getQuantity());
                             bookRepository.save(existingBook);
@@ -284,9 +389,21 @@ public class BillService {
                 } catch (Exception e) {
                 }
             }
+        } else if (bill.getStatus() == BillStatus.CANCELED) {
+            for (BillBook billBook : bill.getBillBooks()) {
+                if (billBook.getBook() != null) {
+                    bookIds.add(billBook.getBook().getId());
+                }
+            }
         }
 
         billRepository.delete(bill);
+
+        try {
+            evictBookCaches(bookIds);
+        } catch (Exception e) {
+            log.error("Error evicting caches in deleteBill: {}", e.getMessage());
+        }
     }
 
     private void validateStatusTransition(BillStatus oldStatus, BillStatus newStatus) {
@@ -322,6 +439,12 @@ public class BillService {
                 .map(this::convertBillBookToDTO)
                 .collect(Collectors.toList());
 
+        boolean hasFreeShipping = bill.getEventLogs() != null && bill.getEventLogs().stream()
+                .map(EventLog::getEvent)
+                .filter(Objects::nonNull)
+                .anyMatch(eventApplicationService::hasFreeShipping);
+        double shippingCost = hasFreeShipping ? 0.0 : bill.getShippingMethod().getPrice();
+
         return BillDTO.builder()
                 .id(bill.getId())
                 .userId(bill.getUser().getId())
@@ -330,7 +453,7 @@ public class BillService {
                 .paymentMethodName(bill.getPaymentMethod().getName())
                 .shippingMethodId(bill.getShippingMethod().getId())
                 .shippingMethodName(bill.getShippingMethod().getName())
-                .shippingCost(bill.getShippingMethod().getPrice())
+                .shippingCost(shippingCost)
                 .totalCost(bill.getTotalCost())
                 .approvedById(bill.getApprovedBy() != null ? bill.getApprovedBy().getId() : null)
                 .approvedByName(bill.getApprovedBy() != null ? bill.getApprovedBy().getUsername() : null)
@@ -355,5 +478,29 @@ public class BillService {
                 .quantity(billBook.getQuantity())
                 .subtotal(subtotal)
                 .build();
+    }
+
+    private void evictBookCaches(Collection<Long> bookIds) {
+        try {
+            Cache allBooksCache = cacheManager.getCache("all_books");
+            if (allBooksCache != null) {
+                allBooksCache.clear();
+                log.info("Evicted all_books cache");
+            }
+            Cache bestSellingCache = cacheManager.getCache("best_selling_books");
+            if (bestSellingCache != null) {
+                bestSellingCache.clear();
+                log.info("Evicted best_selling_books cache");
+            }
+            Cache booksCache = cacheManager.getCache("books");
+            if (booksCache != null && bookIds != null) {
+                for (Long bookId : bookIds) {
+                    booksCache.evict(bookId);
+                    log.info("Evicted books cache for bookId: {}", bookId);
+                }
+            }
+        } catch (Exception e) {
+            log.error("Failed to evict book caches: {}", e.getMessage(), e);
+        }
     }
 }

@@ -3,6 +3,7 @@ package com.example.bookland_be.service;
 import com.example.bookland_be.dto.BookDTO;
 import com.example.bookland_be.dto.PageResponse;
 import com.example.bookland_be.dto.request.BookRequest;
+import com.example.bookland_be.elasticsearch.service.BookSearchService;
 import com.example.bookland_be.entity.*;
 import com.example.bookland_be.entity.Book.BookStatus;
 import com.example.bookland_be.exception.AppException;
@@ -31,6 +32,7 @@ public class BookService {
     private final PublisherRepository publisherRepository;
     private final SerieRepository serieRepository;
     private final CategoryRepository categoryRepository;
+    private final BookSearchService bookSearchService;
 
     @Cacheable(value = "all_books")
     @Transactional(readOnly = true)
@@ -78,8 +80,17 @@ public class BookService {
             }
         }
 
-        return PageResponse.from(bookRepository.findBestSellingBooks(keyword, minPrice, maxPrice, startDate, categoryIds, authorIds, publisherIds, seriesIds, pageable)
-                .map(this::convertToDTO));
+        org.springframework.data.domain.Page<Object[]> results = bookRepository.findBestSellingBooks(
+                keyword, minPrice, maxPrice, startDate, categoryIds, authorIds, publisherIds, seriesIds, pageable
+        );
+
+        return PageResponse.from(results.map(row -> {
+            Book book = (Book) row[0];
+            Number soldQty = (Number) row[1];
+            BookDTO dto = convertToDTO(book);
+            dto.setSoldCount(soldQty != null ? soldQty.intValue() : 0);
+            return dto;
+        }));
     }
 
     @Cacheable(value = "books", key = "#id")
@@ -133,12 +144,14 @@ public class BookService {
                 .build();
 
         Book savedBook = bookRepository.save(book);
+        bookSearchService.indexBook(savedBook);
         return convertToDTO(savedBook);
     }
 
     @Caching(evict = {
             @CacheEvict(value = "books", key = "#id"),
-            @CacheEvict(value = "all_books", allEntries = true)
+            @CacheEvict(value = "all_books", allEntries = true),
+            @CacheEvict(value = "best_selling_books", allEntries = true)
     })
     @Transactional
     public BookDTO updateBook(Long id, BookRequest request) {
@@ -181,12 +194,14 @@ public class BookService {
         book.getCategories().addAll(categories);
 
         Book updatedBook = bookRepository.save(book);
+        bookSearchService.indexBook(updatedBook);
         return convertToDTO(updatedBook);
     }
 
     @Caching(evict = {
             @CacheEvict(value = "books", key = "#id"),
-            @CacheEvict(value = "all_books", allEntries = true)
+            @CacheEvict(value = "all_books", allEntries = true),
+            @CacheEvict(value = "best_selling_books", allEntries = true)
     })
     @Transactional
     public void deleteBook(Long id) {
@@ -198,11 +213,13 @@ public class BookService {
         }
 
         bookRepository.delete(book);
+        bookSearchService.deleteBook(id);
     }
 
     @Caching(evict = {
             @CacheEvict(value = "books", key = "#id"),
-            @CacheEvict(value = "all_books", allEntries = true)
+            @CacheEvict(value = "all_books", allEntries = true),
+            @CacheEvict(value = "best_selling_books", allEntries = true)
     })
     @Transactional
     public BookDTO updateBookStock(Long id, Integer quantity) {
@@ -211,6 +228,7 @@ public class BookService {
 
         book.setStock(quantity);
         Book updatedBook = bookRepository.save(book);
+        bookSearchService.indexBook(updatedBook);
         return convertToDTO(updatedBook);
     }
 

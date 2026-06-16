@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { useTranslation } from 'react-i18next';
 import '../../styles/components/gallery-modal.css';
 
-interface GalleryImage {
+export interface GalleryImage {
     id: string;
     name: string;
     url: string;
@@ -74,10 +74,61 @@ const GalleryModal: React.FC<GalleryModalProps> = ({
             const files = Array.from(e.target.files);
             setIsUploading(true);
             try {
-                await uploadService.uploadMultipleImages(files);
+                const response = await uploadService.uploadMultipleImages(files);
                 toast.success(t('admin.common_modal.upload_images_success'));
-                // Refresh images immediately after upload
-                setPage(0); // Go to first page to see new uploads
+                
+                // Add the newly uploaded images directly to the grid and selection
+                if (response.result && response.result.files) {
+                    const failedUploads = response.result.files.filter((f: any) => !f.success);
+                    if (failedUploads.length > 0) {
+                        failedUploads.forEach((f: any) => {
+                            toast.error(`Failed to upload ${f.fileName}: ${f.error}`);
+                            console.error(`Upload error for ${f.fileName}:`, f.error);
+                        });
+                        // If all failed, exit early
+                        if (failedUploads.length === response.result.files.length) {
+                            setIsUploading(false);
+                            e.target.value = '';
+                            return;
+                        }
+                    } else {
+                        toast.success(t('admin.common_modal.upload_images_success'));
+                    }
+
+                    const newUploadedImages: GalleryImage[] = response.result.files
+                        .filter((f: any) => f.success)
+                        .map((f: any) => ({
+                            id: f.url, // Use url as id for newly uploaded images
+                            name: f.fileName,
+                            url: f.url
+                        }));
+                    
+                    if (newUploadedImages.length > 0) {
+                        setImages(prev => {
+                            // Filter out duplicates if fetchImages happens to return them
+                            const existingIds = new Set(prev.map(img => img.id));
+                            const uniqueNew = newUploadedImages.filter(img => !existingIds.has(img.id));
+                            return [...uniqueNew, ...prev];
+                        });
+                        
+                        setSelectedImages(prev => {
+                            if (multiple) {
+                                // Add to existing selection, avoid duplicates
+                                const existingIds = new Set(prev.map(img => img.id));
+                                const uniqueNew = newUploadedImages.filter(img => !existingIds.has(img.id));
+                                return [...prev, ...uniqueNew];
+                            } else {
+                                return [newUploadedImages[0]];
+                            }
+                        });
+                    }
+                } else {
+                    toast.success(t('admin.common_modal.upload_images_success'));
+                }
+                
+                // Also trigger a refresh in background to ensure sync with server
+                // Note: fetchImages might use old 'page' state here, but that's okay
+                // since we already optimistically added the images to the grid.
                 fetchImages();
             } catch (error) {
                 console.error('Error uploading images:', error);

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { ArrowLeft, Save, Plus, Trash2, X, ImageIcon, Loader2 } from 'lucide-react';
 import GalleryModal from '../../../components/admin/GalleryModal';
+import TargetSearchSelect from '../../../components/admin/TargetSearchSelect';
 import { EventStatus } from '../../../types/Event';
 import { EventType } from '../../../types/EventType';
 import { EventRuleType } from '../../../types/EventRuleType';
@@ -9,11 +10,7 @@ import { EventTargetType } from '../../../types/EventTargetType';
 import { EventActionType } from '../../../types/EventActionType';
 import { ImageType } from '../../../types/EventImage';
 import type { EventRequest, EventPayload } from '../../../types/Event';
-import type { Category } from '../../../types/Category';
-import type { PaymentMethod } from '../../../types/PaymentMethod';
 import { eventService } from '../../../api/eventService';
-import categoryService from '../../../api/categoryService';
-import paymentMethodService from '../../../api/paymentMethodService';
 import userService from '../../../api/userService';
 import '../../../styles/components/forms.css';
 import '../../../styles/components/buttons.css';
@@ -30,13 +27,41 @@ const EventFormPage = () => {
     const [isSaving, setIsSaving] = useState(false);
 
     // Dropdown options
-    const [categories, setCategories] = useState<Category[]>([]);
-    const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
     const [isGalleryOpen, setIsGalleryOpen] = useState(false);
 
     // Auth / Creator info
     const [currentUserId, setCurrentUserId] = useState<number>(0);
     const [creatorName, setCreatorName] = useState<string>('');
+
+    // Validation errors cho actions và rules
+    const [actionErrors, setActionErrors] = useState<Record<number, string>>({});
+    const [ruleErrors, setRuleErrors] = useState<Record<number, string>>({});
+
+    /** Validate giá trị của Action Value theo loại action */
+    const validateActionValue = (actionType: EventActionType, value: string): string => {
+        if (!value || value.trim() === '') return 'Value is required.';
+        if (!/^\d+(\.\d+)?$/.test(value.trim())) return 'Must be a valid positive number (digits only).';
+        const num = parseFloat(value);
+        if (actionType === EventActionType.DISCOUNT_PERCENT || actionType === EventActionType.BILL_DISCOUNT_PERCENT) {
+            if (num <= 0 || num > 100) return 'DISCOUNT PERCENT must be in range (0, 100].';
+        } else if (actionType === EventActionType.DISCOUNT_AMOUNT || actionType === EventActionType.BILL_DISCOUNT_AMOUNT) {
+            if (num <= 0) return 'DISCOUNT AMOUNT must be > 0.';
+        }
+        return '';
+    };
+
+    /** Validate giá trị của Rule Value theo loại rule */
+    const validateRuleValue = (ruleType: EventRuleType, value: string): string => {
+        if (!value || value.trim() === '') return 'Value is required.';
+        if (!/^\d+(\.\d+)?$/.test(value.trim())) return 'Must be a valid positive number (digits only).';
+        const num = parseFloat(value);
+        if (ruleType === EventRuleType.MIN_QUANTITY || ruleType === EventRuleType.MAX_QUANTITY) {
+            if (!Number.isInteger(num) || num <= 0) return 'Quantity must be a positive integer.';
+        } else {
+            if (num <= 0) return 'Value must be > 0.';
+        }
+        return '';
+    };
 
     const [formData, setFormData] = useState<EventRequest>({
         name: '',
@@ -53,23 +78,6 @@ const EventFormPage = () => {
     });
 
     useEffect(() => {
-        const fetchOptions = async () => {
-            try {
-                const [catRes, pmRes] = await Promise.all([
-                    categoryService.getAll({ size: 100 }),
-                    paymentMethodService.getAll({ size: 100 })
-                ]);
-
-                if (catRes.result?.content) setCategories(catRes.result.content);
-                if (pmRes.result?.content) setPaymentMethods(pmRes.result.content);
-
-            } catch (error) {
-                console.error('Error fetching options:', error);
-                toast.error(t('admin.book_detail.options_fail'));
-            }
-        };
-        fetchOptions();
-
         // Fetch current user info from token
         const fetchCurrentUser = async () => {
             const token = localStorage.getItem('adminToken');
@@ -168,6 +176,26 @@ const EventFormPage = () => {
             return;
         }
 
+        // Kiểm tra toàn bộ actions và rules có lỗi không
+        const newActionErrors: Record<number, string> = {};
+        formData.actions?.forEach((action, i) => {
+            // FREE_SHIPPING không cần value
+            if (action.actionType === EventActionType.FREE_SHIPPING) return;
+            const err = validateActionValue(action.actionType as EventActionType, action.actionValue);
+            if (err) newActionErrors[i] = err;
+        });
+        const newRuleErrors: Record<number, string> = {};
+        formData.rules?.forEach((rule, i) => {
+            const err = validateRuleValue(rule.ruleType as EventRuleType, rule.ruleValue);
+            if (err) newRuleErrors[i] = err;
+        });
+        if (Object.keys(newActionErrors).length > 0 || Object.keys(newRuleErrors).length > 0) {
+            setActionErrors(newActionErrors);
+            setRuleErrors(newRuleErrors);
+            toast.error('Please fix the validation errors before saving.');
+            return;
+        }
+
         setIsSaving(true);
         try {
             // Get user ID from state (fetched on mount)
@@ -206,9 +234,11 @@ const EventFormPage = () => {
                 toast.success(t('admin.event.update_success'));
             }
             navigate('/admin/manage-business/event');
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error saving event:', error);
-            toast.error(isNew ? t('admin.event.create_fail') : t('admin.event.update_fail'));
+            const backendError = error.response?.data?.message || error.response?.data?.error || error.message;
+            const defaultMsg = isNew ? t('admin.event.create_fail') : t('admin.event.update_fail');
+            toast.error(backendError ? `${defaultMsg}: ${backendError}` : defaultMsg);
         } finally {
             setIsSaving(false);
         }
@@ -238,7 +268,7 @@ const EventFormPage = () => {
                         <ArrowLeft size={20} />
                     </Link>
                     <div>
-                        <h1 className="admin-title">{isNew ? 'Create New Event' : 'Edit Event'}</h1>
+                        <h1 className="admin-title">{isNew ? 'Tạo sự kiện mới' : 'Chỉnh sửa sự kiện'}</h1>
                     </div>
                 </div>
             </div>
@@ -246,7 +276,7 @@ const EventFormPage = () => {
             <div className="admin-content-card">
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">
-                        <label className="form-label">Event Name *</label>
+                        <label className="form-label">Tên sự kiện *</label>
                         <input
                             type="text"
                             name="name"
@@ -260,7 +290,7 @@ const EventFormPage = () => {
                     {/* Creator Display */}
                     <div className="form-group">
                         <label className="form-label" style={{ color: 'var(--shop-text-muted)', fontSize: '0.85rem' }}>
-                            Created/Modified By
+                            Người tạo/Cập nhật
                         </label>
                         <div style={{ padding: '0.5rem', background: '#f3f4f6', borderRadius: '4px', color: '#374151' }}>
                             {creatorName || 'Loading...'}
@@ -269,7 +299,7 @@ const EventFormPage = () => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label className="form-label">Event Type</label>
+                            <label className="form-label">Loại sự kiện</label>
                             <select
                                 name="type"
                                 className="form-select"
@@ -283,7 +313,7 @@ const EventFormPage = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">Status</label>
+                            <label className="form-label">Trạng thái</label>
                             <select
                                 name="status"
                                 className="form-select"
@@ -299,7 +329,7 @@ const EventFormPage = () => {
 
                     <div className="form-row">
                         <div className="form-group">
-                            <label className="form-label">Start Time *</label>
+                            <label className="form-label">Thời gian bắt đầu *</label>
                             <input
                                 type="datetime-local"
                                 name="startTime"
@@ -311,7 +341,7 @@ const EventFormPage = () => {
                         </div>
 
                         <div className="form-group">
-                            <label className="form-label">End Time *</label>
+                            <label className="form-label">Thời gian kết thúc *</label>
                             <input
                                 type="datetime-local"
                                 name="endTime"
@@ -324,7 +354,7 @@ const EventFormPage = () => {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Priority (Higher runs first)</label>
+                        <label className="form-label">Độ ưu tiên (Càng cao càng ưu tiên)</label>
                         <input
                             type="number"
                             name="priority"
@@ -336,7 +366,7 @@ const EventFormPage = () => {
                     </div>
 
                     <div className="form-group">
-                        <label className="form-label">Description</label>
+                        <label className="form-label">Mô tả</label>
                         <textarea
                             name="description"
                             className="form-textarea"
@@ -349,10 +379,9 @@ const EventFormPage = () => {
                     {/* Images Section */}
                     <div className="form-section">
                         <div className="section-header">
-                            <h3 className="section-title">Event Images</h3>
-                            <h3 className="section-title">Event Images</h3>
+                            <h3 className="section-title">Hình ảnh sự kiện</h3>
                             <button type="button" className="btn-secondary" onClick={() => setIsGalleryOpen(true)}>
-                                <ImageIcon size={16} /> Select from Gallery
+                                <ImageIcon size={16} /> Chọn từ thư viện
                             </button>
                             <div style={{ display: 'none' }}>
                                 {/* Hidden inputs or other controls if needed */}
@@ -384,12 +413,12 @@ const EventFormPage = () => {
                                         {img.imageUrl ? (
                                             <img src={img.imageUrl} alt="Event" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                         ) : (
-                                            <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>No Image</span>
+                                            <span style={{ color: '#9ca3af', fontSize: '0.8rem' }}>Không có ảnh</span>
                                         )}
                                     </div>
 
                                     <div className="form-group" style={{ marginBottom: '0.5rem' }}>
-                                        <label className="form-label" style={{ fontSize: '0.8rem' }}>URL</label>
+                                        <label className="form-label" style={{ fontSize: '0.8rem' }}>Đường dẫn</label>
                                         <input
                                             type="text"
                                             className="form-input"
@@ -404,7 +433,7 @@ const EventFormPage = () => {
                                     </div>
 
                                     <div className="form-group" style={{ marginBottom: 0 }}>
-                                        <label className="form-label" style={{ fontSize: '0.8rem' }}>Type</label>
+                                        <label className="form-label" style={{ fontSize: '0.8rem' }}>Loại</label>
                                         <select
                                             className="form-select"
                                             value={img.imageType}
@@ -430,7 +459,7 @@ const EventFormPage = () => {
                     {/* REUSING PREVIOUS LOGIC FOR RULES */}
                     <div className="form-section">
                         <div className="section-header">
-                            <h3 className="section-title">Event Rules</h3>
+                            <h3 className="section-title">Quy tắc sự kiện</h3>
                             {(!formData.rules || formData.rules.length === 0) && (
                                 <button type="button" className="btn-secondary" onClick={() => {
                                     setFormData(prev => ({
@@ -438,14 +467,14 @@ const EventFormPage = () => {
                                         rules: [...(prev.rules || []), { ruleType: EventRuleType.MIN_ORDER_VALUE, ruleValue: '' }]
                                     }));
                                 }}>
-                                    <Plus size={16} /> Add Rule
+                                    <Plus size={16} /> Thêm quy tắc
                                 </button>
                             )}
                         </div>
                         {formData.rules?.map((rule, index) => (
                             <div key={index} className="dynamic-row">
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Rule Type</label>
+                                    <label className="form-label">Loại quy tắc</label>
                                     <select
                                         className="form-select"
                                         value={rule.ruleType}
@@ -455,127 +484,37 @@ const EventFormPage = () => {
                                             setFormData(prev => ({ ...prev, rules: newRules }));
                                         }}
                                     >
-                                        {Object.values(EventRuleType).map(type => (
-                                            <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>
-                                        ))}
+                                        <option value={EventRuleType.MIN_ORDER_VALUE}>Giá trị đơn tối thiểu (VNĐ)</option>
+                                        <option value={EventRuleType.MAX_ORDER_VALUE}>Giá trị đơn tối đa (VNĐ)</option>
+                                        <option value={EventRuleType.MIN_QUANTITY}>Số lượng sản phẩm tối thiểu</option>
+                                        <option value={EventRuleType.MAX_QUANTITY}>Số lượng sản phẩm tối đa</option>
                                     </select>
                                 </div>
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Value</label>
-                                    {(() => {
-                                        const handleValueChange = (val: string) => {
+                                    <label className="form-label">Giá trị</label>
+                                    <input
+                                        type="number"
+                                        className={`form-input${ruleErrors[index] ? ' input-error' : ''}`}
+                                        value={rule.ruleValue}
+                                        placeholder={
+                                            rule.ruleType === EventRuleType.MIN_QUANTITY || rule.ruleType === EventRuleType.MAX_QUANTITY
+                                                ? 'Số nguyên > 0'
+                                                : 'Số tiền > 0 (VND)'
+                                        }
+                                        min="1"
+                                        step={rule.ruleType === EventRuleType.MIN_QUANTITY || rule.ruleType === EventRuleType.MAX_QUANTITY ? '1' : 'any'}
+                                        onChange={(e) => {
                                             const newRules = [...(formData.rules || [])];
-                                            newRules[index].ruleValue = val;
+                                            newRules[index].ruleValue = e.target.value;
                                             setFormData(prev => ({ ...prev, rules: newRules }));
-                                        };
-
-                                        // Date Types
-                                        if (([
-                                            EventRuleType.USER_REGISTERED_BEFORE,
-                                            EventRuleType.USER_REGISTERED_AFTER,
-                                            EventRuleType.BOOK_PUBLISHED_AFTER
-                                        ] as EventRuleType[]).includes(rule.ruleType)) {
-                                            return (
-                                                <input
-                                                    type="date"
-                                                    className="form-input"
-                                                    value={rule.ruleValue}
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                />
-                                            );
-                                        }
-
-                                        // Numeric Types
-                                        if (([
-                                            EventRuleType.MIN_ORDER_VALUE,
-                                            EventRuleType.MAX_ORDER_VALUE,
-                                            EventRuleType.MIN_QUANTITY,
-                                            EventRuleType.MAX_QUANTITY,
-                                            EventRuleType.EXACT_QUANTITY,
-                                            EventRuleType.MIN_ITEMS_IN_CART,
-                                            EventRuleType.MAX_USAGE_PER_USER,
-                                            EventRuleType.MAX_USAGE_TOTAL,
-                                            EventRuleType.MAX_USAGE_PER_DAY,
-                                            EventRuleType.TOTAL_SPENT_MIN,
-                                            EventRuleType.BOOK_PRICE_MIN
-                                        ] as EventRuleType[]).includes(rule.ruleType)) {
-                                            return (
-                                                <input
-                                                    type="number"
-                                                    className="form-input"
-                                                    value={rule.ruleValue}
-                                                    placeholder="0"
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                />
-                                            );
-                                        }
-
-                                        // Boolean / Toggle Types
-                                        if (([
-                                            EventRuleType.NEW_USER_ONLY,
-                                            EventRuleType.FIRST_PURCHASE,
-                                            EventRuleType.PURCHASED_BEFORE,
-                                            EventRuleType.ONLINE_PAYMENT_ONLY,
-                                            EventRuleType.IN_STOCK_ONLY,
-                                            EventRuleType.EXCLUDE_SALE_ITEMS,
-                                            EventRuleType.NEWSLETTER_SUBSCRIBED
-                                        ] as EventRuleType[]).includes(rule.ruleType)) {
-                                            return (
-                                                <select
-                                                    className="form-select"
-                                                    value={rule.ruleValue}
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                >
-                                                    <option value="">Select...</option>
-                                                    <option value="true">True</option>
-                                                    <option value="false">False</option>
-                                                </select>
-                                            );
-                                        }
-
-                                        // Payment Method Select
-                                        if (rule.ruleType === EventRuleType.PAYMENT_METHOD) {
-                                            return (
-                                                <select
-                                                    className="form-select"
-                                                    value={rule.ruleValue}
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                >
-                                                    <option value="">Select Payment Method...</option>
-                                                    {paymentMethods.map(pm => (
-                                                        <option key={pm.id} value={pm.name}>{pm.name}</option>
-                                                    ))}
-                                                </select>
-                                            );
-                                        }
-
-                                        // Category Select
-                                        if (rule.ruleType === EventRuleType.BOOK_CATEGORY || rule.ruleType === EventRuleType.MUST_INCLUDE_CATEGORY) {
-                                            return (
-                                                <select
-                                                    className="form-select"
-                                                    value={rule.ruleValue}
-                                                    onChange={(e) => handleValueChange(e.target.value)}
-                                                >
-                                                    <option value="">Select Category...</option>
-                                                    {categories.map(cat => (
-                                                        <option key={cat.id} value={cat.id.toString()}>{cat.name}</option>
-                                                    ))}
-                                                </select>
-                                            );
-                                        }
-
-                                        // Default Text Input
-                                        return (
-                                            <input
-                                                type="text"
-                                                className="form-input"
-                                                value={rule.ruleValue}
-                                                placeholder="Value"
-                                                onChange={(e) => handleValueChange(e.target.value)}
-                                            />
-                                        );
-                                    })()}
+                                            // Real-time validate
+                                            const err = validateRuleValue(rule.ruleType as EventRuleType, e.target.value);
+                                            setRuleErrors(prev => ({ ...prev, [index]: err }));
+                                        }}
+                                    />
+                                    {ruleErrors[index] && (
+                                        <span className="field-error-msg">{ruleErrors[index]}</span>
+                                    )}
                                 </div>
                                 <button
                                     type="button"
@@ -591,51 +530,54 @@ const EventFormPage = () => {
                             </div>
                         ))}
                         {(!formData.rules || formData.rules.length === 0) && (
-                            <p className="empty-text">No rules configured.</p>
+                            <p className="empty-text">Chưa có quy tắc nào được cấu hình.</p>
                         )}
                     </div>
 
                     {/* Targets Section */}
                     <div className="form-section">
                         <div className="section-header">
-                            <h3 className="section-title">Event Targets</h3>
+                            <h3 className="section-title">Đối tượng áp dụng</h3>
                             <button type="button" className="btn-secondary" onClick={() => {
                                 setFormData(prev => ({
                                     ...prev,
                                     targets: [...(prev.targets || []), { targetType: EventTargetType.CATEGORY, targetId: 0 }]
                                 }));
                             }}>
-                                <Plus size={16} /> Add Target
+                                <Plus size={16} /> Thêm đối tượng
                             </button>
                         </div>
                         {formData.targets?.map((target, index) => (
                             <div key={index} className="dynamic-row">
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Target Type</label>
+                                    <label className="form-label">Loại đối tượng</label>
                                     <select
                                         className="form-select"
                                         value={target.targetType}
                                         onChange={(e) => {
                                             const newTargets = [...(formData.targets || [])];
                                             newTargets[index].targetType = e.target.value as any;
+                                            newTargets[index].targetId = 0; // reset ID khi đổi type
                                             setFormData(prev => ({ ...prev, targets: newTargets }));
+                                            // label tự reset trong TargetSearchSelect
                                         }}
                                     >
-                                        {Object.values(EventTargetType).map(type => (
-                                            <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>
-                                        ))}
+                                        <option value={EventTargetType.BOOK}>Sách cụ thể</option>
+                                        <option value={EventTargetType.CATEGORY}>Danh mục</option>
+                                        <option value={EventTargetType.SERIES}>Series</option>
+                                        <option value={EventTargetType.AUTHOR}>Tác giả</option>
+                                        <option value={EventTargetType.PUBLISHER}>Nhà xuất bản</option>
+                                        <option value={EventTargetType.ALL}>Tất cả</option>
                                     </select>
                                 </div>
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Target ID</label>
-                                    <input
-                                        type="number"
-                                        className="form-input"
-                                        value={target.targetId}
-                                        placeholder="ID (e.g. Category ID)"
-                                        onChange={(e) => {
+                                    <label className="form-label">Đối tượng</label>
+                                    <TargetSearchSelect
+                                        targetType={target.targetType as EventTargetType}
+                                        selectedId={target.targetId}
+                                        onSelect={(id) => {
                                             const newTargets = [...(formData.targets || [])];
-                                            newTargets[index].targetId = parseInt(e.target.value) || 0;
+                                            newTargets[index].targetId = id;
                                             setFormData(prev => ({ ...prev, targets: newTargets }));
                                         }}
                                     />
@@ -654,14 +596,14 @@ const EventFormPage = () => {
                             </div>
                         ))}
                         {(!formData.targets || formData.targets.length === 0) && (
-                            <p className="empty-text">No targets configured.</p>
+                            <p className="empty-text">Chưa có đối tượng nào được cấu hình.</p>
                         )}
                     </div>
 
                     {/* Actions Section */}
                     <div className="form-section">
                         <div className="section-header">
-                            <h3 className="section-title">Event Actions</h3>
+                            <h3 className="section-title">Hành động (Khuyến mãi)</h3>
                             {(!formData.actions || formData.actions.length === 0) && (
                                 <button type="button" className="btn-secondary" onClick={() => {
                                     setFormData(prev => ({
@@ -669,14 +611,14 @@ const EventFormPage = () => {
                                         actions: [...(prev.actions || []), { actionType: EventActionType.DISCOUNT_PERCENT, actionValue: '' }]
                                     }));
                                 }}>
-                                    <Plus size={16} /> Add Action
+                                    <Plus size={16} /> Thêm hành động
                                 </button>
                             )}
                         </div>
                         {formData.actions?.map((action, index) => (
                             <div key={index} className="dynamic-row">
                                 <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Action Type</label>
+                                    <label className="form-label">Loại hành động</label>
                                     <select
                                         className="form-select"
                                         value={action.actionType}
@@ -686,25 +628,48 @@ const EventFormPage = () => {
                                             setFormData(prev => ({ ...prev, actions: newActions }));
                                         }}
                                     >
-                                        {Object.values(EventActionType).map(type => (
-                                            <option key={type} value={type}>{type.replace(/_/g, ' ')}</option>
-                                        ))}
+                                        <option value={EventActionType.DISCOUNT_PERCENT}>Giảm theo % (Từng SP)</option>
+                                        <option value={EventActionType.DISCOUNT_AMOUNT}>Giảm số tiền (Từng SP)</option>
+                                        <option value={EventActionType.BILL_DISCOUNT_PERCENT}>Giảm theo % (Tổng hóa đơn nhóm)</option>
+                                        <option value={EventActionType.BILL_DISCOUNT_AMOUNT}>Giảm số tiền (Tổng hóa đơn nhóm)</option>
+                                        <option value={EventActionType.FREE_SHIPPING}>Miễn phí vận chuyển</option>
                                     </select>
+                                    {(action.actionType === EventActionType.BILL_DISCOUNT_AMOUNT || action.actionType === EventActionType.BILL_DISCOUNT_PERCENT) && (
+                                        <div style={{ marginTop: '0.5rem', fontSize: '0.8rem', color: '#047857', background: '#d1fae5', padding: '0.5rem', borderRadius: '4px' }}>
+                                            💡 Mẹo: Tổng số tiền giảm sẽ được phân bổ đều lên các sản phẩm thỏa mãn Đối tượng (Targets).
+                                        </div>
+                                    )}
                                 </div>
-                                <div className="form-group" style={{ flex: 1 }}>
-                                    <label className="form-label">Value</label>
-                                    <input
-                                        type="text"
-                                        className="form-input"
-                                        value={action.actionValue}
-                                        placeholder="e.g. 10 (for 10%)"
-                                        onChange={(e) => {
-                                            const newActions = [...(formData.actions || [])];
-                                            newActions[index].actionValue = e.target.value;
-                                            setFormData(prev => ({ ...prev, actions: newActions }));
-                                        }}
-                                    />
-                                </div>
+                                {/* FREE_SHIPPING không cần value */}
+                                {action.actionType !== EventActionType.FREE_SHIPPING && (
+                                    <div className="form-group" style={{ flex: 1 }}>
+                                        <label className="form-label">Giá trị</label>
+                                        <input
+                                            type="number"
+                                            className={`form-input${actionErrors[index] ? ' input-error' : ''}`}
+                                            value={action.actionValue}
+                                            placeholder={
+                                                (action.actionType === EventActionType.DISCOUNT_PERCENT || action.actionType === EventActionType.BILL_DISCOUNT_PERCENT)
+                                                    ? '1 – 100 (%)'
+                                                    : 'Số tiền > 0 (VND)'
+                                            }
+                                            min="0.01"
+                                            max={(action.actionType === EventActionType.DISCOUNT_PERCENT || action.actionType === EventActionType.BILL_DISCOUNT_PERCENT) ? '100' : undefined}
+                                            step="any"
+                                            onChange={(e) => {
+                                                const newActions = [...(formData.actions || [])];
+                                                newActions[index].actionValue = e.target.value;
+                                                setFormData(prev => ({ ...prev, actions: newActions }));
+                                                // Real-time validate
+                                                const err = validateActionValue(action.actionType as EventActionType, e.target.value);
+                                                setActionErrors(prev => ({ ...prev, [index]: err }));
+                                            }}
+                                        />
+                                        {actionErrors[index] && (
+                                            <span className="field-error-msg">{actionErrors[index]}</span>
+                                        )}
+                                    </div>
+                                )}
                                 <button
                                     type="button"
                                     className="btn-icon delete"
@@ -719,18 +684,18 @@ const EventFormPage = () => {
                             </div>
                         ))}
                         {(!formData.actions || formData.actions.length === 0) && (
-                            <p className="empty-text">No actions configured.</p>
+                            <p className="empty-text">Chưa có hành động nào được cấu hình.</p>
                         )}
                     </div>
 
                     <div className="form-actions">
                         <button type="button" className="btn-secondary" onClick={() => navigate('/admin/manage-business/event')}>
-                            Cancel
+                            Hủy
                         </button>
 
                         <button type="submit" className="btn-primary" disabled={isSaving}>
                             {isSaving ? <Loader2 className="animate-spin" size={18} /> : <Save size={18} />}
-                            {isSaving ? 'Saving...' : 'Save Changes'}
+                            {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
                         </button>
                     </div>
                 </form>
@@ -740,7 +705,7 @@ const EventFormPage = () => {
                 onClose={() => setIsGalleryOpen(false)}
                 onSelect={handleGallerySelect}
                 multiple={true}
-                title="Select Event Images"
+                title="Chọn hình ảnh sự kiện"
             />
         </div>
     );

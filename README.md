@@ -40,6 +40,12 @@ git clone
 docker-compose build
 
 docker-compose up -d
+
+# Khởi động lại toàn bộ hệ thống và rebuild backend:
+docker-compose up -d --build
+
+# Xóa sạch các container và database cũ
+docker-compose down -v
 ```
 
 ## Run without Docker: 
@@ -67,29 +73,29 @@ npm run dev
 ## System Architecture Diagrams
 
 ### 1. System Context Overview
-![System Context](sys_structure.png)
+![System Context](images/sys_structure.png)
 
 ### 2. Database Entity Diagram (UML Class Diagram)
-![Database Entity Diagram](datamodel.png)
+![Database Entity Diagram](images/datamodel.png)
 
 ### 3. WebSocket & Real-time Flow
-![WebSocket Flow](websocket.png)
+![WebSocket Flow](images/websocket.png)
 
 ### 4. VNPay Payment Flow
-![VNPay Payment Flow](vnpay.png)
+![VNPay Payment Flow](images/vnpay.png)
 
 ---
 
 ### 5. Order Lifecycle (Bill Lifecycle)
 
 #### 5.1 Sequence Diagram — Create Order
-![Create Order](create_bill.png)
+![Create Order](images/create_bill.png)
 
 #### 5.2 Sequence Diagram — Review & Process Order (Admin/Staff)
-![Approve Order](approve_bill.png)
+![Approve Order](images/approve_bill.png)
 
 #### 5.3 State Diagram — Order Lifecycle
-![Order State Diagram](state_bill.png)
+![Order State Diagram](images/state_bill.png)
 
 > **Business Rules:**
 > - Every status change triggers a **real-time Notification** via WebSocket to the customer
@@ -99,9 +105,9 @@ npm run dev
 
 
 ## DEMO: 
-![alt text](demo.png)
-![alt text](demo-1.png)
-![alt text](demo-2.png)
-![alt text](demo-3.png)
-![alt text](demo-4.png)
-![alt text](demo-5.png)
+![alt text](images/demo.png)
+![alt text](images/demo-1.png)
+![alt text](images/demo-2.png)
+![alt text](images/demo-3.png)
+![alt text](images/demo-4.png)
+![alt text](images/demo-5.png)
